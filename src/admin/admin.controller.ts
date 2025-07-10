@@ -20,28 +20,29 @@ export class AdminController {
     return this.adminsService.getAdmins(page, limit);
   }
 
-  @Get(':id')
+  @Get('/:id')
   getAdminById(@Param('id') id: string): Admin | null {
-    return this.adminsService.getAdminById(id);
+    return this.adminsService.getAdminById(parseInt(id));
   }
 
   @Post()
   createAdmin(@Body() admin: Admin): Admin {
+    console.log('Creating admin:', admin);
     return this.adminsService.createAdmin(admin);
   }
 
   @Put(':id')
   updateAdmin(@Param('id') id: string, @Body() admin: Admin) {
-    return this.adminsService.updateAdmin(id, admin);
+    return this.adminsService.updateAdmin(parseInt(id), admin);
   }
 
   @Delete(':id')
   deleteAdmin(@Param('id') id: string) {
-    return this.adminsService.deleteAdmin(id);
+    return this.adminsService.deleteAdmin(parseInt(id));
   }
 
   @Patch(':id')
   patchAdmin(@Param('id') id: string, @Body() partialAdmin: Partial<Admin>) {
-    return this.adminsService.patchAdmin(id, partialAdmin);
+    return this.adminsService.patchAdmin(parseInt(id), partialAdmin);
   }
 }

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
 export interface Admin {
-  id: string;
+  id: number;
   name: string;
   age: number;
 }
@@ -9,8 +9,8 @@ export interface Admin {
 @Injectable()
 export class AdminService {
   private admins: Admin[] = [
-    { id: '1', name: 'Admin 1', age: 30 },
-    { id: '2', name: 'Admin 2', age: 25 },
+    { id: 1, name: 'Admin 1', age: 30 },
+    { id: 2, name: 'Admin 2', age: 25 },
   ];
 
   getAdmins(page?: number, limit?: number): Admin[] {
@@ -22,17 +22,17 @@ export class AdminService {
     return this.admins;
   }
 
-  getAdminById(id: string): Admin | null {
+  getAdminById(id: number): Admin | null {
     return this.admins.find((admin) => admin.id === id) || null;
   }
 
   createAdmin(admin: Admin): Admin {
-    const newAdmin = { ...admin, id: Date.now().toString() };
+    const newAdmin = { ...admin, id: this.admins.length + 1 };
     this.admins.push(newAdmin);
     return newAdmin;
   }
 
-  updateAdmin(id: string, admin: Admin): Admin | null {
+  updateAdmin(id: number, admin: Admin): Admin | null {
     const index = this.admins.findIndex((a) => a.id === id);
     if (index !== -1) {
       this.admins[index] = { ...admin, id };
@@ -41,7 +41,7 @@ export class AdminService {
     return null;
   }
 
-  deleteAdmin(id: string): { message: string } {
+  deleteAdmin(id: number): { message: string } {
     const index = this.admins.findIndex((admin) => admin.id === id);
     if (index !== -1) {
       this.admins.splice(index, 1);
@@ -50,7 +50,7 @@ export class AdminService {
     return { message: `Administrador con ID ${id} no encontrado` };
   }
 
-  patchAdmin(id: string, partialAdmin: Partial<Admin>): Admin | null {
+  patchAdmin(id: number, partialAdmin: Partial<Admin>): Admin | null {
     const index = this.admins.findIndex((admin) => admin.id === id);
     if (index !== -1) {
       this.admins[index] = { ...this.admins[index], ...partialAdmin };
