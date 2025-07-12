@@ -9,8 +9,8 @@ import {
   Put,
   Query,
 } from '@nestjs/common';
-import { AdminService, Admin } from './admin.service';
-
+import { AdminService } from './admin.service';
+import { Admin } from './dto/create-admin.dto';
 @Controller('/admins')
 export class AdminController {
   constructor(private adminsService: AdminService) {}

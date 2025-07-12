@@ -1,11 +1,5 @@
 import { Injectable, ConflictException } from '@nestjs/common';
-
-export interface Admin {
-  id: number;
-  name: string;
-  age: number;
-}
-
+import { Admin } from './dto/create-admin.dto';
 @Injectable()
 export class AdminService {
   private admins: Admin[] = [
