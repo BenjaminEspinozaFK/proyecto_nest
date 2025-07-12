@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, ConflictException } from '@nestjs/common';
 
 export interface Admin {
   id: number;
@@ -23,10 +23,28 @@ export class AdminService {
   }
 
   getAdminById(id: number): Admin | null {
-    return this.admins.find((admin) => admin.id === id) || null;
+    const adminFound = this.admins.find((admin) => admin.id === id);
+    //Si admin es null, lanza un error
+    if (!adminFound) {
+      throw new ConflictException(`Administrador con ID ${id} no encontrado`);
+    }
+    return adminFound;
   }
 
   createAdmin(admin: Admin): Admin {
+    // Busca si ya existe un administrador con el mismo ID o nombre
+    const adminExists = this.admins.find(
+      (existingAdmin) =>
+        existingAdmin.id === admin.id || existingAdmin.name === admin.name,
+    );
+
+    // Si se encuentra un admin, lanza una excepción
+    if (adminExists) {
+      throw new ConflictException(
+        `Administrador con ID ${admin.id} o nombre ${admin.name} ya existe`,
+      );
+    }
+
     const newAdmin = { ...admin, id: this.admins.length + 1 };
     this.admins.push(newAdmin);
     return newAdmin;
