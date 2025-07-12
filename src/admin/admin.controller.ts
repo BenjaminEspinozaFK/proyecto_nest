@@ -10,7 +10,8 @@ import {
   Query,
 } from '@nestjs/common';
 import { AdminService } from './admin.service';
-import { Admin } from './dto/create-admin.dto';
+import { CreateAdminDto } from './dto/create-admin.dto';
+import { UpdateAdminDto } from './dto/update-admin.dto';
 @Controller('/admins')
 export class AdminController {
   constructor(private adminsService: AdminService) {}
@@ -21,18 +22,18 @@ export class AdminController {
   }
 
   @Get('/:id')
-  getAdminById(@Param('id') id: string): Admin | null {
+  getAdminById(@Param('id') id: string): CreateAdminDto | null {
     return this.adminsService.getAdminById(parseInt(id));
   }
 
   @Post()
-  createAdmin(@Body() admin: Admin): Admin {
+  createAdmin(@Body() admin: CreateAdminDto): CreateAdminDto {
     console.log('Creating admin:', admin);
     return this.adminsService.createAdmin(admin);
   }
 
   @Put(':id')
-  updateAdmin(@Param('id') id: string, @Body() admin: Admin) {
+  updateAdmin(@Param('id') id: string, @Body() admin: UpdateAdminDto) {
     return this.adminsService.updateAdmin(parseInt(id), admin);
   }
 
@@ -42,7 +43,10 @@ export class AdminController {
   }
 
   @Patch(':id')
-  patchAdmin(@Param('id') id: string, @Body() partialAdmin: Partial<Admin>) {
+  patchAdmin(
+    @Param('id') id: string,
+    @Body() partialAdmin: Partial<UpdateAdminDto>,
+  ) {
     return this.adminsService.patchAdmin(parseInt(id), partialAdmin);
   }
 }

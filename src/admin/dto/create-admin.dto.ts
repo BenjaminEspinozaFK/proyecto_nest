@@ -1,5 +1,4 @@
-export interface Admin {
-  id: number;
+export interface CreateAdminDto {
   name: string;
   age: number;
 }

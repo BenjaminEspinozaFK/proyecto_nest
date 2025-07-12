@@ -1,5 +1,13 @@
 import { Injectable, ConflictException } from '@nestjs/common';
-import { Admin } from './dto/create-admin.dto';
+import { CreateAdminDto } from './dto/create-admin.dto';
+import { UpdateAdminDto } from './dto/update-admin.dto';
+
+export interface Admin {
+  id: number;
+  name: string;
+  age: number;
+}
+
 @Injectable()
 export class AdminService {
   private admins: Admin[] = [
@@ -25,29 +33,39 @@ export class AdminService {
     return adminFound;
   }
 
-  createAdmin(admin: Admin): Admin {
-    // Busca si ya existe un administrador con el mismo ID o nombre
+  createAdmin(admin: CreateAdminDto): Admin {
+    // Busca si ya existe un administrador con el mismo nombre
     const adminExists = this.admins.find(
-      (existingAdmin) =>
-        existingAdmin.id === admin.id || existingAdmin.name === admin.name,
+      (existingAdmin) => existingAdmin.name === admin.name,
     );
 
     // Si se encuentra un admin, lanza una excepción
     if (adminExists) {
       throw new ConflictException(
-        `Administrador con ID ${admin.id} o nombre ${admin.name} ya existe`,
+        `Administrador con nombre ${admin.name} ya existe`,
       );
     }
 
-    const newAdmin = { ...admin, id: this.admins.length + 1 };
+    // Generar nuevo ID
+    const newId =
+      this.admins.length > 0
+        ? Math.max(...this.admins.map((a) => a.id)) + 1
+        : 1;
+
+    const newAdmin: Admin = { ...admin, id: newId };
     this.admins.push(newAdmin);
     return newAdmin;
   }
 
-  updateAdmin(id: number, admin: Admin): Admin | null {
+  updateAdmin(id: number, admin: UpdateAdminDto): Admin | null {
     const index = this.admins.findIndex((a) => a.id === id);
     if (index !== -1) {
-      this.admins[index] = { ...admin, id };
+      // Mantener los valores existentes para campos opcionales
+      this.admins[index] = {
+        ...this.admins[index],
+        ...admin,
+        id,
+      };
       return this.admins[index];
     }
     return null;
@@ -62,12 +80,21 @@ export class AdminService {
     return { message: `Administrador con ID ${id} no encontrado` };
   }
 
-  patchAdmin(id: number, partialAdmin: Partial<Admin>): Admin | null {
+  patchAdmin(id: number, partialAdmin: Partial<UpdateAdminDto>): Admin | null {
     const index = this.admins.findIndex((admin) => admin.id === id);
     if (index !== -1) {
       this.admins[index] = { ...this.admins[index], ...partialAdmin };
       return this.admins[index];
     }
     return null;
+  }
+
+  // Métodos para seeding
+  seedAdmin(admin: Admin): void {
+    this.admins.push(admin);
+  }
+
+  clearAdmins(): void {
+    this.admins = [];
   }
 }
