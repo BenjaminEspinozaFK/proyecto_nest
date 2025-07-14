@@ -21,7 +21,7 @@ export class AdminController {
     return this.adminsService.getAdmins(page, limit);
   }
 
-  @Get('/:id')
+  @Get(':id')
   getAdminById(@Param('id') id: string): CreateAdminDto | null {
     return this.adminsService.getAdminById(parseInt(id));
   }
