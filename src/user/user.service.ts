@@ -26,7 +26,7 @@ export class UsersService {
     return userFound;
   }
 
-  createUser(user: CreateUserDto): User {
+  createUser(user: CreateUserDto) {
     // Verificar si ya existe un usuario con el mismo email
     const userExists = this.users.find(
       (existingUser) => existingUser.email === user.email,
