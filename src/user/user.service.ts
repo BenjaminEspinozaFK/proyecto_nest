@@ -1,17 +1,32 @@
 import { Injectable, ConflictException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateAdminDto } from 'src/admin/dto/update-admin.dto';
 
 export interface User {
   id: number;
   name: string;
   email: string;
+  password: string;
+  age?: number;
 }
 
 @Injectable()
 export class UsersService {
   private users: User[] = [
-    { id: 1, name: 'User 1', email: 'user1@example.com' },
-    { id: 2, name: 'User 2', email: 'user2@example.com' },
+    {
+      id: 1,
+      name: 'User 1',
+      email: 'user1@example.com',
+      password: 'password1',
+      age: 25,
+    },
+    {
+      id: 2,
+      name: 'User 2',
+      email: 'user2@example.com',
+      password: 'password2',
+      age: 30,
+    },
   ];
 
   getUsers(): User[] {
@@ -43,6 +58,16 @@ export class UsersService {
     const newUser: User = { ...user, id: newId };
     this.users.push(newUser);
     return newUser;
+  }
+
+  updateUser(id: number, userData: Partial<UpdateAdminDto>) {
+    const userIndex = this.users.findIndex((user) => user.id === id);
+    if (userIndex === -1) {
+      throw new ConflictException(`Usuario con ID ${id} no encontrado`);
+    }
+    const updatedUser = { ...this.users[userIndex], ...userData };
+    this.users[userIndex] = updatedUser;
+    return updatedUser;
   }
 
   deleteUser(id: number): { message: string } {
