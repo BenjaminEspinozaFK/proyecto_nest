@@ -1,9 +1,26 @@
-import { Module } from '@nestjs/common';
+import {
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+  RequestMethod,
+} from '@nestjs/common';
 import { AdminController } from './admin.controller';
 import { AdminService } from './admin.service';
-
+import { LoggerMiddleware } from 'src/user/logger/logger.middleware';
+import { AuthMiddleware } from 'src/user/auth/auth.middleware';
 @Module({
   controllers: [AdminController],
   providers: [AdminService],
 })
-export class AdminModule {}
+export class AdminModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(LoggerMiddleware)
+      .forRoutes(
+        { path: 'admins', method: RequestMethod.GET },
+        { path: 'admins', method: RequestMethod.POST },
+      )
+      .apply(AuthMiddleware)
+      .forRoutes('admins');
+  }
+}
