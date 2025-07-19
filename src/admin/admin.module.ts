@@ -8,9 +8,11 @@ import { AdminController } from './admin.controller';
 import { AdminService } from './admin.service';
 import { LoggerMiddleware } from 'src/user/logger/logger.middleware';
 import { AuthMiddleware } from 'src/user/auth/auth.middleware';
+import { PrismaService } from 'src/prisma.service';
+
 @Module({
   controllers: [AdminController],
-  providers: [AdminService],
+  providers: [AdminService, PrismaService],
 })
 export class AdminModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
