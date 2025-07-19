@@ -5,7 +5,6 @@ import {
 } from '@nestjs/common';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateAdminDto } from './dto/update-admin.dto';
-import { GetAdminDto } from './dto/get-admin.dto';
 import { PrismaService } from 'src/prisma.service';
 
 @Injectable()
