@@ -13,7 +13,13 @@ export class AuthMiddleware implements NestMiddleware {
     if (!authorization) {
       throw new HttpException('Unauthorized access', HttpStatus.UNAUTHORIZED);
     }
-    if (authorization !== '123456') {
+
+    // Extraer el token del header (manejar tanto "123456" como "Bearer 123456")
+    const token = authorization.startsWith('Bearer ')
+      ? authorization.slice(7)
+      : authorization;
+
+    if (token !== '123456') {
       throw new HttpException('Forbidden access', HttpStatus.FORBIDDEN);
     }
     next();
