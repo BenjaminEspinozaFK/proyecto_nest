@@ -43,6 +43,7 @@ export class AdminService {
     const newAdmin = await this.prisma.admin.create({
       data: admin,
     });
+
     return newAdmin;
   }
 
