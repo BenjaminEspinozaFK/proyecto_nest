@@ -1,3 +1,4 @@
+import { Transform } from 'class-transformer';
 import { IsEmail, IsString, IsNotEmpty, IsOptional } from 'class-validator';
 
 export class UpdateUserDto {
@@ -6,6 +7,7 @@ export class UpdateUserDto {
   @IsNotEmpty()
   email?: string;
 
+  @Transform(({ value }) => value.trim())
   @IsString()
   @IsNotEmpty()
   password?: string;
