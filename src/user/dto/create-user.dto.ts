@@ -4,7 +4,10 @@ import {
   IsNotEmpty,
   IsString,
   IsOptional,
+  IsNumber,
   MinLength,
+  Min,
+  Max,
 } from 'class-validator';
 
 export class CreateUserDto {
@@ -24,4 +27,9 @@ export class CreateUserDto {
   @IsOptional()
   @MinLength(2)
   name?: string;
+
+  @IsNumber()
+  @Min(1)
+  @Max(120)
+  age: number;
 }
