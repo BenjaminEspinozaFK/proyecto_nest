@@ -1,98 +1,141 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Proyecto NestJS + React Auth
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Sistema completo de autenticación con JWT usando NestJS como backend y React como frontend.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## 📁 Estructura del Proyecto
 
-## Description
-
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
-
-## Project setup
-
-```bash
-$ pnpm install
+```
+proyecto_nest/
+├── backend/           # API NestJS con autenticación JWT
+├── frontend/          # Aplicación React con TypeScript
+├── .env              # Variables de entorno compartidas
+├── .gitignore        # Archivos ignorados por Git
+└── README.md         # Este archivo
 ```
 
-## Compile and run the project
+## 🚀 Cómo ejecutar el proyecto
+
+### Prerrequisitos
+- Node.js >= 18
+- Docker Desktop
+- pnpm (recomendado) o npm
+
+### 1. Configurar el Backend (NestJS)
 
 ```bash
-# development
-$ pnpm run start
-
-# watch mode
-$ pnpm run start:dev
-
-# production mode
-$ pnpm run start:prod
+cd backend
+pnpm install
+docker-compose up -d  # Inicia PostgreSQL
+pnpm run start:dev    # Servidor en http://localhost:3000
 ```
 
-## Run tests
+### 2. Configurar el Frontend (React)
 
 ```bash
-# unit tests
-$ pnpm run test
-
-# e2e tests
-$ pnpm run test:e2e
-
-# test coverage
-$ pnpm run test:cov
+cd frontend/auth-frontend
+npm install
+npm start  # Servidor en http://localhost:3001
 ```
 
-## Deployment
+## 🔐 Características del Sistema
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+### Backend (NestJS)
+- ✅ Autenticación JWT completa
+- ✅ Registro y login de usuarios
+- ✅ Encriptación de contraseñas con bcrypt
+- ✅ Validación de datos con class-validator
+- ✅ Base de datos PostgreSQL con Prisma ORM
+- ✅ Documentación con Swagger
+- ✅ CORS habilitado para frontend
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+### Frontend (React + TypeScript)
+- ✅ Interfaz de login y registro
+- ✅ Manejo de estado con Context API
+- ✅ Persistencia de tokens en localStorage
+- ✅ Componentes TypeScript reutilizables
+- ✅ Estilos CSS modernos con gradientes
+- ✅ Validación de formularios
+- ✅ Dashboard de usuario logueado
 
-```bash
-$ pnpm install -g @nestjs/mau
-$ mau deploy
+## 📊 API Endpoints
+
+### Autenticación
+- `POST /auth/login` - Iniciar sesión
+- `POST /auth/register` - Registrar usuario
+
+### Usuarios
+- `GET /user` - Obtener todos los usuarios
+- `GET /user/:id` - Obtener usuario por ID
+- `POST /user` - Crear usuario
+- `PUT /user/:id` - Actualizar usuario
+- `DELETE /user/:id` - Eliminar usuario
+
+### Administradores
+- `GET /admin` - Obtener todos los admins
+- `GET /admin/:id` - Obtener admin por ID
+- `POST /admin` - Crear admin
+- `PUT /admin/:id` - Actualizar admin
+- `DELETE /admin/:id` - Eliminar admin
+
+## 🔧 Variables de Entorno
+
+Crear archivo `.env` en la carpeta `backend/` con:
+
+```env
+# Database
+DATABASE_URL="postgresql://usuario:password@localhost:5499/nestdb?schema=public"
+
+# JWT
+JWT_SECRET="tu_jwt_secret_super_seguro"
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+## 🧪 Cómo probar
 
-## Resources
+1. **Abrir http://localhost:3001**
+2. **Registrar un nuevo usuario** con:
+   - Nombre (mínimo 2 caracteres)
+   - Email válido
+   - Edad (número)
+   - Contraseña (mínimo 6 caracteres)
+3. **Iniciar sesión** con email y contraseña
+4. **Ver dashboard** con información del usuario
+5. **Cerrar sesión** para volver al login
 
-Check out a few resources that may come in handy when working with NestJS:
+## 📱 Tecnologías Utilizadas
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+### Backend
+- **NestJS** - Framework de Node.js
+- **Prisma** - ORM para base de datos
+- **PostgreSQL** - Base de datos
+- **JWT** - Autenticación con tokens
+- **bcryptjs** - Encriptación de contraseñas
+- **class-validator** - Validación de datos
+- **Swagger** - Documentación API
 
-## Support
+### Frontend
+- **React** - Librería de UI
+- **TypeScript** - Tipado estático
+- **Axios** - Cliente HTTP
+- **Context API** - Manejo de estado
+- **CSS3** - Estilos modernos
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+## 🔄 Estado del Proyecto
 
-## Stay in touch
+- ✅ Backend completamente funcional
+- ✅ Frontend con interfaz moderna
+- ✅ Autenticación JWT working
+- ✅ Base de datos configurada
+- ✅ CORS configurado
+- ✅ Validaciones implementadas
+- ✅ Manejo de errores
+- ✅ Persistencia de sesión
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+## 📝 Próximos pasos
 
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+- [ ] Implementar rutas protegidas con Guards
+- [ ] Agregar tests unitarios
+- [ ] Implementar refresh tokens
+- [ ] Agregar roles de usuario (Admin/User)
+- [ ] Mejorar diseño responsive
+- [ ] Agregar notificaciones toast
+- [ ] Implementar recuperación de contraseña
