@@ -6,6 +6,8 @@ import {
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/prisma.service';
+import { User } from '@prisma/client';
+import * as bcrypt from 'bcryptjs';
 
 @Injectable()
 export class UsersService {
@@ -27,7 +29,7 @@ export class UsersService {
     return userFound;
   }
 
-  async createUser(user: CreateUserDto) {
+  async createUser(user: CreateUserDto): Promise<User> {
     // Verificar si ya existe un usuario con el mismo email
     const userExists = await this.prisma.user.findUnique({
       where: { email: user.email },
@@ -37,14 +39,20 @@ export class UsersService {
       throw new ConflictException(`Usuario con email ${user.email} ya existe`);
     }
 
+    // Encriptar la contraseña
+    const hashedPassword = await bcrypt.hash(user.password, 10);
+
     const newUser = await this.prisma.user.create({
-      data: user,
+      data: {
+        ...user,
+        password: hashedPassword,
+      },
     });
 
     return newUser;
   }
 
-  async updateUser(id: string, userData: UpdateUserDto) {
+  async updateUser(id: string, userData: UpdateUserDto): Promise<User> {
     const userExists = await this.prisma.user.findUnique({
       where: { id },
     });
@@ -53,9 +61,15 @@ export class UsersService {
       throw new NotFoundException(`Usuario con ID ${id} no encontrado`);
     }
 
+    // Si se proporciona una nueva contraseña, encriptarla
+    const updateData = { ...userData };
+    if (userData.password) {
+      updateData.password = await bcrypt.hash(userData.password, 10);
+    }
+
     const updatedUser = await this.prisma.user.update({
       where: { id },
-      data: userData,
+      data: updateData,
     });
 
     return updatedUser;
