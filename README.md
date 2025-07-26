@@ -16,6 +16,7 @@ proyecto_nest/
 ## 🚀 Cómo ejecutar el proyecto
 
 ### Prerrequisitos
+
 - Node.js >= 18
 - Docker Desktop
 - pnpm (recomendado) o npm
@@ -40,6 +41,7 @@ npm start  # Servidor en http://localhost:3001
 ## 🔐 Características del Sistema
 
 ### Backend (NestJS)
+
 - ✅ Autenticación JWT completa
 - ✅ Registro y login de usuarios
 - ✅ Encriptación de contraseñas con bcrypt
@@ -49,6 +51,7 @@ npm start  # Servidor en http://localhost:3001
 - ✅ CORS habilitado para frontend
 
 ### Frontend (React + TypeScript)
+
 - ✅ Interfaz de login y registro
 - ✅ Manejo de estado con Context API
 - ✅ Persistencia de tokens en localStorage
@@ -60,10 +63,12 @@ npm start  # Servidor en http://localhost:3001
 ## 📊 API Endpoints
 
 ### Autenticación
+
 - `POST /auth/login` - Iniciar sesión
 - `POST /auth/register` - Registrar usuario
 
 ### Usuarios
+
 - `GET /user` - Obtener todos los usuarios
 - `GET /user/:id` - Obtener usuario por ID
 - `POST /user` - Crear usuario
@@ -71,23 +76,12 @@ npm start  # Servidor en http://localhost:3001
 - `DELETE /user/:id` - Eliminar usuario
 
 ### Administradores
+
 - `GET /admin` - Obtener todos los admins
 - `GET /admin/:id` - Obtener admin por ID
 - `POST /admin` - Crear admin
 - `PUT /admin/:id` - Actualizar admin
 - `DELETE /admin/:id` - Eliminar admin
-
-## 🔧 Variables de Entorno
-
-Crear archivo `.env` en la carpeta `backend/` con:
-
-```env
-# Database
-DATABASE_URL="postgresql://usuario:password@localhost:5499/nestdb?schema=public"
-
-# JWT
-JWT_SECRET="tu_jwt_secret_super_seguro"
-```
 
 ## 🧪 Cómo probar
 
@@ -104,6 +98,7 @@ JWT_SECRET="tu_jwt_secret_super_seguro"
 ## 📱 Tecnologías Utilizadas
 
 ### Backend
+
 - **NestJS** - Framework de Node.js
 - **Prisma** - ORM para base de datos
 - **PostgreSQL** - Base de datos
@@ -113,6 +108,7 @@ JWT_SECRET="tu_jwt_secret_super_seguro"
 - **Swagger** - Documentación API
 
 ### Frontend
+
 - **React** - Librería de UI
 - **TypeScript** - Tipado estático
 - **Axios** - Cliente HTTP
