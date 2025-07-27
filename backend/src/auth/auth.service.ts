@@ -13,6 +13,7 @@ export class AuthService {
   ) {}
 
   async validateUser(email: string, password: string): Promise<any> {
+    // Buscar primero en usuarios
     const user = await this.prisma.user.findUnique({
       where: { email },
     });
@@ -20,8 +21,20 @@ export class AuthService {
     if (user && (await bcrypt.compare(password, user.password))) {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { password: userPassword, ...result } = user;
-      return result;
+      return { ...result, role: 'user' };
     }
+
+    // Si no es usuario, buscar en admins
+    const admin = await this.prisma.admin.findUnique({
+      where: { email },
+    });
+
+    if (admin && (await bcrypt.compare(password, admin.password))) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { password: adminPassword, ...result } = admin;
+      return { ...result, role: 'admin' };
+    }
+
     return null;
   }
 
@@ -36,6 +49,7 @@ export class AuthService {
       email: user.email,
       sub: user.id,
       name: user.name,
+      role: user.role, // Agregar el role al JWT
     };
 
     return {
@@ -45,6 +59,7 @@ export class AuthService {
         email: user.email,
         name: user.name,
         age: user.age,
+        role: user.role, // Incluir role en la respuesta
       },
     };
   }

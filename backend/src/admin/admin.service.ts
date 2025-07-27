@@ -6,6 +6,8 @@ import {
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateAdminDto } from './dto/update-admin.dto';
 import { PrismaService } from 'src/prisma.service';
+import { Admin } from '@prisma/client';
+import * as bcrypt from 'bcryptjs';
 
 @Injectable()
 export class AdminService {
@@ -27,36 +29,49 @@ export class AdminService {
     return adminFound;
   }
 
-  async createAdmin(admin: CreateAdminDto) {
-    // Busca si ya existe un administrador con el mismo nombre
+  async createAdmin(admin: CreateAdminDto): Promise<Admin> {
+    // Busca si ya existe un administrador con el mismo email
     const adminExists = await this.prisma.admin.findUnique({
-      where: { name: admin.name },
+      where: { email: admin.email },
     });
 
     // Si se encuentra un admin, lanza una excepción
     if (adminExists) {
       throw new ConflictException(
-        `Administrador con nombre ${admin.name} ya existe`,
+        `Administrador con email ${admin.email} ya existe`,
       );
     }
 
+    // Encriptar la contraseña
+    const hashedPassword = await bcrypt.hash(admin.password, 10);
+
     const newAdmin = await this.prisma.admin.create({
-      data: admin,
+      data: {
+        ...admin,
+        password: hashedPassword,
+      },
     });
 
     return newAdmin;
   }
 
-  async updateAdmin(id: string, adminData: UpdateAdminDto) {
+  async updateAdmin(id: string, adminData: UpdateAdminDto): Promise<Admin> {
     const adminExists = await this.prisma.admin.findUnique({
       where: { id },
     });
     if (!adminExists) {
       throw new NotFoundException(`Administrador con ID ${id} no encontrado`);
     }
+
+    // Si se proporciona una nueva contraseña, encriptarla
+    const updateData = { ...adminData };
+    if (adminData.password) {
+      updateData.password = await bcrypt.hash(adminData.password, 10);
+    }
+
     const updatedAdmin = await this.prisma.admin.update({
       where: { id },
-      data: adminData,
+      data: updateData,
     });
     return updatedAdmin;
   }
