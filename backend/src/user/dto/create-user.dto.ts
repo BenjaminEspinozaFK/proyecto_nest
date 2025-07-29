@@ -29,7 +29,7 @@ export class CreateUserDto {
   name?: string;
 
   @IsNumber()
-  @Min(1)
+  @Min(10)
   @Max(120)
   age: number;
 }
