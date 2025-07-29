@@ -29,7 +29,7 @@ export class UpdateUserDto {
 
   @IsNumber()
   @IsOptional()
-  @Min(1)
+  @Min(10)
   @Max(120)
   age?: number;
 }
