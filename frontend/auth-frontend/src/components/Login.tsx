@@ -1,14 +1,14 @@
-import React, { useState } from 'react';
-import { useAuth } from './AuthContext';
-import './Auth.css';
+import React, { useState } from "react";
+import { useAuth } from "./AuthContext";
+import "./Auth.css";
 
 interface LoginProps {
   onSwitchToRegister: () => void;
 }
 
 const Login: React.FC<LoginProps> = ({ onSwitchToRegister }) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const { login, isLoading, error } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -36,7 +36,7 @@ const Login: React.FC<LoginProps> = ({ onSwitchToRegister }) => {
               disabled={isLoading}
             />
           </div>
-          
+
           <div className="form-group">
             <label htmlFor="password">Contraseña:</label>
             <input
@@ -52,17 +52,13 @@ const Login: React.FC<LoginProps> = ({ onSwitchToRegister }) => {
 
           {error && <div className="error-message">{error}</div>}
 
-          <button
-            type="submit"
-            className="auth-button"
-            disabled={isLoading}
-          >
-            {isLoading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+          <button type="submit" className="auth-button" disabled={isLoading}>
+            {isLoading ? "Iniciando sesión..." : "Iniciar Sesión"}
           </button>
         </form>
 
         <p className="auth-switch">
-          ¿No tienes cuenta?{' '}
+          ¿No tienes cuenta?{" "}
           <button
             type="button"
             className="link-button"

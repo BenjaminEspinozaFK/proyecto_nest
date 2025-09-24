@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { useAuth } from './AuthContext';
-import './Auth.css';
+import React, { useState } from "react";
+import { useAuth } from "./AuthContext";
+import "./Auth.css";
 
 interface RegisterProps {
   onSwitchToLogin: () => void;
@@ -8,18 +8,18 @@ interface RegisterProps {
 
 const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    name: '',
-    age: '',
+    email: "",
+    password: "",
+    name: "",
+    age: "",
   });
   const { register, isLoading, error } = useAuth();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -83,7 +83,7 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
               max={120}
             />
           </div>
-          
+
           <div className="form-group">
             <label htmlFor="password">Contraseña:</label>
             <input
@@ -100,17 +100,13 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
 
           {error && <div className="error-message">{error}</div>}
 
-          <button
-            type="submit"
-            className="auth-button"
-            disabled={isLoading}
-          >
-            {isLoading ? 'Creando cuenta...' : 'Crear Cuenta'}
+          <button type="submit" className="auth-button" disabled={isLoading}>
+            {isLoading ? "Creando cuenta..." : "Crear Cuenta"}
           </button>
         </form>
 
         <p className="auth-switch">
-          ¿Ya tienes cuenta?{' '}
+          ¿Ya tienes cuenta?{" "}
           <button
             type="button"
             className="link-button"
