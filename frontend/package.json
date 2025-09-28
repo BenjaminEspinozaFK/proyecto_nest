@@ -2,8 +2,8 @@
   "name": "frontend",
   "version": "1.0.0",
   "scripts": {
-    "start": "cd auth-frontend && npm start",
-    "build": "cd auth-frontend && npm run build",
-    "install-deps": "cd auth-frontend && npm install"
+    "start": "cd auth-frontend && pnpm start",
+    "build": "cd auth-frontend && pnpm run build",
+    "install": "cd auth-frontend && pnpm install"
   }
 }
