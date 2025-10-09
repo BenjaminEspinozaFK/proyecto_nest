@@ -91,4 +91,7 @@ export class AdminService {
 
     return { message: `Admin con ID ${id} eliminado` };
   }
+  async getAllUsers() {
+    return await this.prisma.user.findMany();
+  }
 }

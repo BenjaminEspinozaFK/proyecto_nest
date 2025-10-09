@@ -9,12 +9,13 @@ interface LoginProps {
 const Login: React.FC<LoginProps> = ({ onSwitchToRegister }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole] = useState("user"); // Estado para role, por defecto 'user'
   const { login, isLoading, error } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await login(email, password);
+      await login(email, password, role); // Pasar role
     } catch (err) {
       // Error is handled by context
     }
@@ -48,6 +49,19 @@ const Login: React.FC<LoginProps> = ({ onSwitchToRegister }) => {
               disabled={isLoading}
               minLength={6}
             />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="role">Rol:</label>
+            <select
+              id="role"
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+              disabled={isLoading}
+            >
+              <option value="user">Usuario</option>
+              <option value="admin">Administrador</option>
+            </select>
           </div>
 
           {error && <div className="error-message">{error}</div>}

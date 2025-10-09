@@ -3,11 +3,13 @@ export interface User {
   email: string;
   name: string;
   age: number;
+  role: string;
 }
 
 export interface LoginRequest {
   email: string;
   password: string;
+  role: string;
 }
 
 export interface RegisterRequest {
@@ -25,7 +27,7 @@ export interface AuthResponse {
 export interface AuthContextType {
   user: User | null;
   token: string | null;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string, role: string) => Promise<void>; // Agregar role
   register: (data: RegisterRequest) => Promise<void>;
   logout: () => void;
   isLoading: boolean;
