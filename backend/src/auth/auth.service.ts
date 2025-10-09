@@ -3,6 +3,8 @@ import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
+import { EmailService } from '../email/email.service';
+import { ValidatedUser } from './interfaces/validated-user.interface';
 import * as bcrypt from 'bcryptjs';
 
 @Injectable()
@@ -10,13 +12,14 @@ export class AuthService {
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
+    private emailService: EmailService,
   ) {}
 
   async validateUser(
     email: string,
     password: string,
     role: string,
-  ): Promise<any> {
+  ): Promise<ValidatedUser | null> {
     if (role === 'admin') {
       const admin = await this.prisma.admin.findUnique({
         where: { email },
@@ -48,6 +51,18 @@ export class AuthService {
 
     if (!user) {
       throw new UnauthorizedException('Credenciales inválidas');
+    }
+
+    // 📧 Enviar email de notificación de login
+    try {
+      await this.emailService.sendLoginNotification(
+        user.email,
+        user.name || 'Usuario', // Si name es null, usar 'Usuario'
+        user.role,
+      );
+    } catch (emailError) {
+      console.error('Error enviando email de login:', emailError);
+      // No lanzamos error para no interrumpir el login
     }
 
     const payload = {
