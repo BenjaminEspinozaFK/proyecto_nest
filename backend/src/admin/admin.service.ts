@@ -94,4 +94,29 @@ export class AdminService {
   async getAllUsers() {
     return await this.prisma.user.findMany();
   }
+
+  async updateUser(id: string, user: UpdateAdminDto) {
+    const userFound = await this.prisma.user.findUnique({
+      where: { id },
+    });
+    if (!userFound) {
+      throw new NotFoundException(`Usuario con ID ${id} no encontrado`);
+    }
+    return await this.prisma.user.update({
+      where: { id },
+      data: user,
+    });
+  }
+
+  async deleteUser(id: string) {
+    const userFound = await this.prisma.user.findUnique({
+      where: { id },
+    });
+    if (!userFound) {
+      throw new NotFoundException(`Usuario con ID ${id} no encontrado`);
+    }
+    return await this.prisma.user.delete({
+      where: { id },
+    });
+  }
 }

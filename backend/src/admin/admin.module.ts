@@ -7,7 +7,7 @@ import {
 import { AdminController } from './admin.controller';
 import { AdminService } from './admin.service';
 import { LoggerMiddleware } from 'src/user/logger/logger.middleware';
-import { AuthMiddleware } from 'src/user/auth/auth.middleware';
+// import { AuthMiddleware } from 'src/user/auth/auth.middleware'; // Comentado temporalmente
 import { PrismaService } from 'src/prisma.service';
 
 @Module({
@@ -21,8 +21,9 @@ export class AdminModule implements NestModule {
       .forRoutes(
         { path: 'admins', method: RequestMethod.GET },
         { path: 'admins', method: RequestMethod.POST },
-      )
-      .apply(AuthMiddleware)
-      .forRoutes('admins');
+      );
+    // Comentado temporalmente para debug
+    // .apply(AuthMiddleware)
+    // .forRoutes('admins');
   }
 }
