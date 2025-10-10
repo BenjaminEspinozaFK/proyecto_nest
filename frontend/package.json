@@ -5,5 +5,10 @@
     "start": "cd auth-frontend && npm start",
     "build": "cd auth-frontend && pnpm run build",
     "install": "cd auth-frontend && pnpm install"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/material": "^7.3.4"
   }
 }
