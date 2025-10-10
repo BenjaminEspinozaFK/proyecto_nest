@@ -12,7 +12,7 @@ const AdminDashboard: React.FC = () => {
   const fetchUsers = async () => {
     try {
       const token = localStorage.getItem("authToken");
-      const response = await fetch("http://localhost:3000/admins/users", {
+      const response = await fetch("http://localhost:3001/admins/users", {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!response.ok) {
@@ -20,12 +20,14 @@ const AdminDashboard: React.FC = () => {
       }
       const data = await response.json();
       console.log("Fetched users:", data); // Para debug
-      setUsers(data);
+      setUsers(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Error fetching users:", error);
-      setUsers([]); // O manejar el error
+      setUsers([]);
     }
   };
+
+
 
   const handleEdit = (user: User) => {
     setEditingUser(user);
@@ -34,7 +36,7 @@ const AdminDashboard: React.FC = () => {
   const handleSave = async () => {
     if (!editingUser) return;
     const token = localStorage.getItem("authToken");
-    await fetch(`http://localhost:3000/admins/${editingUser.id}`, {
+    await fetch(`http://localhost:3001/admins/users/${editingUser.id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -49,7 +51,7 @@ const AdminDashboard: React.FC = () => {
   const handleDelete = async (id: string) => {
     if (window.confirm("¿Eliminar usuario?")) {
       const token = localStorage.getItem("authToken");
-      await fetch(`http://localhost:3000/admins/${id}`, {
+      await fetch(`http://localhost:3001/admins/users/${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -67,6 +69,7 @@ const AdminDashboard: React.FC = () => {
             <th>Email</th>
             <th>Nombre</th>
             <th>Edad</th>
+            <th>Rol</th>
             <th>Acciones</th>
           </tr>
         </thead>
@@ -77,6 +80,7 @@ const AdminDashboard: React.FC = () => {
               <td>{user.email}</td>
               <td>{user.name}</td>
               <td>{user.age}</td>
+              <td>{user.role}</td>
               <td>
                 <button onClick={() => handleEdit(user)}>Editar</button>
                 <button onClick={() => handleDelete(user.id)}>Eliminar</button>
@@ -92,8 +96,27 @@ const AdminDashboard: React.FC = () => {
             onChange={(e) =>
               setEditingUser({ ...editingUser, name: e.target.value })
             }
+            placeholder="Nombre"
           />
+          <input
+            value={editingUser.age || ""}
+            type="number"
+            onChange={(e) =>
+              setEditingUser({ ...editingUser, age: parseInt(e.target.value) })
+            }
+            placeholder="Edad"
+          />
+          <select
+            value={editingUser.role || "user"}
+            onChange={(e) =>
+              setEditingUser({ ...editingUser, role: e.target.value })
+            }
+          >
+            <option value="user">Usuario</option>
+            <option value="admin">Administrador</option>
+          </select>
           <button onClick={handleSave}>Guardar</button>
+          <button onClick={() => setEditingUser(null)}>Cancelar</button>
         </div>
       )}
     </div>

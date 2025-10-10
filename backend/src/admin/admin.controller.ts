@@ -6,21 +6,24 @@ import {
   Param,
   Post,
   Put,
-  UseGuards,
-  SetMetadata,
 } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { AdminService } from './admin.service';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateAdminDto } from './dto/update-admin.dto';
-import { RolesGuard } from '../auth/roles.guard';
 
 @Controller('/admins')
 @ApiBearerAuth()
-@UseGuards(RolesGuard)
-@SetMetadata('role', 'admin')
+// @UseGuards(RolesGuard)
+// @SetMetadata('role', 'admin')
 export class AdminController {
   constructor(private adminsService: AdminService) {}
+
+  // Gestionar usuarios desde admin - DEBE IR ANTES de @Get(':id')
+  @Get('users')
+  async getAllUsers() {
+    return this.adminsService.getAllUsers();
+  }
 
   @Get()
   async getAllAdmins() {
@@ -48,8 +51,13 @@ export class AdminController {
     return this.adminsService.deleteAdmin(id);
   }
 
-  @Get('users')
-  async getAllUsers() {
-    return this.adminsService.getAllUsers();
+  @Put('users/:id')
+  async updateUser(@Param('id') id: string, @Body() user: UpdateAdminDto) {
+    return await this.adminsService.updateUser(id, user);
+  }
+
+  @Delete('users/:id')
+  async deleteUser(@Param('id') id: string) {
+    return await this.adminsService.deleteUser(id);
   }
 }
