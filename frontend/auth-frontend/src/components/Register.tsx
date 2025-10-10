@@ -1,6 +1,15 @@
 import React, { useState } from "react";
 import { useAuth } from "./AuthContext";
-import "./Auth.css";
+import {
+  Container,
+  Card,
+  CardContent,
+  Typography,
+  TextField,
+  Button,
+  Box,
+  Alert,
+} from "@mui/material";
 
 interface RegisterProps {
   onSwitchToLogin: () => void;
@@ -32,92 +41,98 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
         name: formData.name,
         age: parseInt(formData.age),
       });
-    } catch (err) {
-      // Error is handled by context
-    }
+    } catch (err) {}
   };
 
   return (
-    <div className="auth-container">
-      <div className="auth-card">
-        <h2>Crear Cuenta</h2>
-        <form onSubmit={handleSubmit} className="auth-form">
-          <div className="form-group">
-            <label htmlFor="name">Nombre:</label>
-            <input
+    <Container
+      maxWidth={false}
+      sx={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        minHeight: "100vh",
+        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+        padding: "20px",
+      }}
+    >
+      <Card sx={{ maxWidth: 400, width: "100%" }}>
+        <CardContent sx={{ padding: 3 }}>
+          <Typography variant="h4" component="h2" gutterBottom align="center">
+            Crear Cuenta
+          </Typography>
+          <Box
+            component="form"
+            onSubmit={handleSubmit}
+            sx={{ display: "flex", flexDirection: "column", gap: 2 }}
+          >
+            <TextField
+              label="Nombre"
               type="text"
-              id="name"
               name="name"
               value={formData.name}
               onChange={handleChange}
               required
               disabled={isLoading}
-              minLength={2}
+              inputProps={{ minLength: 2 }}
+              fullWidth
             />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="email">Email:</label>
-            <input
+            <TextField
+              label="Email"
               type="email"
-              id="email"
               name="email"
               value={formData.email}
               onChange={handleChange}
               required
               disabled={isLoading}
+              fullWidth
             />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="age">Edad:</label>
-            <input
+            <TextField
+              label="Edad"
               type="number"
-              id="age"
               name="age"
               value={formData.age}
               onChange={handleChange}
               required
               disabled={isLoading}
-              min={1}
-              max={120}
+              inputProps={{ min: 1, max: 120 }}
+              fullWidth
             />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="password">Contraseña:</label>
-            <input
+            <TextField
+              label="Contraseña"
               type="password"
-              id="password"
               name="password"
               value={formData.password}
               onChange={handleChange}
               required
               disabled={isLoading}
-              minLength={6}
+              inputProps={{ minLength: 6 }}
+              fullWidth
             />
-          </div>
-
-          {error && <div className="error-message">{error}</div>}
-
-          <button type="submit" className="auth-button" disabled={isLoading}>
-            {isLoading ? "Creando cuenta..." : "Crear Cuenta"}
-          </button>
-        </form>
-
-        <p className="auth-switch">
-          ¿Ya tienes cuenta?{" "}
-          <button
-            type="button"
-            className="link-button"
-            onClick={onSwitchToLogin}
-            disabled={isLoading}
-          >
-            Inicia sesión aquí
-          </button>
-        </p>
-      </div>
-    </div>
+            {error && <Alert severity="error">{error}</Alert>}
+            <Button
+              type="submit"
+              variant="contained"
+              disabled={isLoading}
+              sx={{ mt: 2 }}
+            >
+              {isLoading ? "Creando cuenta..." : "Crear Cuenta"}
+            </Button>
+          </Box>
+          <Typography variant="body2" align="center" sx={{ mt: 2 }}>
+            ¿Ya tienes cuenta?{" "}
+            <Button
+              variant="text"
+              onClick={onSwitchToLogin}
+              disabled={isLoading}
+              sx={{ p: 0, minWidth: "auto" }}
+            >
+              Inicia sesión aquí
+            </Button>
+          </Typography>
+        </CardContent>
+      </Card>
+    </Container>
   );
 };
 
