@@ -11,6 +11,7 @@ import { ApiBearerAuth } from '@nestjs/swagger';
 import { AdminService } from './admin.service';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateAdminDto } from './dto/update-admin.dto';
+import { UpdateUserByAdminDto } from './dto/update-user-by-admin.dto';
 
 @Controller('/admins')
 @ApiBearerAuth()
@@ -52,7 +53,10 @@ export class AdminController {
   }
 
   @Put('users/:id')
-  async updateUser(@Param('id') id: string, @Body() user: UpdateAdminDto) {
+  async updateUser(
+    @Param('id') id: string,
+    @Body() user: UpdateUserByAdminDto,
+  ) {
     return await this.adminsService.updateUser(id, user);
   }
 

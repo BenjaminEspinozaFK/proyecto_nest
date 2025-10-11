@@ -48,18 +48,47 @@ const AdminDashboard: React.FC = () => {
 
   const handleSave = async () => {
     if (!editingUser) return;
-    const token = localStorage.getItem("authToken");
-    await fetch(`http://localhost:3001/admins/users/${editingUser.id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(editingUser),
-    });
-    setOpenModal(false);
-    setEditingUser(null);
-    fetchUsers();
+
+    try {
+      const token = localStorage.getItem("authToken");
+
+      // Enviar solo los campos permitidos
+      const userDataToUpdate = {
+        email: editingUser.email,
+        name: editingUser.name,
+        age: editingUser.age,
+        role: editingUser.role,
+      };
+
+      const response = await fetch(
+        `http://localhost:3001/admins/users/${editingUser.id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(userDataToUpdate),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Error al actualizar usuario:", errorData);
+        alert(
+          `Error: ${errorData.message || "No se pudo actualizar el usuario"}`
+        );
+        return;
+      }
+
+      console.log("Usuario actualizado correctamente");
+      setOpenModal(false);
+      setEditingUser(null);
+      fetchUsers();
+    } catch (error) {
+      console.error("Error en handleSave:", error);
+      alert("Error al guardar los cambios");
+    }
   };
 
   const handleDelete = async (id: string) => {
@@ -105,16 +134,16 @@ const AdminDashboard: React.FC = () => {
                 <TableCell>{user.role}</TableCell>
                 <TableCell>
                   <Button
-                    variant="outlined"
-                    color="primary"
+                    variant="contained"
+                    color="success"
                     onClick={() => handleEdit(user)}
                     style={{ marginRight: "10px" }}
                   >
                     Editar
                   </Button>
                   <Button
-                    variant="outlined"
-                    color="secondary"
+                    variant="contained"
+                    color="error"
                     onClick={() => handleDelete(user.id)}
                   >
                     Eliminar
