@@ -90,6 +90,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     authService.removeAuthToken();
   };
+  const updateUserAvatar = (avatarUrl: string) => {
+    if (user) {
+      const updatedUser = { ...user, avatar: avatarUrl };
+      setUser(updatedUser);
+      localStorage.setItem("authUser", JSON.stringify(updatedUser));
+    }
+  };
 
   const value: AuthContextType = {
     user,
@@ -97,6 +104,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     login,
     register,
     logout,
+    updateUserAvatar,
     isLoading,
     error,
   };

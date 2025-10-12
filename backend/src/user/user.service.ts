@@ -90,4 +90,17 @@ export class UsersService {
 
     return { message: `Usuario con ID ${id} eliminado` };
   }
+
+  async updateAvatar(userId: string, filename: string) {
+    const avatarUrl = `/uploads/avatars/${filename}`;
+
+    const updatedUser = await this.prisma.user.update({
+      where: { id: userId },
+      data: { avatar: avatarUrl },
+    });
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password: _, ...userWithoutPassword } = updatedUser;
+    return { user: userWithoutPassword, avatar: avatarUrl };
+  }
 }
