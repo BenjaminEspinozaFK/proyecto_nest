@@ -4,6 +4,7 @@ export interface User {
   name: string;
   age: number;
   role: string;
+  avatar?: string;
 }
 
 export interface LoginRequest {
@@ -30,6 +31,7 @@ export interface AuthContextType {
   login: (email: string, password: string, role: string) => Promise<void>; // Agregar role
   register: (data: RegisterRequest) => Promise<void>;
   logout: () => void;
+  updateUserAvatar: (avatarUrl: string) => void;
   isLoading: boolean;
   error: string | null;
 }
