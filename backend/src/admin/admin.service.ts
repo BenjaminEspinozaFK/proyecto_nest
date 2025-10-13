@@ -162,4 +162,17 @@ export class AdminService {
       where: { id },
     });
   }
+
+  async updateAvatar(adminId: string, filename: string) {
+    const avatarUrl = `/uploads/avatars/${filename}`;
+
+    const updatedAdmin = await this.prisma.admin.update({
+      where: { id: adminId },
+      data: { avatar: avatarUrl },
+    });
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password: _, ...adminWithoutPassword } = updatedAdmin;
+    return { admin: adminWithoutPassword, avatar: avatarUrl };
+  }
 }
