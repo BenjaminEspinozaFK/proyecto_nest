@@ -41,7 +41,14 @@ const Dashboard: React.FC = () => {
 
     try {
       const token = localStorage.getItem("authToken");
-      const response = await fetch("http://localhost:3001/users/me/avatar", {
+
+      // Detectar si es admin o user y usar el endpoint correcto
+      const endpoint =
+        user.role === "admin"
+          ? "http://localhost:3001/admins/me/avatar"
+          : "http://localhost:3001/users/me/avatar";
+
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: formData,

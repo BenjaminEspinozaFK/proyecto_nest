@@ -97,18 +97,18 @@ export class AdminController {
     @UploadedFile() file: Express.Multer.File,
     @Req() req: any,
   ) {
-    console.log('=== AVATAR ENDPOINT HIT ===');
-    console.log('Admin from JWT:', req.admin);
+    console.log('=== ADMIN AVATAR ENDPOINT HIT ===');
+    console.log('User from JWT:', req.user);
     console.log('File:', file);
 
-    const adminId = req.admin?.adminId as string;
+    const adminId = req.user?.userId as string;
     return this.adminsService.updateAvatar(adminId, file.filename);
   }
 
   @Get('me')
   @UseGuards(JwtAuthGuard)
   async getMyProfile(@Req() req: any) {
-    const adminId = req.admin?.adminId as string;
+    const adminId = req.user?.userId as string;
     return this.adminsService.getAdminById(adminId);
   }
 }
