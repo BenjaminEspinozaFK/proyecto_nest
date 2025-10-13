@@ -6,12 +6,20 @@ import {
   Param,
   Post,
   Put,
+  Req,
+  UploadedFile,
+  UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { AdminService } from './admin.service';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateAdminDto } from './dto/update-admin.dto';
 import { UpdateUserByAdminDto } from './dto/update-user-by-admin.dto';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
 
 @Controller('/admins')
 @ApiBearerAuth()
@@ -63,5 +71,44 @@ export class AdminController {
   @Delete('users/:id')
   async deleteUser(@Param('id') id: string) {
     return await this.adminsService.deleteUser(id);
+  }
+
+  @Post('me/avatar')
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: './uploads/avatars',
+        filename: (req, file, cb) => {
+          const uniqueName = `${Date.now()}-${Math.round(Math.random() * 1e9)}${extname(file.originalname)}`;
+          cb(null, uniqueName);
+        },
+      }),
+      fileFilter: (req, file, cb) => {
+        if (!file.mimetype.startsWith('image/')) {
+          return cb(new Error('Solo se permiten imágenes'), false);
+        }
+        cb(null, true);
+      },
+      limits: { fileSize: 2 * 1024 * 1024 }, // 2MB
+    }),
+  )
+  async uploadAvatar(
+    @UploadedFile() file: Express.Multer.File,
+    @Req() req: any,
+  ) {
+    console.log('=== AVATAR ENDPOINT HIT ===');
+    console.log('Admin from JWT:', req.admin);
+    console.log('File:', file);
+
+    const adminId = req.admin?.adminId as string;
+    return this.adminsService.updateAvatar(adminId, file.filename);
+  }
+
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  async getMyProfile(@Req() req: any) {
+    const adminId = req.admin?.adminId as string;
+    return this.adminsService.getAdminById(adminId);
   }
 }
