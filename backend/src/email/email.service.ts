@@ -1,70 +1,143 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
+import {
+  loginNotificationTemplate,
+  loginNotificationSubject,
+} from './templates/login-notification.template';
+import { welcomeTemplate, welcomeSubject } from './templates/welcome.template';
+import {
+  passwordResetTemplate,
+  passwordResetSubject,
+} from './templates/password-reset.template';
 
 @Injectable()
 export class EmailService {
-  private transporter;
+  private readonly logger = new Logger(EmailService.name);
+  private transporter: nodemailer.Transporter;
 
   constructor() {
-    // Verificar que las variables de entorno estén configuradas
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-      console.error('❌ Variables de entorno de email no configuradas:');
-      console.error('EMAIL_USER:', process.env.EMAIL_USER || 'NO CONFIGURADO');
-      console.error(
-        'EMAIL_PASS:',
-        process.env.EMAIL_PASS ? 'CONFIGURADO' : 'NO CONFIGURADO',
-      );
-    } else {
-      console.log('✅ Variables de email configuradas correctamente');
-    }
+    this.validateEnvironmentVariables();
+    this.initializeTransporter();
+  }
 
-    // Configurar el transportador de Gmail
+  private validateEnvironmentVariables(): void {
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+      this.logger.error('❌ Variables de entorno de email no configuradas');
+      this.logger.error(
+        `EMAIL_USER: ${process.env.EMAIL_USER || 'NO CONFIGURADO'}`,
+      );
+      this.logger.error(
+        `EMAIL_PASS: ${process.env.EMAIL_PASS ? 'CONFIGURADO' : 'NO CONFIGURADO'}`,
+      );
+      throw new Error('Configuración de email incompleta');
+    }
+    this.logger.log('✅ Variables de email configuradas correctamente');
+  }
+
+  private initializeTransporter(): void {
     this.transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
-        user: process.env.EMAIL_USER, // Tu email de Gmail
-        pass: process.env.EMAIL_PASS, // Tu contraseña de aplicación de Gmail
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
       },
     });
   }
 
-  async sendLoginNotification(
-    userEmail: string,
-    userName: string,
-    userRole: string,
-  ) {
+  /**
+   * Método genérico para enviar emails
+   */
+  private async sendEmail(
+    to: string,
+    subject: string,
+    html: string,
+  ): Promise<void> {
     const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: userEmail,
-      subject: '🔐 Nuevo inicio de sesión detectado',
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #333;">¡Hola ${userName}!</h2>
-          <p>Se ha detectado un nuevo inicio de sesión en tu cuenta.</p>
-          
-          <div style="background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin: 20px 0;">
-            <h3 style="color: #28a745; margin-top: 0;">✅ Inicio de sesión exitoso</h3>
-            <p><strong>Fecha y hora:</strong> ${new Date().toLocaleString('es-ES')}</p>
-            <p><strong>Email:</strong> ${userEmail}</p>
-            <p><strong>Rol:</strong> ${userRole}</p>
-          </div>
-          
-          <p style="color: #666;">Si no fuiste tú quien inició sesión, por favor cambia tu contraseña inmediatamente.</p>
-          
-          <hr style="margin: 30px 0;">
-          <p style="color: #999; font-size: 12px;">
-            Este es un mensaje automático, no respondas a este email.
-          </p>
-        </div>
-      `,
+      from: `Tu Aplicación <${process.env.EMAIL_USER}>`,
+      to,
+      subject,
+      html,
     };
 
     try {
       await this.transporter.sendMail(mailOptions);
-      console.log(`✅ Email de login enviado a: ${userEmail}`);
+      this.logger.log(`✅ Email enviado exitosamente a: ${to}`);
     } catch (error) {
-      console.error('❌ Error enviando email de login:', error);
-      throw error;
+      this.logger.error(`❌ Error enviando email a ${to}:`, error);
+      throw new Error(`Failed to send email: ${error.message}`);
+    }
+  }
+
+  /**
+   * Enviar notificación de inicio de sesión
+   */
+  async sendLoginNotification(
+    userEmail: string,
+    userName: string,
+    userRole: string,
+    ipAddress?: string,
+    device?: string,
+  ): Promise<void> {
+    const html = loginNotificationTemplate({
+      userName,
+      userEmail,
+      userRole,
+      loginDate: new Date().toLocaleString('es-ES', {
+        timeZone: 'America/Santiago',
+        dateStyle: 'full',
+        timeStyle: 'medium',
+      }),
+      ipAddress,
+      device,
+    });
+
+    await this.sendEmail(userEmail, loginNotificationSubject, html);
+  }
+
+  /**
+   * Enviar email de bienvenida al registrarse
+   */
+  async sendWelcomeEmail(userEmail: string, userName: string): Promise<void> {
+    const html = welcomeTemplate({
+      userName,
+      userEmail,
+    });
+
+    await this.sendEmail(userEmail, welcomeSubject, html);
+  }
+
+  /**
+   * Enviar email de restablecimiento de contraseña
+   */
+  async sendPasswordResetEmail(
+    userEmail: string,
+    userName: string,
+    resetToken: string,
+    expiresIn: string = '1 hora',
+  ): Promise<void> {
+    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+
+    const html = passwordResetTemplate({
+      userName,
+      resetToken,
+      resetUrl,
+      expiresIn,
+    });
+
+    await this.sendEmail(userEmail, passwordResetSubject, html);
+  }
+
+  /**
+   * Verificar la conexión del transporter (útil para health checks)
+   */
+  async verifyConnection(): Promise<boolean> {
+    try {
+      await this.transporter.verify();
+      this.logger.log('✅ Conexión con servidor de email verificada');
+      return true;
+    } catch (error) {
+      this.logger.error('❌ Error verificando conexión de email:', error);
+      return false;
     }
   }
 }

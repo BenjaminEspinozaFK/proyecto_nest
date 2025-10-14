@@ -104,6 +104,15 @@ export class AuthService {
         password: hashedPassword,
       },
     });
+    try {
+      await this.emailService.sendWelcomeEmail(
+        user.email,
+        user.name || 'Usuario',
+      );
+    } catch (emailError) {
+      console.error('Error enviando email de bienvenida:', emailError);
+      // No lanzamos error para no interrumpir el registro
+    }
 
     // Retornar el token
     const payload = {
