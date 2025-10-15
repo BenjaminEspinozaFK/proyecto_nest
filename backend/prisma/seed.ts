@@ -4,13 +4,21 @@ import * as bcrypt from 'bcryptjs';
 const prisma = new PrismaClient();
 
 async function main() {
-  // Crear un usuario por defecto
-  const hashedUserPassword = await bcrypt.hash('user123', 10);
+  const emailUser = process.env.USER_EMAIL;
+  const passUser = process.env.USER_PASS;
+
+  if (!emailUser || !passUser) {
+    throw new Error(
+      'La variable de entorno USER_EMAIL o USER_PASS no esta definida',
+    );
+  }
+
+  const hashedUserPassword = await bcrypt.hash(passUser, 10);
   const user = await prisma.user.upsert({
-    where: { email: 'user@test.com' },
+    where: { email: emailUser },
     update: {},
     create: {
-      email: 'user@test.com',
+      email: emailUser,
       name: 'Usuario Default',
       age: 25,
       password: hashedUserPassword,
@@ -18,15 +26,23 @@ async function main() {
     },
   });
 
-  // Crear un admin por defecto
-  const hashedAdminPassword = await bcrypt.hash('admin123', 10);
+  const emailAdmin = process.env.ADMIN_EMAIL;
+  const passAdmin = process.env.ADMIN_PASS;
+
+  if (!emailAdmin || !passAdmin) {
+    throw new Error(
+      'La variable de entorno ADMIN_EMAIL o ADMIN_PASS no esta definida',
+    );
+  }
+
+  const hashedAdminPassword = await bcrypt.hash(passAdmin, 10);
   const admin = await prisma.admin.upsert({
-    where: { email: 'admin@test.com' },
+    where: { email: emailAdmin },
     update: {
-      password: hashedAdminPassword, // Actualizar contraseña si ya existe
+      password: hashedAdminPassword,
     },
     create: {
-      email: 'admin@test.com',
+      email: emailAdmin,
       name: 'Admin Default',
       age: 30,
       password: hashedAdminPassword,

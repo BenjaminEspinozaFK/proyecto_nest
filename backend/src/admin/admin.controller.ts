@@ -17,19 +17,21 @@ import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateAdminDto } from './dto/update-admin.dto';
 import { UpdateUserByAdminDto } from './dto/update-user-by-admin.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { RolesGuard } from 'src/auth/roles.guard';
+import { Roles } from 'src/auth/roles.decorator';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 
 @Controller('/admins')
 @ApiBearerAuth()
-// @UseGuards(RolesGuard)
-// @SetMetadata('role', 'admin')
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class AdminController {
   constructor(private adminsService: AdminService) {}
 
   // Gestionar usuarios desde admin - DEBE IR ANTES de @Get(':id')
   @Get('users')
+  @Roles('admin')
   async getAllUsers() {
     return this.adminsService.getAllUsers();
   }
@@ -61,6 +63,7 @@ export class AdminController {
   }
 
   @Put('users/:id')
+  @Roles('admin')
   async updateUser(
     @Param('id') id: string,
     @Body() user: UpdateUserByAdminDto,
@@ -69,6 +72,7 @@ export class AdminController {
   }
 
   @Delete('users/:id')
+  @Roles('admin')
   async deleteUser(@Param('id') id: string) {
     return await this.adminsService.deleteUser(id);
   }

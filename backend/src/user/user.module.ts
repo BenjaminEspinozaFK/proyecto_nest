@@ -7,7 +7,6 @@ import {
 import { UsersController } from './user.controller';
 import { UsersService } from './user.service';
 import { LoggerMiddleware } from './logger/logger.middleware';
-import { AuthMiddleware } from './auth/auth.middleware';
 import { PrismaService } from 'src/prisma.service';
 import { JwtStrategy } from '../auth/jwt.strategy';
 import { PassportModule } from '@nestjs/passport';
@@ -24,12 +23,6 @@ export class UsersModule implements NestModule {
       .forRoutes(
         { path: 'users', method: RequestMethod.GET },
         { path: 'users', method: RequestMethod.POST },
-      )
-      .apply(AuthMiddleware)
-      .exclude(
-        { path: 'users/me/avatar', method: RequestMethod.POST },
-        { path: 'users/me', method: RequestMethod.GET },
-      )
-      .forRoutes('users');
+      );
   }
 }
