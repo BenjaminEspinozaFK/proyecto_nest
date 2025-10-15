@@ -26,6 +26,7 @@ const AdminDashboard: React.FC = () => {
   const fetchUsers = async () => {
     try {
       const token = localStorage.getItem("authToken");
+
       const response = await fetch("http://localhost:3001/admins/users", {
         headers: { Authorization: `Bearer ${token}` },
       });
