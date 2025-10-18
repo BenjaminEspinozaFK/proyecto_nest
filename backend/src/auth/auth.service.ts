@@ -53,16 +53,35 @@ export class AuthService {
       throw new UnauthorizedException('Credenciales inválidas');
     }
 
-    // 📧 Enviar email de notificación de login
+    const isFirstLogin = !user.lastLogin;
+    if (isFirstLogin) {
+      // 📧 Enviar email de notificación de login
+      try {
+        await this.emailService.sendLoginNotification(
+          user.email,
+          user.name || 'Usuario',
+          user.role,
+        );
+      } catch (emailError) {
+        console.error('Error enviando email de login:', emailError);
+      }
+    }
+
     try {
-      await this.emailService.sendLoginNotification(
-        user.email,
-        user.name || 'Usuario', // Si name es null, usar 'Usuario'
-        user.role,
-      );
-    } catch (emailError) {
-      console.error('Error enviando email de login:', emailError);
-      // No lanzamos error para no interrumpir el login
+      const now = new Date();
+      if (user.role === 'admin') {
+        await this.prisma.admin.update({
+          where: { id: user.id },
+          data: { lastLogin: now },
+        });
+      } else {
+        await this.prisma.user.update({
+          where: { id: user.id },
+          data: { lastLogin: now },
+        });
+      }
+    } catch (err) {
+      console.error('Error actualizando lastLogin:', err);
     }
 
     const payload = {
@@ -80,12 +99,12 @@ export class AuthService {
         name: user.name,
         age: user.age,
         role: user.role,
+        lastLogin: user.lastLogin,
       },
     };
   }
 
   async register(registerDto: RegisterDto) {
-    // Verificar si el usuario ya existe
     const existingUser = await this.prisma.user.findUnique({
       where: { email: registerDto.email },
     });
@@ -94,10 +113,8 @@ export class AuthService {
       throw new UnauthorizedException('El usuario ya existe');
     }
 
-    // Encriptar la contraseña
     const hashedPassword = await bcrypt.hash(registerDto.password, 10);
 
-    // Crear el usuario
     const user = await this.prisma.user.create({
       data: {
         ...registerDto,
@@ -111,7 +128,6 @@ export class AuthService {
       );
     } catch (emailError) {
       console.error('Error enviando email de bienvenida:', emailError);
-      // No lanzamos error para no interrumpir el registro
     }
 
     // Retornar el token
@@ -119,7 +135,7 @@ export class AuthService {
       email: user.email,
       sub: user.id,
       name: user.name,
-      role: user.role, // Agregar role al payload
+      role: user.role,
     };
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

@@ -6,4 +6,5 @@ export interface ValidatedUser {
   role: 'user' | 'admin';
   createdAt: Date;
   updatedAt: Date;
+  lastLogin?: Date | null;
 }
