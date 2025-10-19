@@ -171,7 +171,6 @@ export class AdminService {
       data: { avatar: avatarUrl },
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: _, ...adminWithoutPassword } = updatedAdmin;
     return { admin: adminWithoutPassword, avatar: avatarUrl };
   }

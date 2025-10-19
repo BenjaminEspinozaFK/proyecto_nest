@@ -28,6 +28,7 @@ export default tseslint.config(
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-floating-promises': 'warn',
+      '@typescript-eslint/no-unused-vars': 'off',
       '@typescript-eslint/no-unsafe-argument': 'warn',
       // Deshabilitar reglas problemáticas con Prisma
       '@typescript-eslint/no-unsafe-call': 'off',

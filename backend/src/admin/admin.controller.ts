@@ -29,7 +29,7 @@ import { extname } from 'path';
 export class AdminController {
   constructor(private adminsService: AdminService) {}
 
-  // Gestionar usuarios desde admin - DEBE IR ANTES de @Get(':id')
+  // Gestionar usuarios desde admin
   @Get('users')
   @Roles('admin')
   async getAllUsers() {

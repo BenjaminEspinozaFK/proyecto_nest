@@ -99,7 +99,6 @@ export class UsersService {
       data: { avatar: avatarUrl },
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: _, ...userWithoutPassword } = updatedUser;
     return { user: userWithoutPassword, avatar: avatarUrl };
   }
