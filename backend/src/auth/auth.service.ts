@@ -25,7 +25,6 @@ export class AuthService {
         where: { email },
       });
       if (admin && (await bcrypt.compare(password, admin.password))) {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { password: adminPassword, ...result } = admin;
         return { ...result, role: 'admin' };
       }
@@ -34,7 +33,6 @@ export class AuthService {
         where: { email },
       });
       if (user && (await bcrypt.compare(password, user.password))) {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { password: userPassword, ...result } = user;
         return { ...result, role: 'user' };
       }
@@ -138,7 +136,6 @@ export class AuthService {
       role: user.role,
     };
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: userPassword, ...userWithoutPassword } = user;
 
     return {
