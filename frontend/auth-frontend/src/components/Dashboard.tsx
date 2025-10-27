@@ -12,14 +12,23 @@ import {
   IconButton,
   Divider,
   Chip,
-  Paper,
   Stack,
   CircularProgress,
   Alert,
+  LinearProgress,
+  Fade,
 } from "@mui/material";
 import {
-  Edit as EditIcon,
-  CloudUpload as UploadIcon,
+  LogoutOutlined,
+  VerifiedUser,
+  Person,
+  Email,
+  Cake,
+  AdminPanelSettings,
+  CheckCircle,
+  PhotoCamera,
+  TrendingUp,
+  Security,
 } from "@mui/icons-material";
 
 const Dashboard: React.FC = () => {
@@ -76,154 +85,447 @@ const Dashboard: React.FC = () => {
         .toUpperCase()
     : "U";
 
+  const profileCompletion = user.avatar ? 100 : 75;
+
   return (
-    <Container
-      maxWidth={false}
+    <Box
       sx={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
         minHeight: "100vh",
         background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-        padding: "20px",
+        py: 4,
       }}
     >
-      <Card sx={{ maxWidth: 1200, width: "100%", padding: 2, boxShadow: 4 }}>
-        <CardContent>
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: 2,
-              paddingBottom: 1,
-              borderBottom: "2px solid #f0f0f0",
-            }}
-          >
-            <Typography variant="h4" component="h2">
-              ¡Bienvenido!
-            </Typography>
-            <Button variant="contained" color="error" onClick={logout}>
-              Cerrar Sesión
-            </Button>
-          </Box>
-
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              gap: 3,
-              mb: 3,
-              flexDirection: { xs: "column", sm: "row" },
-            }}
-          >
-            <Box sx={{ position: "relative" }}>
-              <Avatar
-                src={avatarSrc}
-                sx={{ width: 100, height: 100, fontSize: 32 }}
-              >
-                {initials}
-              </Avatar>
-
-              <IconButton
-                size="small"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploading}
-                sx={{
-                  position: "absolute",
-                  bottom: -5,
-                  right: -5,
-                  bgcolor: "primary.main",
-                  color: "white",
-                  "&:hover": { bgcolor: "primary.dark" },
-                }}
-              >
-                {uploading ? (
-                  <CircularProgress size={16} />
-                ) : (
-                  <EditIcon fontSize="small" />
-                )}
-              </IconButton>
-
-              <input
-                ref={fileInputRef}
-                type="file"
-                hidden
-                accept="image/*"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) handleImageUpload(file);
-                }}
-              />
-            </Box>
-
-            <Box sx={{ flex: 1 }}>
-              <Stack spacing={1}>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <Typography variant="h5">{user.name}</Typography>
-                  <Chip
-                    label={user.role}
-                    color={user.role === "admin" ? "warning" : "primary"}
-                    size="small"
-                  />
-                </Box>
-                <Typography variant="body2" color="text.secondary">
-                  {user.email}
+      <Container maxWidth="lg">
+        <Fade in timeout={800}>
+          <Box>
+            {/* Header con saludo y logout */}
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                mb: 4,
+                flexDirection: { xs: "column", sm: "row" },
+                gap: 2,
+              }}
+            >
+              <Box sx={{ textAlign: { xs: "center", sm: "left" } }}>
+                <Typography
+                  variant="h3"
+                  sx={{
+                    color: "white",
+                    fontWeight: "bold",
+                    textShadow: "2px 2px 4px rgba(0,0,0,0.2)",
+                    fontSize: { xs: "2rem", sm: "3rem" },
+                  }}
+                >
+                  ¡Hola, {user.name?.split(" ")[0]}! 👋
                 </Typography>
-                <Typography variant="body2">
-                  <strong>Edad:</strong> {user.age} años
+                <Typography
+                  variant="body1"
+                  sx={{
+                    color: "rgba(255,255,255,0.9)",
+                    mt: 0.5,
+                  }}
+                >
+                  Bienvenido a tu panel de control
                 </Typography>
-              </Stack>
-            </Box>
-          </Box>
-
-          {error && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {error}
-            </Alert>
-          )}
-
-          <Divider sx={{ my: 2 }} />
-
-          <Box
-            sx={{
-              display: "grid",
-              gridTemplateColumns: { xs: "1fr", md: "1fr 1fr 1fr" },
-              gap: 2,
-            }}
-          >
-            <Paper sx={{ p: 2, textAlign: "center" }}>
-              <Typography variant="h6" color="success.main">
-                ✅ Conectado
-              </Typography>
-              <Typography variant="body2">Autenticación JWT</Typography>
-            </Paper>
-            <Paper sx={{ p: 2, textAlign: "center" }}>
-              <Typography variant="h6">Perfil</Typography>
-              <Typography variant="body2">
-                Completo al {user.avatar ? "100" : "80"}%
-              </Typography>
-            </Paper>
-            <Paper sx={{ p: 2, textAlign: "center" }}>
+              </Box>
               <Button
-                variant="outlined"
-                size="small"
-                startIcon={<UploadIcon />}
+                variant="contained"
+                onClick={logout}
+                startIcon={<LogoutOutlined />}
+                sx={{
+                  bgcolor: "rgba(255,255,255,0.2)",
+                  backdropFilter: "blur(10px)",
+                  color: "white",
+                  fontWeight: "bold",
+                  "&:hover": {
+                    bgcolor: "rgba(255,255,255,0.3)",
+                  },
+                  boxShadow: "0 4px 15px rgba(0,0,0,0.2)",
+                }}
               >
-                Editar Perfil
+                Cerrar Sesión
               </Button>
-            </Paper>
-          </Box>
+            </Box>
 
-          {user.role === "admin" && (
-            <>
-              <Divider sx={{ my: 3 }} />
-              <AdminDashboard />
-            </>
-          )}
-        </CardContent>
-      </Card>
-    </Container>
+            {/* Card principal con perfil */}
+            <Card
+              sx={{
+                mb: 3,
+                borderRadius: 4,
+                boxShadow: "0 8px 32px rgba(0,0,0,0.15)",
+                background: "rgba(255,255,255,0.95)",
+                backdropFilter: "blur(10px)",
+              }}
+            >
+              <CardContent sx={{ p: 4 }}>
+                <Box
+                  sx={{
+                    display: "grid",
+                    gridTemplateColumns: { xs: "1fr", md: "350px 1fr" },
+                    gap: 4,
+                  }}
+                >
+                  {/* Columna izquierda - Avatar */}
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      gap: 2,
+                    }}
+                  >
+                    <Box sx={{ position: "relative" }}>
+                      <Avatar
+                        src={avatarSrc}
+                        sx={{
+                          width: 160,
+                          height: 160,
+                          fontSize: 48,
+                          boxShadow: "0 8px 24px rgba(0,0,0,0.15)",
+                          border: "4px solid white",
+                          background:
+                            "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                        }}
+                      >
+                        {initials}
+                      </Avatar>
+
+                      <IconButton
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={uploading}
+                        sx={{
+                          position: "absolute",
+                          bottom: 5,
+                          right: 5,
+                          bgcolor: "primary.main",
+                          color: "white",
+                          width: 48,
+                          height: 48,
+                          boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+                          "&:hover": {
+                            bgcolor: "primary.dark",
+                            transform: "scale(1.1)",
+                          },
+                          transition: "all 0.3s ease",
+                        }}
+                      >
+                        {uploading ? (
+                          <CircularProgress size={24} color="inherit" />
+                        ) : (
+                          <PhotoCamera />
+                        )}
+                      </IconButton>
+
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        hidden
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleImageUpload(file);
+                        }}
+                      />
+                    </Box>
+
+                    <Chip
+                      icon={
+                        user.role === "admin" ? (
+                          <AdminPanelSettings />
+                        ) : (
+                          <Person />
+                        )
+                      }
+                      label={
+                        user.role === "admin" ? "Administrador" : "Usuario"
+                      }
+                      color={user.role === "admin" ? "warning" : "primary"}
+                      sx={{
+                        fontWeight: "bold",
+                        fontSize: "0.9rem",
+                        px: 1,
+                        py: 2.5,
+                      }}
+                    />
+
+                    {/* Progreso del perfil */}
+                    <Box sx={{ width: "100%", mt: 1 }}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          mb: 0.5,
+                        }}
+                      >
+                        <Typography variant="caption" fontWeight="bold">
+                          Perfil completado
+                        </Typography>
+                        <Typography variant="caption" color="primary">
+                          {profileCompletion}%
+                        </Typography>
+                      </Box>
+                      <LinearProgress
+                        variant="determinate"
+                        value={profileCompletion}
+                        sx={{
+                          height: 8,
+                          borderRadius: 4,
+                          bgcolor: "rgba(0,0,0,0.08)",
+                        }}
+                      />
+                    </Box>
+                  </Box>
+
+                  {/* Columna derecha - Información */}
+                  <Box>
+                    <Stack spacing={3}>
+                      <Box>
+                        <Typography
+                          variant="h4"
+                          fontWeight="bold"
+                          color="primary"
+                          gutterBottom
+                        >
+                          {user.name}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          Miembro desde {new Date().toLocaleDateString("es-ES")}
+                        </Typography>
+                      </Box>
+
+                      <Divider />
+
+                      {/* Información del perfil */}
+                      <Stack spacing={2}>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 2,
+                            p: 2,
+                            borderRadius: 2,
+                            bgcolor: "rgba(102, 126, 234, 0.08)",
+                          }}
+                        >
+                          <Email color="primary" />
+                          <Box>
+                            <Typography
+                              variant="caption"
+                              color="text.secondary"
+                            >
+                              Correo electrónico
+                            </Typography>
+                            <Typography variant="body1" fontWeight="500">
+                              {user.email}
+                            </Typography>
+                          </Box>
+                        </Box>
+
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 2,
+                            p: 2,
+                            borderRadius: 2,
+                            bgcolor: "rgba(118, 75, 162, 0.08)",
+                          }}
+                        >
+                          <Cake color="secondary" />
+                          <Box>
+                            <Typography
+                              variant="caption"
+                              color="text.secondary"
+                            >
+                              Edad
+                            </Typography>
+                            <Typography variant="body1" fontWeight="500">
+                              {user.age} años
+                            </Typography>
+                          </Box>
+                        </Box>
+                      </Stack>
+
+                      {error && (
+                        <Alert severity="error" sx={{ borderRadius: 2 }}>
+                          {error}
+                        </Alert>
+                      )}
+                    </Stack>
+                  </Box>
+                </Box>
+              </CardContent>
+            </Card>
+
+            {/* Cards de estadísticas */}
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: {
+                  xs: "1fr",
+                  sm: "repeat(2, 1fr)",
+                  md: "repeat(4, 1fr)",
+                },
+                gap: 3,
+                mb: 3,
+              }}
+            >
+              <Card
+                sx={{
+                  background:
+                    "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                  color: "white",
+                  borderRadius: 3,
+                  boxShadow: "0 4px 20px rgba(102, 126, 234, 0.4)",
+                  transition: "transform 0.3s ease",
+                  "&:hover": {
+                    transform: "translateY(-5px)",
+                  },
+                }}
+              >
+                <CardContent>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                    <CheckCircle sx={{ fontSize: 40 }} />
+                    <Box>
+                      <Typography variant="h5" fontWeight="bold">
+                        Activo
+                      </Typography>
+                      <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                        Estado de cuenta
+                      </Typography>
+                    </Box>
+                  </Box>
+                </CardContent>
+              </Card>
+
+              <Card
+                sx={{
+                  background:
+                    "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
+                  color: "white",
+                  borderRadius: 3,
+                  boxShadow: "0 4px 20px rgba(240, 147, 251, 0.4)",
+                  transition: "transform 0.3s ease",
+                  "&:hover": {
+                    transform: "translateY(-5px)",
+                  },
+                }}
+              >
+                <CardContent>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                    <Security sx={{ fontSize: 40 }} />
+                    <Box>
+                      <Typography variant="h5" fontWeight="bold">
+                        JWT
+                      </Typography>
+                      <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                        Autenticación
+                      </Typography>
+                    </Box>
+                  </Box>
+                </CardContent>
+              </Card>
+
+              <Card
+                sx={{
+                  background:
+                    "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
+                  color: "white",
+                  borderRadius: 3,
+                  boxShadow: "0 4px 20px rgba(79, 172, 254, 0.4)",
+                  transition: "transform 0.3s ease",
+                  "&:hover": {
+                    transform: "translateY(-5px)",
+                  },
+                }}
+              >
+                <CardContent>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                    <TrendingUp sx={{ fontSize: 40 }} />
+                    <Box>
+                      <Typography variant="h5" fontWeight="bold">
+                        {profileCompletion}%
+                      </Typography>
+                      <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                        Perfil completo
+                      </Typography>
+                    </Box>
+                  </Box>
+                </CardContent>
+              </Card>
+
+              <Card
+                sx={{
+                  background:
+                    "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)",
+                  color: "white",
+                  borderRadius: 3,
+                  boxShadow: "0 4px 20px rgba(67, 233, 123, 0.4)",
+                  transition: "transform 0.3s ease",
+                  "&:hover": {
+                    transform: "translateY(-5px)",
+                  },
+                }}
+              >
+                <CardContent>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                    <VerifiedUser sx={{ fontSize: 40 }} />
+                    <Box>
+                      <Typography variant="h5" fontWeight="bold">
+                        Verificado
+                      </Typography>
+                      <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                        Cuenta segura
+                      </Typography>
+                    </Box>
+                  </Box>
+                </CardContent>
+              </Card>
+            </Box>
+
+            {/* Panel de administrador */}
+            {user.role === "admin" && (
+              <Card
+                sx={{
+                  borderRadius: 4,
+                  boxShadow: "0 8px 32px rgba(0,0,0,0.15)",
+                  background: "rgba(255,255,255,0.95)",
+                  backdropFilter: "blur(10px)",
+                }}
+              >
+                <CardContent sx={{ p: 4 }}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 2,
+                      mb: 3,
+                    }}
+                  >
+                    <AdminPanelSettings
+                      sx={{ fontSize: 40, color: "warning.main" }}
+                    />
+                    <Box>
+                      <Typography variant="h5" fontWeight="bold">
+                        Panel de Administración
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Gestión de usuarios del sistema
+                      </Typography>
+                    </Box>
+                  </Box>
+                  <Divider sx={{ mb: 3 }} />
+                  <AdminDashboard />
+                </CardContent>
+              </Card>
+            )}
+          </Box>
+        </Fade>
+      </Container>
+    </Box>
   );
 };
 
