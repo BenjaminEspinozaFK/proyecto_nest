@@ -15,20 +15,18 @@ import {
   Stack,
   CircularProgress,
   Alert,
-  LinearProgress,
   Fade,
 } from "@mui/material";
 import {
   LogoutOutlined,
-  VerifiedUser,
   Person,
   Email,
   Cake,
   AdminPanelSettings,
-  CheckCircle,
   PhotoCamera,
-  TrendingUp,
-  Security,
+  CalendarToday,
+  AccountCircle,
+  Shield,
 } from "@mui/icons-material";
 
 const Dashboard: React.FC = () => {
@@ -84,8 +82,6 @@ const Dashboard: React.FC = () => {
         .join("")
         .toUpperCase()
     : "U";
-
-  const profileCompletion = user.avatar ? 100 : 75;
 
   return (
     <Box
@@ -250,33 +246,6 @@ const Dashboard: React.FC = () => {
                         py: 2.5,
                       }}
                     />
-
-                    {/* Progreso del perfil */}
-                    <Box sx={{ width: "100%", mt: 1 }}>
-                      <Box
-                        sx={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          mb: 0.5,
-                        }}
-                      >
-                        <Typography variant="caption" fontWeight="bold">
-                          Perfil completado
-                        </Typography>
-                        <Typography variant="caption" color="primary">
-                          {profileCompletion}%
-                        </Typography>
-                      </Box>
-                      <LinearProgress
-                        variant="determinate"
-                        value={profileCompletion}
-                        sx={{
-                          height: 8,
-                          borderRadius: 4,
-                          bgcolor: "rgba(0,0,0,0.08)",
-                        }}
-                      />
-                    </Box>
                   </Box>
 
                   {/* Columna derecha - Información */}
@@ -360,19 +329,20 @@ const Dashboard: React.FC = () => {
               </CardContent>
             </Card>
 
-            {/* Cards de estadísticas */}
+            {/* Cards de información útil */}
             <Box
               sx={{
                 display: "grid",
                 gridTemplateColumns: {
                   xs: "1fr",
                   sm: "repeat(2, 1fr)",
-                  md: "repeat(4, 1fr)",
+                  lg: "repeat(3, 1fr)",
                 },
                 gap: 3,
                 mb: 3,
               }}
             >
+              {/* Card de Perfil */}
               <Card
                 sx={{
                   background:
@@ -388,19 +358,24 @@ const Dashboard: React.FC = () => {
               >
                 <CardContent>
                   <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                    <CheckCircle sx={{ fontSize: 40 }} />
+                    <AccountCircle sx={{ fontSize: 48 }} />
                     <Box>
-                      <Typography variant="h5" fontWeight="bold">
-                        Activo
+                      <Typography variant="h6" fontWeight="bold">
+                        Mi Perfil
                       </Typography>
-                      <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                        Estado de cuenta
+                      <Typography
+                        variant="body2"
+                        sx={{ opacity: 0.9, mt: 0.5 }}
+                      >
+                        {user.role === "admin" ? "Administrador" : "Usuario"}{" "}
+                        del sistema
                       </Typography>
                     </Box>
                   </Box>
                 </CardContent>
               </Card>
 
+              {/* Card de Fecha de registro */}
               <Card
                 sx={{
                   background:
@@ -416,47 +391,26 @@ const Dashboard: React.FC = () => {
               >
                 <CardContent>
                   <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                    <Security sx={{ fontSize: 40 }} />
+                    <CalendarToday sx={{ fontSize: 48 }} />
                     <Box>
-                      <Typography variant="h5" fontWeight="bold">
-                        JWT
+                      <Typography variant="h6" fontWeight="bold">
+                        Miembro desde
                       </Typography>
-                      <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                        Autenticación
+                      <Typography
+                        variant="body2"
+                        sx={{ opacity: 0.9, mt: 0.5 }}
+                      >
+                        {new Date().toLocaleDateString("es-ES", {
+                          month: "long",
+                          year: "numeric",
+                        })}
                       </Typography>
                     </Box>
                   </Box>
                 </CardContent>
               </Card>
 
-              <Card
-                sx={{
-                  background:
-                    "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
-                  color: "white",
-                  borderRadius: 3,
-                  boxShadow: "0 4px 20px rgba(79, 172, 254, 0.4)",
-                  transition: "transform 0.3s ease",
-                  "&:hover": {
-                    transform: "translateY(-5px)",
-                  },
-                }}
-              >
-                <CardContent>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                    <TrendingUp sx={{ fontSize: 40 }} />
-                    <Box>
-                      <Typography variant="h5" fontWeight="bold">
-                        {profileCompletion}%
-                      </Typography>
-                      <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                        Perfil completo
-                      </Typography>
-                    </Box>
-                  </Box>
-                </CardContent>
-              </Card>
-
+              {/* Card de Seguridad */}
               <Card
                 sx={{
                   background:
@@ -472,13 +426,16 @@ const Dashboard: React.FC = () => {
               >
                 <CardContent>
                   <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                    <VerifiedUser sx={{ fontSize: 40 }} />
+                    <Shield sx={{ fontSize: 48 }} />
                     <Box>
-                      <Typography variant="h5" fontWeight="bold">
-                        Verificado
+                      <Typography variant="h6" fontWeight="bold">
+                        Cuenta Segura
                       </Typography>
-                      <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                        Cuenta segura
+                      <Typography
+                        variant="body2"
+                        sx={{ opacity: 0.9, mt: 0.5 }}
+                      >
+                        Protegida y encriptada
                       </Typography>
                     </Box>
                   </Box>
