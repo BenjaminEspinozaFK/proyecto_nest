@@ -6,6 +6,7 @@ import { RegisterDto } from './dto/register.dto';
 import { EmailService } from '../email/email.service';
 import { ValidatedUser } from './interfaces/validated-user.interface';
 import * as bcrypt from 'bcryptjs';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class AuthService {
@@ -142,5 +143,152 @@ export class AuthService {
       access_token: this.jwtService.sign(payload),
       user: { ...userWithoutPassword, role: user.role }, // Incluir role en la respuesta
     };
+  }
+  /**
+   * Solicitar reset de contraseña (forgot password)
+   */
+  async requestPasswordReset(email: string, role: string): Promise<void> {
+    // Buscar usuario según el rol
+    if (role === 'admin') {
+      const admin = await this.prisma.admin.findUnique({ where: { email } });
+
+      if (!admin) {
+        // Por seguridad, no revelar si el email existe o no
+        console.log(
+          `Email ${email} no encontrado, pero no revelamos esto al cliente`,
+        );
+        return;
+      }
+
+      // Generar token aleatorio de 32 bytes
+      const resetToken = crypto.randomBytes(32).toString('hex');
+
+      // Token expira en 1 hora
+      const expiresAt = new Date();
+      expiresAt.setHours(expiresAt.getHours() + 1);
+
+      // Guardar token en DB
+      await this.prisma.admin.update({
+        where: { id: admin.id },
+        data: {
+          resetPasswordToken: resetToken,
+          resetPasswordExpires: expiresAt,
+        },
+      });
+
+      // Enviar email con el token
+      try {
+        await this.emailService.sendPasswordResetEmail(
+          admin.email,
+          admin.name || 'Usuario',
+          resetToken,
+          '1 hora',
+        );
+      } catch (emailError) {
+        console.error('Error enviando email de reset:', emailError);
+        throw new UnauthorizedException(
+          'No se pudo enviar el email de recuperación',
+        );
+      }
+    } else {
+      const user = await this.prisma.user.findUnique({ where: { email } });
+
+      if (!user) {
+        // Por seguridad, no revelar si el email existe o no
+        console.log(
+          `Email ${email} no encontrado, pero no revelamos esto al cliente`,
+        );
+        return;
+      }
+
+      // Generar token aleatorio de 32 bytes
+      const resetToken = crypto.randomBytes(32).toString('hex');
+
+      // Token expira en 1 hora
+      const expiresAt = new Date();
+      expiresAt.setHours(expiresAt.getHours() + 1);
+
+      // Guardar token en DB
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: {
+          resetPasswordToken: resetToken,
+          resetPasswordExpires: expiresAt,
+        },
+      });
+
+      // Enviar email con el token
+      try {
+        await this.emailService.sendPasswordResetEmail(
+          user.email,
+          user.name || 'Usuario',
+          resetToken,
+          '1 hora',
+        );
+      } catch (emailError) {
+        console.error('Error enviando email de reset:', emailError);
+        throw new UnauthorizedException(
+          'No se pudo enviar el email de recuperación',
+        );
+      }
+    }
+  }
+
+  /**
+   * Resetear contraseña con token
+   */
+  async resetPassword(token: string, newPassword: string): Promise<void> {
+    const now = new Date();
+
+    // Buscar usuario con ese token válido (no expirado)
+    let user = await this.prisma.user.findFirst({
+      where: {
+        resetPasswordToken: token,
+        resetPasswordExpires: { gte: now },
+      },
+    });
+
+    let isAdmin = false;
+
+    if (!user) {
+      // Buscar en admins
+      const admin = await this.prisma.admin.findFirst({
+        where: {
+          resetPasswordToken: token,
+          resetPasswordExpires: { gte: now },
+        },
+      });
+
+      if (!admin) {
+        throw new UnauthorizedException('Token inválido o expirado');
+      }
+
+      user = admin;
+      isAdmin = true;
+    }
+
+    // Encriptar nueva contraseña
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Actualizar contraseña y limpiar token
+    if (isAdmin) {
+      await this.prisma.admin.update({
+        where: { id: user.id },
+        data: {
+          password: hashedPassword,
+          resetPasswordToken: null,
+          resetPasswordExpires: null,
+        },
+      });
+    } else {
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: {
+          password: hashedPassword,
+          resetPasswordToken: null,
+          resetPasswordExpires: null,
+        },
+      });
+    }
   }
 }
