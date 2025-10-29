@@ -1,53 +1,63 @@
 import React, { useState } from "react";
-import { useAuth } from "./AuthContext";
 import {
-  Alert,
-  Box,
-  Button,
+  Container,
   Card,
   CardContent,
-  Container,
+  TextField,
+  Button,
+  Typography,
+  Box,
+  Alert,
   FormControl,
   InputLabel,
-  MenuItem,
   Select,
-  TextField,
-  Typography,
-  IconButton,
-  InputAdornment,
+  MenuItem,
   Paper,
+  InputAdornment,
   Divider,
   Chip,
 } from "@mui/material";
 import {
-  Visibility,
-  VisibilityOff,
-  Login as LoginIcon,
-  PersonAdd,
+  Email,
+  ArrowBack,
   AdminPanelSettings,
   Person,
 } from "@mui/icons-material";
+import axios from "axios";
 
-interface LoginProps {
-  onSwitchToRegister: () => void;
-  onForgotPassword?: () => void;
+interface ForgotPasswordProps {
+  onBackToLogin: () => void;
 }
 
-const Login: React.FC<LoginProps> = ({
-  onSwitchToRegister,
-  onForgotPassword,
-}) => {
+const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBackToLogin }) => {
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [role, setRole] = useState("user");
-  const [showPassword, setShowPassword] = useState(false);
-  const { login, isLoading, error } = useAuth();
+  const [role, setRole] = useState<"user" | "admin">("user");
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
+    setMessage(null);
+    setError(null);
+
     try {
-      await login(email, password, role);
-    } catch (err) {}
+      const response = await axios.post(
+        "http://localhost:3001/auth/forgot-password",
+        { email, role }
+      );
+
+      setMessage(response.data.message);
+      setEmail("");
+    } catch (err: any) {
+      setError(
+        err.response?.data?.message ||
+          "Error al solicitar recuperación de contraseña"
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -64,14 +74,13 @@ const Login: React.FC<LoginProps> = ({
     >
       <Card
         sx={{
-          maxWidth: 450,
+          maxWidth: 500,
           width: "100%",
           boxShadow: "0 8px 32px rgba(0,0,0,0.2)",
           borderRadius: 3,
         }}
       >
         <CardContent sx={{ padding: 4 }}>
-          {/* Header con ícono */}
           <Box sx={{ textAlign: "center", mb: 3 }}>
             <Paper
               elevation={3}
@@ -86,69 +95,52 @@ const Login: React.FC<LoginProps> = ({
                 background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
               }}
             >
-              <LoginIcon sx={{ fontSize: 40, color: "white" }} />
+              <Email sx={{ fontSize: 40, color: "white" }} />
             </Paper>
             <Typography variant="h4" component="h1" fontWeight="bold">
-              Bienvenido
+              ¿Olvidaste tu contraseña?
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-              Inicia sesión para continuar
+              Ingresa tu email y te enviaremos un enlace para restablecerla
             </Typography>
           </Box>
+
+          {message && (
+            <Alert severity="success" sx={{ mb: 3, borderRadius: 2 }}>
+              {message}
+            </Alert>
+          )}
+
+          {error && (
+            <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
+              {error}
+            </Alert>
+          )}
 
           <Box
             component="form"
             onSubmit={handleSubmit}
             sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}
           >
-            {/* Email */}
             <TextField
+              fullWidth
               label="Correo electrónico"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              disabled={isLoading}
-              fullWidth
-              variant="outlined"
+              disabled={loading}
               autoComplete="email"
-            />
-
-            {/* Password con toggle visibility */}
-            <TextField
-              label="Contraseña"
-              type={showPassword ? "text" : "password"}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              disabled={isLoading}
-              inputProps={{ minLength: 6 }}
-              fullWidth
               variant="outlined"
-              autoComplete="current-password"
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton
-                      onClick={() => setShowPassword(!showPassword)}
-                      edge="end"
-                      disabled={isLoading}
-                    >
-                      {showPassword ? <VisibilityOff /> : <Visibility />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
             />
 
-            {/* Role selector con chips visuales */}
-            <FormControl fullWidth disabled={isLoading}>
+            <FormControl fullWidth disabled={loading}>
               <InputLabel id="role-label">Tipo de cuenta</InputLabel>
               <Select
                 labelId="role-label"
                 value={role}
                 label="Tipo de cuenta"
-                onChange={(e) => setRole(e.target.value)}
+                onChange={(e) => setRole(e.target.value as "user" | "admin")}
                 startAdornment={
                   <InputAdornment position="start">
                     {role === "admin" ? (
@@ -174,20 +166,11 @@ const Login: React.FC<LoginProps> = ({
               </Select>
             </FormControl>
 
-            {/* Error Alert */}
-            {error && (
-              <Alert severity="error" sx={{ borderRadius: 2 }}>
-                {error}
-              </Alert>
-            )}
-
-            {/* Submit Button */}
             <Button
               type="submit"
               variant="contained"
-              disabled={isLoading}
               size="large"
-              startIcon={!isLoading && <LoginIcon />}
+              disabled={loading}
               sx={{
                 mt: 1,
                 py: 1.5,
@@ -200,46 +183,27 @@ const Login: React.FC<LoginProps> = ({
                 },
               }}
             >
-              {isLoading ? "Iniciando sesión..." : "Iniciar Sesión"}
+              {loading ? "Enviando..." : "Enviar enlace de recuperación"}
             </Button>
-
-            {/* Forgot Password Link */}
-            {onForgotPassword && (
-              <Box sx={{ textAlign: "center", mt: 1 }}>
-                <Button
-                  onClick={onForgotPassword}
-                  disabled={isLoading}
-                  size="small"
-                  sx={{ textTransform: "none" }}
-                >
-                  ¿Olvidaste tu contraseña?
-                </Button>
-              </Box>
-            )}
           </Box>
 
           <Divider sx={{ my: 3 }}>
             <Chip label="O" size="small" />
           </Divider>
 
-          {/* Register Link */}
           <Box sx={{ textAlign: "center" }}>
-            <Typography variant="body2" color="text.secondary">
-              ¿No tienes una cuenta?
-            </Typography>
             <Button
               variant="outlined"
-              onClick={onSwitchToRegister}
-              disabled={isLoading}
-              startIcon={<PersonAdd />}
+              onClick={onBackToLogin}
+              disabled={loading}
+              startIcon={<ArrowBack />}
               sx={{
-                mt: 1,
                 borderRadius: 2,
                 textTransform: "none",
                 fontWeight: "bold",
               }}
             >
-              Crear cuenta nueva
+              Volver al inicio de sesión
             </Button>
           </Box>
         </CardContent>
@@ -248,4 +212,4 @@ const Login: React.FC<LoginProps> = ({
   );
 };
 
-export default Login;
+export default ForgotPassword;

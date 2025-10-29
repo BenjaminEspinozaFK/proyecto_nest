@@ -1,29 +1,47 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { AuthProvider, useAuth } from "./components/AuthContext";
 import Login from "./components/Login";
 import Register from "./components/Register";
 import Dashboard from "./components/Dashboard";
+import ForgotPassword from "./components/ForgotPassword";
+import ResetPassword from "./components/ResetPassword";
 import "./App.css";
 
+type ViewType = "login" | "register" | "forgot" | "reset";
+
 const AuthApp: React.FC = () => {
-  const [isLoginMode, setIsLoginMode] = useState(true);
+  const [view, setView] = useState<ViewType>("login");
   const { user } = useAuth();
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const hasResetToken = urlParams.has("token");
+    if (hasResetToken) {
+      setView("reset");
+    }
+  }, []);
 
   // Si el usuario está logueado, mostrar dashboard
   if (user) {
     return <Dashboard />;
   }
 
-  // Si no está logueado, mostrar login o register
-  return (
-    <>
-      {isLoginMode ? (
-        <Login onSwitchToRegister={() => setIsLoginMode(false)} />
-      ) : (
-        <Register onSwitchToLogin={() => setIsLoginMode(true)} />
-      )}
-    </>
-  );
+  // Renderizar según vista actual
+  switch (view) {
+    case "register":
+      return <Register onSwitchToLogin={() => setView("login")} />;
+    case "forgot":
+      return <ForgotPassword onBackToLogin={() => setView("login")} />;
+    case "reset":
+      return <ResetPassword onBackToLogin={() => setView("login")} />;
+    default:
+      return (
+        <Login
+          onSwitchToRegister={() => setView("register")}
+          onForgotPassword={() => setView("forgot")}
+        />
+      );
+  }
 };
 
 function App() {
