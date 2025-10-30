@@ -9,7 +9,6 @@ import {
   Button,
   Box,
   Alert,
-  Paper,
   Divider,
   Chip,
   IconButton,
@@ -17,8 +16,6 @@ import {
   Stack,
 } from "@mui/material";
 import {
-  PersonAdd,
-  Login as LoginIcon,
   Email,
   Lock,
   Person,
@@ -69,7 +66,6 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
         justifyContent: "center",
         alignItems: "center",
         minHeight: "100vh",
-        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
         padding: "20px",
       }}
     >
@@ -77,33 +73,18 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
         sx={{
           maxWidth: 500,
           width: "100%",
-          boxShadow: "0 8px 32px rgba(0,0,0,0.2)",
           borderRadius: 3,
+          p: 4,
         }}
       >
-        <CardContent sx={{ padding: 4 }}>
-          {/* Header con ícono */}
+        <CardContent sx={{ padding: 0 }}>
+          {/* Header */}
           <Box sx={{ textAlign: "center", mb: 3 }}>
-            <Paper
-              elevation={3}
-              sx={{
-                width: 80,
-                height: 80,
-                borderRadius: "50%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                margin: "0 auto 16px",
-                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-              }}
-            >
-              <PersonAdd sx={{ fontSize: 40, color: "white" }} />
-            </Paper>
-            <Typography variant="h4" component="h1" fontWeight="bold">
-              Crear Cuenta
+            <Typography variant="h4" component="h1" sx={{ mb: 1 }}>
+              Crear cuenta
             </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-              Únete y comienza tu experiencia
+            <Typography variant="body2" color="text.secondary">
+              Regístrate para comenzar
             </Typography>
           </Box>
 
@@ -225,20 +206,9 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
               variant="contained"
               disabled={isLoading}
               size="large"
-              startIcon={!isLoading && <PersonAdd />}
-              sx={{
-                mt: 1,
-                py: 1.5,
-                fontSize: "1rem",
-                fontWeight: "bold",
-                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                "&:hover": {
-                  background:
-                    "linear-gradient(135deg, #5568d3 0%, #6a3a8d 100%)",
-                },
-              }}
+              fullWidth
             >
-              {isLoading ? "Creando cuenta..." : "Crear Cuenta"}
+              {isLoading ? "Creando cuenta..." : "Crear cuenta"}
             </Button>
           </Box>
 
@@ -252,16 +222,11 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
               ¿Ya tienes una cuenta?
             </Typography>
             <Button
-              variant="outlined"
+              variant="text"
               onClick={onSwitchToLogin}
               disabled={isLoading}
-              startIcon={<LoginIcon />}
-              sx={{
-                mt: 1,
-                borderRadius: 2,
-                textTransform: "none",
-                fontWeight: "bold",
-              }}
+              color="inherit"
+              sx={{ mt: 1 }}
             >
               Iniciar sesión
             </Button>

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { User } from "../types/auth"; // Ajusta la ruta si es necesario
 import {
-  Typography,
+  Box,
   Table,
   TableContainer,
   Paper,
@@ -10,7 +10,6 @@ import {
   TableCell,
   TableBody,
   Button,
-  Container,
 } from "@mui/material";
 import EditUserModal from "./admin/EditUserModal";
 
@@ -109,11 +108,21 @@ const AdminDashboard: React.FC = () => {
   };
 
   return (
-    <Container maxWidth={false} sx={{ padding: "20px" }}>
-      <Typography variant="h4" gutterBottom>
-        Panel de Administrador
-      </Typography>
-      <TableContainer component={Paper}>
+    <Box>
+      <TableContainer
+        component={Paper}
+        sx={{
+          backgroundColor: "rgba(50, 50, 50, 0.5)",
+          "& .MuiTableCell-root": {
+            color: "#ffffff",
+            borderColor: "rgba(255, 255, 255, 0.1)",
+          },
+          "& .MuiTableCell-head": {
+            fontWeight: 600,
+            backgroundColor: "rgba(40, 40, 40, 0.8)",
+          },
+        }}
+      >
         <Table>
           <TableHead>
             <TableRow>
@@ -163,7 +172,7 @@ const AdminDashboard: React.FC = () => {
         onSave={handleSave}
         onChange={setEditingUser}
       />
-    </Container>
+    </Box>
   );
 };
 

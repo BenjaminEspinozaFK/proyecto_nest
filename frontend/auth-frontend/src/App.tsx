@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from "react";
+import { ThemeProvider } from "@mui/material/styles";
+import CssBaseline from "@mui/material/CssBaseline";
 import { AuthProvider, useAuth } from "./components/AuthContext";
 import Login from "./components/Login";
 import Register from "./components/Register";
 import Dashboard from "./components/Dashboard";
 import ForgotPassword from "./components/ForgotPassword";
 import ResetPassword from "./components/ResetPassword";
+import { darkTheme } from "./theme";
 import "./App.css";
 
 type ViewType = "login" | "register" | "forgot" | "reset";
@@ -46,11 +49,14 @@ const AuthApp: React.FC = () => {
 
 function App() {
   return (
-    <AuthProvider>
-      <div className="App">
-        <AuthApp />
-      </div>
-    </AuthProvider>
+    <ThemeProvider theme={darkTheme}>
+      <CssBaseline />
+      <AuthProvider>
+        <div className="App">
+          <AuthApp />
+        </div>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 
