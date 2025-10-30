@@ -87,7 +87,6 @@ const Dashboard: React.FC = () => {
     <Box
       sx={{
         minHeight: "100vh",
-        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
         py: 4,
       }}
     >
@@ -109,9 +108,7 @@ const Dashboard: React.FC = () => {
                 <Typography
                   variant="h3"
                   sx={{
-                    color: "white",
-                    fontWeight: "bold",
-                    textShadow: "2px 2px 4px rgba(0,0,0,0.2)",
+                    fontWeight: "600",
                     fontSize: { xs: "2rem", sm: "3rem" },
                   }}
                 >
@@ -119,10 +116,8 @@ const Dashboard: React.FC = () => {
                 </Typography>
                 <Typography
                   variant="body1"
-                  sx={{
-                    color: "rgba(255,255,255,0.9)",
-                    mt: 0.5,
-                  }}
+                  color="text.secondary"
+                  sx={{ mt: 0.5 }}
                 >
                   Bienvenido a tu panel de control
                 </Typography>
@@ -131,16 +126,6 @@ const Dashboard: React.FC = () => {
                 variant="contained"
                 onClick={logout}
                 startIcon={<LogoutOutlined />}
-                sx={{
-                  bgcolor: "rgba(255,255,255,0.2)",
-                  backdropFilter: "blur(10px)",
-                  color: "white",
-                  fontWeight: "bold",
-                  "&:hover": {
-                    bgcolor: "rgba(255,255,255,0.3)",
-                  },
-                  boxShadow: "0 4px 15px rgba(0,0,0,0.2)",
-                }}
               >
                 Cerrar Sesión
               </Button>
@@ -150,10 +135,8 @@ const Dashboard: React.FC = () => {
             <Card
               sx={{
                 mb: 3,
-                borderRadius: 4,
-                boxShadow: "0 8px 32px rgba(0,0,0,0.15)",
-                background: "rgba(255,255,255,0.95)",
-                backdropFilter: "blur(10px)",
+                borderRadius: 3,
+                boxShadow: 3,
               }}
             >
               <CardContent sx={{ p: 4 }}>
@@ -180,10 +163,7 @@ const Dashboard: React.FC = () => {
                           width: 160,
                           height: 160,
                           fontSize: 48,
-                          boxShadow: "0 8px 24px rgba(0,0,0,0.15)",
-                          border: "4px solid white",
-                          background:
-                            "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                          bgcolor: "primary.main",
                         }}
                       >
                         {initials}
@@ -197,15 +177,12 @@ const Dashboard: React.FC = () => {
                           bottom: 5,
                           right: 5,
                           bgcolor: "primary.main",
-                          color: "white",
+                          color: "primary.contrastText",
                           width: 48,
                           height: 48,
-                          boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
                           "&:hover": {
                             bgcolor: "primary.dark",
-                            transform: "scale(1.1)",
                           },
-                          transition: "all 0.3s ease",
                         }}
                       >
                         {uploading ? (
@@ -448,9 +425,10 @@ const Dashboard: React.FC = () => {
               <Card
                 sx={{
                   borderRadius: 4,
-                  boxShadow: "0 8px 32px rgba(0,0,0,0.15)",
-                  background: "rgba(255,255,255,0.95)",
+                  boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
+                  background: "rgba(40, 40, 40, 0.8)",
                   backdropFilter: "blur(10px)",
+                  border: "1px solid rgba(255, 255, 255, 0.1)",
                 }}
               >
                 <CardContent sx={{ p: 4 }}>
@@ -466,15 +444,24 @@ const Dashboard: React.FC = () => {
                       sx={{ fontSize: 40, color: "warning.main" }}
                     />
                     <Box>
-                      <Typography variant="h5" fontWeight="bold">
+                      <Typography
+                        variant="h5"
+                        fontWeight="bold"
+                        color="#ffffff"
+                      >
                         Panel de Administración
                       </Typography>
-                      <Typography variant="body2" color="text.secondary">
+                      <Typography
+                        variant="body2"
+                        color="rgba(255, 255, 255, 0.7)"
+                      >
                         Gestión de usuarios del sistema
                       </Typography>
                     </Box>
                   </Box>
-                  <Divider sx={{ mb: 3 }} />
+                  <Divider
+                    sx={{ mb: 3, borderColor: "rgba(255, 255, 255, 0.1)" }}
+                  />
                   <AdminDashboard />
                 </CardContent>
               </Card>

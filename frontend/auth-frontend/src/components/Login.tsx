@@ -15,14 +15,12 @@ import {
   Typography,
   IconButton,
   InputAdornment,
-  Paper,
   Divider,
   Chip,
 } from "@mui/material";
 import {
   Visibility,
   VisibilityOff,
-  Login as LoginIcon,
   PersonAdd,
   AdminPanelSettings,
   Person,
@@ -58,7 +56,6 @@ const Login: React.FC<LoginProps> = ({
         justifyContent: "center",
         alignItems: "center",
         minHeight: "100vh",
-        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
         padding: "20px",
       }}
     >
@@ -66,33 +63,19 @@ const Login: React.FC<LoginProps> = ({
         sx={{
           maxWidth: 450,
           width: "100%",
-          boxShadow: "0 8px 32px rgba(0,0,0,0.2)",
+          boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
           borderRadius: 3,
+          p: 4,
         }}
       >
-        <CardContent sx={{ padding: 4 }}>
-          {/* Header con ícono */}
+        <CardContent sx={{ padding: 0 }}>
+          {/* Header */}
           <Box sx={{ textAlign: "center", mb: 3 }}>
-            <Paper
-              elevation={3}
-              sx={{
-                width: 80,
-                height: 80,
-                borderRadius: "50%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                margin: "0 auto 16px",
-                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-              }}
-            >
-              <LoginIcon sx={{ fontSize: 40, color: "white" }} />
-            </Paper>
-            <Typography variant="h4" component="h1" fontWeight="bold">
-              Bienvenido
+            <Typography variant="h4" component="h1" sx={{ mb: 1 }}>
+              Iniciar sesión
             </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-              Inicia sesión para continuar
+            <Typography variant="body2" color="text.secondary">
+              Inicia sesión para acceder a tu cuenta.
             </Typography>
           </Box>
 
@@ -187,20 +170,9 @@ const Login: React.FC<LoginProps> = ({
               variant="contained"
               disabled={isLoading}
               size="large"
-              startIcon={!isLoading && <LoginIcon />}
-              sx={{
-                mt: 1,
-                py: 1.5,
-                fontSize: "1rem",
-                fontWeight: "bold",
-                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                "&:hover": {
-                  background:
-                    "linear-gradient(135deg, #5568d3 0%, #6a3a8d 100%)",
-                },
-              }}
+              fullWidth
             >
-              {isLoading ? "Iniciando sesión..." : "Iniciar Sesión"}
+              {isLoading ? "Iniciando sesión..." : "Iniciar sesión"}
             </Button>
 
             {/* Forgot Password Link */}
@@ -210,7 +182,7 @@ const Login: React.FC<LoginProps> = ({
                   onClick={onForgotPassword}
                   disabled={isLoading}
                   size="small"
-                  sx={{ textTransform: "none" }}
+                  color="inherit"
                 >
                   ¿Olvidaste tu contraseña?
                 </Button>

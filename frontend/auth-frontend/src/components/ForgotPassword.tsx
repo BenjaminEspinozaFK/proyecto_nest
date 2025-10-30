@@ -12,17 +12,11 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Paper,
   InputAdornment,
   Divider,
   Chip,
 } from "@mui/material";
-import {
-  Email,
-  ArrowBack,
-  AdminPanelSettings,
-  Person,
-} from "@mui/icons-material";
+import { AdminPanelSettings, Person } from "@mui/icons-material";
 import axios from "axios";
 
 interface ForgotPasswordProps {
@@ -68,7 +62,6 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBackToLogin }) => {
         justifyContent: "center",
         alignItems: "center",
         minHeight: "100vh",
-        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
         padding: "20px",
       }}
     >
@@ -76,43 +69,28 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBackToLogin }) => {
         sx={{
           maxWidth: 500,
           width: "100%",
-          boxShadow: "0 8px 32px rgba(0,0,0,0.2)",
           borderRadius: 3,
+          p: 4,
         }}
       >
-        <CardContent sx={{ padding: 4 }}>
+        <CardContent sx={{ padding: 0 }}>
           <Box sx={{ textAlign: "center", mb: 3 }}>
-            <Paper
-              elevation={3}
-              sx={{
-                width: 80,
-                height: 80,
-                borderRadius: "50%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                margin: "0 auto 16px",
-                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-              }}
-            >
-              <Email sx={{ fontSize: 40, color: "white" }} />
-            </Paper>
-            <Typography variant="h4" component="h1" fontWeight="bold">
+            <Typography variant="h4" component="h1" sx={{ mb: 1 }}>
               ¿Olvidaste tu contraseña?
             </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+            <Typography variant="body2" color="text.secondary">
               Ingresa tu email y te enviaremos un enlace para restablecerla
             </Typography>
           </Box>
 
           {message && (
-            <Alert severity="success" sx={{ mb: 3, borderRadius: 2 }}>
+            <Alert severity="success" sx={{ mb: 3 }}>
               {message}
             </Alert>
           )}
 
           {error && (
-            <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
+            <Alert severity="error" sx={{ mb: 3 }}>
               {error}
             </Alert>
           )}
@@ -170,18 +148,8 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBackToLogin }) => {
               type="submit"
               variant="contained"
               size="large"
+              fullWidth
               disabled={loading}
-              sx={{
-                mt: 1,
-                py: 1.5,
-                fontSize: "1rem",
-                fontWeight: "bold",
-                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                "&:hover": {
-                  background:
-                    "linear-gradient(135deg, #5568d3 0%, #6a3a8d 100%)",
-                },
-              }}
             >
               {loading ? "Enviando..." : "Enviar enlace de recuperación"}
             </Button>
@@ -193,15 +161,10 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBackToLogin }) => {
 
           <Box sx={{ textAlign: "center" }}>
             <Button
-              variant="outlined"
+              variant="text"
               onClick={onBackToLogin}
               disabled={loading}
-              startIcon={<ArrowBack />}
-              sx={{
-                borderRadius: 2,
-                textTransform: "none",
-                fontWeight: "bold",
-              }}
+              color="inherit"
             >
               Volver al inicio de sesión
             </Button>

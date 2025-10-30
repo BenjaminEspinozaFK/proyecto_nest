@@ -8,11 +8,10 @@ import {
   Typography,
   Alert,
   Box,
-  Paper,
   IconButton,
   InputAdornment,
 } from "@mui/material";
-import { Visibility, VisibilityOff, LockReset } from "@mui/icons-material";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
 import axios from "axios";
 
 interface ResetPasswordProps {
@@ -84,7 +83,6 @@ const ResetPassword: React.FC<ResetPasswordProps> = ({ onBackToLogin }) => {
         justifyContent: "center",
         alignItems: "center",
         minHeight: "100vh",
-        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
         padding: "20px",
       }}
     >
@@ -92,37 +90,22 @@ const ResetPassword: React.FC<ResetPasswordProps> = ({ onBackToLogin }) => {
         sx={{
           maxWidth: 500,
           width: "100%",
-          boxShadow: "0 8px 32px rgba(0,0,0,0.2)",
           borderRadius: 3,
+          p: 4,
         }}
       >
-        <CardContent sx={{ padding: 4 }}>
+        <CardContent sx={{ padding: 0 }}>
           <Box sx={{ textAlign: "center", mb: 3 }}>
-            <Paper
-              elevation={3}
-              sx={{
-                width: 80,
-                height: 80,
-                borderRadius: "50%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                margin: "0 auto 16px",
-                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-              }}
-            >
-              <LockReset sx={{ fontSize: 40, color: "white" }} />
-            </Paper>
-            <Typography variant="h4" component="h1" fontWeight="bold">
-              Nueva Contraseña
+            <Typography variant="h4" component="h1" sx={{ mb: 1 }}>
+              Nueva contraseña
             </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+            <Typography variant="body2" color="text.secondary">
               Ingresa tu nueva contraseña
             </Typography>
           </Box>
 
           {message && (
-            <Alert severity="success" sx={{ mb: 3, borderRadius: 2 }}>
+            <Alert severity="success" sx={{ mb: 3 }}>
               {message}
               <br />
               Redirigiendo al login en 3 segundos...
@@ -130,7 +113,7 @@ const ResetPassword: React.FC<ResetPasswordProps> = ({ onBackToLogin }) => {
           )}
 
           {error && (
-            <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
+            <Alert severity="error" sx={{ mb: 3 }}>
               {error}
             </Alert>
           )}
@@ -202,19 +185,8 @@ const ResetPassword: React.FC<ResetPasswordProps> = ({ onBackToLogin }) => {
                 type="submit"
                 variant="contained"
                 size="large"
+                fullWidth
                 disabled={loading || !token}
-                sx={{
-                  mt: 1,
-                  py: 1.5,
-                  fontSize: "1rem",
-                  fontWeight: "bold",
-                  background:
-                    "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                  "&:hover": {
-                    background:
-                      "linear-gradient(135deg, #5568d3 0%, #6a3a8d 100%)",
-                  },
-                }}
               >
                 {loading ? "Procesando..." : "Cambiar contraseña"}
               </Button>
