@@ -98,6 +98,7 @@ export class AuthService {
         name: user.name,
         age: user.age,
         role: user.role,
+        avatar: user.avatar,
         lastLogin: user.lastLogin,
       },
     };
@@ -141,7 +142,7 @@ export class AuthService {
 
     return {
       access_token: this.jwtService.sign(payload),
-      user: { ...userWithoutPassword, role: user.role }, // Incluir role en la respuesta
+      user: { ...userWithoutPassword, role: user.role, avatar: user.avatar }, // Incluir role en la respuesta
     };
   }
   /**
