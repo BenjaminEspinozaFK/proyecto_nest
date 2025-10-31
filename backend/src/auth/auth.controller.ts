@@ -1,15 +1,33 @@
-import { Controller, Post, Body, ValidationPipe } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  ValidationPipe,
+  Get,
+  UseGuards,
+  Req,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { JwtAuthGuard } from './jwt-auth.guard';
+import { PrismaService } from '../prisma.service';
 
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private prisma: PrismaService,
+  ) {}
 
   @Post('login')
   @ApiOperation({ summary: 'Iniciar sesión' })
@@ -101,5 +119,71 @@ export class AuthController {
     return {
       message: 'Contraseña actualizada correctamente',
     };
+  }
+
+  /**
+   * GET /auth/me
+   * Obtiene el perfil del usuario autenticado
+   */
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Obtener perfil del usuario autenticado' })
+  @ApiResponse({
+    status: 200,
+    description: 'Perfil del usuario',
+    schema: {
+      example: {
+        id: 'cmd123',
+        email: 'usuario@test.com',
+        name: 'Usuario Test',
+        age: 25,
+        role: 'user',
+        avatar: '/uploads/avatars/1234567890.jpg',
+        lastLogin: '2025-10-31T00:00:00.000Z',
+      },
+    },
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'No autenticado',
+  })
+  async getProfile(@Req() req: any) {
+    const userId = req.user?.sub;
+    const role = req.user?.role;
+
+    if (role === 'admin') {
+      const admin = await this.prisma.admin.findUnique({
+        where: { id: userId },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          age: true,
+          role: true,
+          avatar: true,
+          lastLogin: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      });
+      return admin;
+    } else {
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          age: true,
+          role: true,
+          avatar: true,
+          lastLogin: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      });
+      return user;
+    }
   }
 }
