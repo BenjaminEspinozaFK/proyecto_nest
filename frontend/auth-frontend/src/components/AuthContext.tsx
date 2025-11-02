@@ -21,16 +21,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Verificar si hay un token guardado en localStorage
     const savedToken = localStorage.getItem("authToken");
     const savedUser = localStorage.getItem("authUser");
 
     if (savedToken && savedUser) {
-      // Opcional: Validar token con backend antes de setear
-      // Por ahora, comentamos para no auto-loguear
-      // setToken(savedToken);
-      // setUser(JSON.parse(savedUser));
-      // authService.setAuthToken(savedToken);
+      setToken(savedToken);
+      setUser(JSON.parse(savedUser));
+      authService.setAuthToken(savedToken);
     }
   }, []);
 
