@@ -1,5 +1,10 @@
 import axios from "axios";
-import { AuthResponse, LoginRequest, RegisterRequest } from "../types/auth";
+import {
+  AuthResponse,
+  LoginRequest,
+  RegisterRequest,
+  User,
+} from "../types/auth";
 
 const API_BASE_URL = "http://localhost:3001";
 
@@ -35,6 +40,17 @@ export const authService = {
 
   removeAuthToken() {
     delete api.defaults.headers.common["Authorization"];
+  },
+
+  async getProfile(): Promise<User> {
+    try {
+      const response = await api.get<User>("/auth/me");
+      return response.data;
+    } catch (error: any) {
+      throw new Error(
+        error.response?.data?.message || "Error obteniendo perfil"
+      );
+    }
   },
 };
 
