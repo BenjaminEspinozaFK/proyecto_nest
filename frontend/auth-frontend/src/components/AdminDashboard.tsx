@@ -12,6 +12,7 @@ import {
   Button,
 } from "@mui/material";
 import EditUserModal from "./admin/EditUserModal";
+import AdminChat from "./admin/Chat";
 
 const AdminDashboard: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -172,6 +173,8 @@ const AdminDashboard: React.FC = () => {
         onSave={handleSave}
         onChange={setEditingUser}
       />
+
+      <AdminChat />
     </Box>
   );
 };
