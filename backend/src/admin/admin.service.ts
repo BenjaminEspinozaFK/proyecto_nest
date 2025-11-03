@@ -6,9 +6,11 @@ import {
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateAdminDto } from './dto/update-admin.dto';
 import { UpdateUserByAdminDto } from './dto/update-user-by-admin.dto';
+import { CreateUserDto } from './dto/create-user.dto';
 import { PrismaService } from 'src/prisma.service';
 import { Admin } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
+import axios from 'axios';
 
 @Injectable()
 export class AdminService {
@@ -173,5 +175,122 @@ export class AdminService {
 
     const { password: _, ...adminWithoutPassword } = updatedAdmin;
     return { admin: adminWithoutPassword, avatar: avatarUrl };
+  }
+
+  async createUser(user: CreateUserDto) {
+    // Busca si ya existe un usuario con el mismo email
+    const userExists = await this.prisma.user.findUnique({
+      where: { email: user.email },
+    });
+
+    // Si se encuentra un user, lanza una excepción
+    if (userExists) {
+      throw new ConflictException(`Usuario con email ${user.email} ya existe`);
+    }
+
+    // Encriptar la contraseña
+    const hashedPassword = await bcrypt.hash(user.password, 10);
+
+    const newUser = await this.prisma.user.create({
+      data: {
+        ...user,
+        password: hashedPassword,
+        role: 'user',
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        age: true,
+        role: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    return newUser;
+  }
+
+  async searchUserByEmail(email: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        age: true,
+        role: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException(`Usuario con email ${email} no encontrado`);
+    }
+
+    return user;
+  }
+
+  async processChatMessage(message: string) {
+    console.log('Processing chat message:', message);
+    // Llamar a Ollama para procesar el mensaje
+    const ollamaResponse = await this.callOllama(message);
+    console.log('Ollama response:', ollamaResponse);
+    const action = JSON.parse(ollamaResponse);
+    console.log('Parsed action:', action);
+
+    // Ejecutar la acción basada en la respuesta de Ollama
+    switch (action.action) {
+      case 'add_user':
+        return await this.createUser(action.params as CreateUserDto);
+      case 'find_user':
+        return await this.searchUserByEmail(action.params.email as string);
+      case 'delete_user':
+        return await this.deleteUser(action.params.id as string);
+      case 'list_users':
+        return await this.getAllUsers();
+      default:
+        throw new Error('Acción no reconocida');
+    }
+  }
+
+  private async callOllama(message: string): Promise<string> {
+    const prompt = `
+Eres un asistente para administradores de un sistema de usuarios. Tu tarea es interpretar mensajes en español o inglés y responder SOLO con un objeto JSON válido que represente la acción a realizar.
+
+Acciones disponibles:
+- add_user: Agregar un nuevo usuario. Parámetros: { name: string, email: string, age: number, password: string }
+- find_user: Buscar usuario por email. Parámetros: { email: string }
+- delete_user: Eliminar usuario por ID. Parámetros: { id: string }
+- list_users: Listar todos los usuarios. Parámetros: {}
+
+Ejemplos:
+- Mensaje: "Agrega un usuario llamado Juan Pérez con email juan@example.com, edad 25 y password 123456"
+  Respuesta: {"action": "add_user", "params": {"name": "Juan Pérez", "email": "juan@example.com", "age": 25, "password": "123456"}}
+
+- Mensaje: "Busca el usuario con email juan@example.com"
+  Respuesta: {"action": "find_user", "params": {"email": "juan@example.com"}}
+
+- Mensaje: "Elimina el usuario con ID 123"
+  Respuesta: {"action": "delete_user", "params": {"id": "123"}}
+
+- Mensaje: "Lista todos los usuarios"
+  Respuesta: {"action": "list_users", "params": {}}
+
+Mensaje del usuario: "${message}"
+
+Responde solo con JSON, sin texto adicional.
+`;
+    console.log('Sending prompt to Ollama:', prompt);
+
+    const response = await axios.post('http://localhost:11434/api/generate', {
+      model: 'llama3:8b', // Cambia si usas otro modelo
+      prompt,
+      stream: false,
+    });
+    console.log('Ollama raw response:', response.data);
+
+    return response.data.response.trim();
   }
 }

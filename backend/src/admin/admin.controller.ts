@@ -7,15 +7,19 @@ import {
   Post,
   Put,
   Req,
+  Query,
   UploadedFile,
   UseGuards,
   UseInterceptors,
+  ValidationPipe,
 } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { AdminService } from './admin.service';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateAdminDto } from './dto/update-admin.dto';
 import { UpdateUserByAdminDto } from './dto/update-user-by-admin.dto';
+import { CreateUserDto } from './dto/create-user.dto';
+import { ChatMessageDto } from './dto/chat-message.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorator';
@@ -34,6 +38,18 @@ export class AdminController {
   @Roles('admin')
   async getAllUsers() {
     return this.adminsService.getAllUsers();
+  }
+
+  @Post('users')
+  @Roles('admin')
+  async createUser(@Body() user: CreateUserDto) {
+    return await this.adminsService.createUser(user);
+  }
+
+  @Get('users/search')
+  @Roles('admin')
+  async searchUserByEmail(@Query('email') email: string) {
+    return await this.adminsService.searchUserByEmail(email);
   }
 
   @Get()
@@ -114,5 +130,11 @@ export class AdminController {
   async getMyProfile(@Req() req: any) {
     const adminId = req.user?.userId as string;
     return this.adminsService.getAdminById(adminId);
+  }
+
+  @Post('chat')
+  @Roles('admin')
+  async chatWithOllama(@Body(ValidationPipe) body: ChatMessageDto) {
+    return await this.adminsService.processChatMessage(body.message);
   }
 }
