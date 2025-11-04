@@ -24,16 +24,22 @@ import {
   PersonAdd,
   AdminPanelSettings,
   Person,
+  Brightness4,
+  Brightness7,
 } from "@mui/icons-material";
 
 interface LoginProps {
   onSwitchToRegister: () => void;
   onForgotPassword?: () => void;
+  toggleTheme: () => void;
+  isDark: boolean;
 }
 
 const Login: React.FC<LoginProps> = ({
   onSwitchToRegister,
   onForgotPassword,
+  toggleTheme,
+  isDark,
 }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -70,7 +76,18 @@ const Login: React.FC<LoginProps> = ({
       >
         <CardContent sx={{ padding: 0 }}>
           {/* Header */}
-          <Box sx={{ textAlign: "center", mb: 3 }}>
+          <Box sx={{ position: "relative", textAlign: "center", mb: 3 }}>
+            <IconButton
+              onClick={toggleTheme}
+              sx={{
+                position: "absolute",
+                top: 0,
+                right: 0,
+                color: "text.secondary",
+              }}
+            >
+              {isDark ? <Brightness7 /> : <Brightness4 />}
+            </IconButton>
             <Typography variant="h4" component="h1" sx={{ mb: 1 }}>
               Iniciar sesión
             </Typography>
@@ -128,6 +145,11 @@ const Login: React.FC<LoginProps> = ({
             <FormControl fullWidth disabled={isLoading}>
               <InputLabel id="role-label">Tipo de cuenta</InputLabel>
               <Select
+                MenuProps={{
+                  PaperProps: {
+                    sx: { backgroundColor: "rgba(40,40,40,1)" },
+                  },
+                }}
                 labelId="role-label"
                 value={role}
                 label="Tipo de cuenta"
