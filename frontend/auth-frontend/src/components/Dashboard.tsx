@@ -27,9 +27,16 @@ import {
   CalendarToday,
   AccountCircle,
   Shield,
+  Brightness4,
+  Brightness7,
 } from "@mui/icons-material";
 
-const Dashboard: React.FC = () => {
+interface DashboardProps {
+  toggleTheme: () => void;
+  isDark: boolean;
+}
+
+const Dashboard: React.FC<DashboardProps> = ({ toggleTheme, isDark }) => {
   const { user, logout, updateUserAvatar } = useAuth();
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -122,13 +129,21 @@ const Dashboard: React.FC = () => {
                   Bienvenido a tu panel de control
                 </Typography>
               </Box>
-              <Button
-                variant="contained"
-                onClick={logout}
-                startIcon={<LogoutOutlined />}
-              >
-                Cerrar Sesión
-              </Button>
+              <Box sx={{ display: "flex", gap: 1 }}>
+                <IconButton
+                  onClick={toggleTheme}
+                  sx={{ color: "text.secondary" }}
+                >
+                  {isDark ? <Brightness7 /> : <Brightness4 />}
+                </IconButton>
+                <Button
+                  variant="contained"
+                  onClick={logout}
+                  startIcon={<LogoutOutlined />}
+                >
+                  Cerrar Sesión
+                </Button>
+              </Box>
             </Box>
 
             {/* Card principal con perfil */}

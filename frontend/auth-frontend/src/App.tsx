@@ -7,12 +7,15 @@ import Register from "./components/Register";
 import Dashboard from "./components/Dashboard";
 import ForgotPassword from "./components/ForgotPassword";
 import ResetPassword from "./components/ResetPassword";
-import { darkTheme } from "./theme";
+import { darkTheme, lightTheme } from "./theme";
 import "./App.css";
 
 type ViewType = "login" | "register" | "forgot" | "reset";
 
-const AuthApp: React.FC = () => {
+const AuthApp: React.FC<{ toggleTheme: () => void; isDark: boolean }> = ({
+  toggleTheme,
+  isDark,
+}) => {
   const [view, setView] = useState<ViewType>("login");
   const { user } = useAuth();
 
@@ -26,7 +29,7 @@ const AuthApp: React.FC = () => {
 
   // Si el usuario está logueado, mostrar dashboard
   if (user) {
-    return <Dashboard />;
+    return <Dashboard toggleTheme={toggleTheme} isDark={isDark} />;
   }
 
   // Renderizar según vista actual
@@ -42,18 +45,42 @@ const AuthApp: React.FC = () => {
         <Login
           onSwitchToRegister={() => setView("register")}
           onForgotPassword={() => setView("forgot")}
+          toggleTheme={toggleTheme}
+          isDark={isDark}
         />
       );
   }
 };
 
 function App() {
+  const [isDark, setIsDark] = useState<boolean>(() => {
+    // Cargar preferencia de localStorage
+    const saved = localStorage.getItem("theme");
+    let initialTheme = true;
+    try {
+      initialTheme = saved ? JSON.parse(saved) : true;
+    } catch {
+      initialTheme = true;
+    }
+    return initialTheme;
+  });
+
+  const toggleTheme = () => {
+    setIsDark((prev) => {
+      const newTheme = !prev;
+      localStorage.setItem("theme", JSON.stringify(newTheme));
+      return newTheme;
+    });
+  };
+
+  const theme = isDark ? darkTheme : lightTheme;
+
   return (
-    <ThemeProvider theme={darkTheme}>
+    <ThemeProvider theme={theme}>
       <CssBaseline />
       <AuthProvider>
         <div className="App">
-          <AuthApp />
+          <AuthApp toggleTheme={toggleTheme} isDark={isDark} />
         </div>
       </AuthProvider>
     </ThemeProvider>
