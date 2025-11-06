@@ -34,6 +34,12 @@ export class AdminController {
   constructor(private adminsService: AdminService) {}
 
   // Gestionar usuarios desde admin
+  @Get('stats')
+  @Roles('admin')
+  async getStats() {
+    return this.adminsService.getStats();
+  }
+
   @Get('users')
   @Roles('admin')
   async getAllUsers() {
@@ -129,7 +135,17 @@ export class AdminController {
   @UseGuards(JwtAuthGuard)
   async getMyProfile(@Req() req: any) {
     const adminId = req.user?.userId as string;
-    return this.adminsService.getAdminById(adminId);
+    const admin = await this.adminsService.getAdminById(adminId);
+    // No devolver la contraseña
+    const { password, ...adminWithoutPassword } = admin;
+    return adminWithoutPassword;
+  }
+
+  @Put('me')
+  @Roles('admin')
+  async updateMyProfile(@Req() req: any, @Body() updateData: UpdateAdminDto) {
+    const adminId = req.user?.userId as string;
+    return this.adminsService.updateAdmin(adminId, updateData);
   }
 
   @Post('chat')

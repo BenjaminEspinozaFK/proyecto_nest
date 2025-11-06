@@ -94,6 +94,79 @@ export class AdminService {
 
     return { message: `Admin con ID ${id} eliminado` };
   }
+
+  async getStats() {
+    const totalUsers = await this.prisma.user.count();
+    const totalAdmins = await this.prisma.admin.count();
+
+    // Usuarios registrados hoy
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const usersToday = await this.prisma.user.count({
+      where: { createdAt: { gte: today } },
+    });
+
+    // Usuarios esta semana
+    const weekAgo = new Date();
+    weekAgo.setDate(weekAgo.getDate() - 7);
+    const usersThisWeek = await this.prisma.user.count({
+      where: { createdAt: { gte: weekAgo } },
+    });
+
+    // Usuarios este mes
+    const monthAgo = new Date();
+    monthAgo.setMonth(monthAgo.getMonth() - 1);
+    const usersThisMonth = await this.prisma.user.count({
+      where: { createdAt: { gte: monthAgo } },
+    });
+
+    // Últimos 5 usuarios registrados
+    const recentUsers = await this.prisma.user.findMany({
+      take: 5,
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        createdAt: true,
+        role: true,
+      },
+    });
+
+    // Últimos logins
+    const recentLogins = await this.prisma.user.findMany({
+      where: { lastLogin: { not: null } },
+      take: 5,
+      orderBy: { lastLogin: 'desc' },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        lastLogin: true,
+      },
+    });
+
+    // Usuarios por rol
+    const usersByRole = await this.prisma.user.groupBy({
+      by: ['role'],
+      _count: { role: true },
+    });
+
+    return {
+      totalUsers,
+      totalAdmins,
+      usersToday,
+      usersThisWeek,
+      usersThisMonth,
+      recentUsers,
+      recentLogins,
+      usersByRole: usersByRole.map((r) => ({
+        role: r.role,
+        count: r._count.role,
+      })),
+    };
+  }
+
   async getAllUsers() {
     return await this.prisma.user.findMany({
       select: {
