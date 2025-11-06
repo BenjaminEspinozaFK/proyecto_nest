@@ -19,6 +19,33 @@ export const adminService = {
     }
   },
 
+  async getStats() {
+    try {
+      const response = await api.get("/admins/stats");
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || "Error fetching stats");
+    }
+  },
+
+  async getMyProfile() {
+    try {
+      const response = await api.get("/admins/me");
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || "Error fetching profile");
+    }
+  },
+
+  async updateMyProfile(data: any) {
+    try {
+      const response = await api.put("/admins/me", data);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || "Error updating profile");
+    }
+  },
+
   async getUsers() {
     try {
       const response = await api.get("/admins/users");

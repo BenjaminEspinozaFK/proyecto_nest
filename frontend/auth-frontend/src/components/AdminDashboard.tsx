@@ -10,11 +10,16 @@ import {
   TableCell,
   TableBody,
   Button,
+  Tabs,
+  Tab,
 } from "@mui/material";
 import EditUserModal from "./admin/EditUserModal";
 import AdminChat from "./admin/Chat";
+import AdminStats from "./admin/Stats";
+import AdminProfile from "./admin/Profile";
 
 const AdminDashboard: React.FC = () => {
+  const [tabValue, setTabValue] = useState(0);
   const [users, setUsers] = useState<User[]>([]);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [openModal, setOpenModal] = useState(false);
@@ -110,71 +115,95 @@ const AdminDashboard: React.FC = () => {
 
   return (
     <Box>
-      <TableContainer
-        component={Paper}
-        sx={{
-          backgroundColor: "rgba(50, 50, 50, 0.5)",
-          "& .MuiTableCell-root": {
-            color: "#ffffff",
-            borderColor: "rgba(255, 255, 255, 0.1)",
-          },
-          "& .MuiTableCell-head": {
-            fontWeight: 600,
-            backgroundColor: "rgba(40, 40, 40, 0.8)",
-          },
-        }}
-      >
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>ID</TableCell>
-              <TableCell>Email</TableCell>
-              <TableCell>Nombre</TableCell>
-              <TableCell>Edad</TableCell>
-              <TableCell>Rol</TableCell>
-              <TableCell>Acciones</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {users.map((user) => (
-              <TableRow key={user.id}>
-                <TableCell>{user.id}</TableCell>
-                <TableCell>{user.email}</TableCell>
-                <TableCell>{user.name}</TableCell>
-                <TableCell>{user.age}</TableCell>
-                <TableCell>{user.role}</TableCell>
-                <TableCell>
-                  <Button
-                    variant="contained"
-                    color="success"
-                    onClick={() => handleEdit(user)}
-                    style={{ marginRight: "10px" }}
-                  >
-                    Editar
-                  </Button>
-                  <Button
-                    variant="contained"
-                    color="error"
-                    onClick={() => handleDelete(user.id)}
-                  >
-                    Eliminar
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+      <Paper sx={{ mb: 3, backgroundColor: "rgba(50, 50, 50, 0.5)" }}>
+        <Tabs
+          value={tabValue}
+          onChange={(_, newValue) => setTabValue(newValue)}
+          sx={{
+            "& .MuiTab-root": { color: "#ffffff" },
+            "& .Mui-selected": { color: "#1976d2" },
+          }}
+        >
+          <Tab label="📊 Estadísticas" />
+          <Tab label="👥 Usuarios" />
+          <Tab label="💬 Chat IA" />
+          <Tab label="👤 Mi Perfil" />
+        </Tabs>
+      </Paper>
 
-      <EditUserModal
-        open={openModal}
-        onClose={handleCloseModal}
-        editingUser={editingUser}
-        onSave={handleSave}
-        onChange={setEditingUser}
-      />
+      {tabValue === 0 && <AdminStats />}
 
-      <AdminChat />
+      {tabValue === 1 && (
+        <>
+          <TableContainer
+            component={Paper}
+            sx={{
+              backgroundColor: "rgba(50, 50, 50, 0.5)",
+              "& .MuiTableCell-root": {
+                color: "#ffffff",
+                borderColor: "rgba(255, 255, 255, 0.1)",
+              },
+              "& .MuiTableCell-head": {
+                fontWeight: 600,
+                backgroundColor: "rgba(40, 40, 40, 0.8)",
+              },
+            }}
+          >
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>ID</TableCell>
+                  <TableCell>Email</TableCell>
+                  <TableCell>Nombre</TableCell>
+                  <TableCell>Edad</TableCell>
+                  <TableCell>Rol</TableCell>
+                  <TableCell>Acciones</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {users.map((user) => (
+                  <TableRow key={user.id}>
+                    <TableCell>{user.id}</TableCell>
+                    <TableCell>{user.email}</TableCell>
+                    <TableCell>{user.name}</TableCell>
+                    <TableCell>{user.age}</TableCell>
+                    <TableCell>{user.role}</TableCell>
+                    <TableCell>
+                      <Button
+                        variant="contained"
+                        color="success"
+                        onClick={() => handleEdit(user)}
+                        style={{ marginRight: "10px" }}
+                      >
+                        Editar
+                      </Button>
+                      <Button
+                        variant="contained"
+                        color="error"
+                        onClick={() => handleDelete(user.id)}
+                      >
+                        Eliminar
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+
+          <EditUserModal
+            open={openModal}
+            onClose={handleCloseModal}
+            editingUser={editingUser}
+            onSave={handleSave}
+            onChange={setEditingUser}
+          />
+        </>
+      )}
+
+      {tabValue === 2 && <AdminChat />}
+
+      {tabValue === 3 && <AdminProfile />}
     </Box>
   );
 };
