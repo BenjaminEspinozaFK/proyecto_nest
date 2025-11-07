@@ -49,54 +49,27 @@ const AdminChat: React.FC = () => {
     if (Array.isArray(res)) {
       // Assume it's list of users
       return (
-        <TableContainer
-          component={Paper}
-          sx={{ backgroundColor: "rgba(30, 30, 30, 0.8)" }}
-        >
+        <TableContainer component={Paper}>
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell
-                  sx={{ color: "#ffffff", fontWeight: "bold" }}
-                >
-                  ID
-                </TableCell>
-                <TableCell
-                  sx={{ color: "#ffffff", fontWeight: "bold" }}
-                >
-                  Email
-                </TableCell>
-                <TableCell
-                  sx={{ color: "#ffffff", fontWeight: "bold" }}
-                >
-                  Nombre
-                </TableCell>
-                <TableCell
-                  sx={{ color: "#ffffff", fontWeight: "bold" }}
-                >
-                  Edad
-                </TableCell>
-                <TableCell
-                  sx={{ color: "#ffffff", fontWeight: "bold" }}
-                >
-                  Rol
-                </TableCell>
-                <TableCell
-                  sx={{ color: "#ffffff", fontWeight: "bold" }}
-                >
-                  Creado
-                </TableCell>
+                <TableCell sx={{ fontWeight: "bold" }}>ID</TableCell>
+                <TableCell sx={{ fontWeight: "bold" }}>Email</TableCell>
+                <TableCell sx={{ fontWeight: "bold" }}>Nombre</TableCell>
+                <TableCell sx={{ fontWeight: "bold" }}>Edad</TableCell>
+                <TableCell sx={{ fontWeight: "bold" }}>Rol</TableCell>
+                <TableCell sx={{ fontWeight: "bold" }}>Creado</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {res.map((user: any) => (
                 <TableRow key={user.id}>
-                  <TableCell sx={{ color: "#ffffff" }}>{user.id}</TableCell>
-                  <TableCell sx={{ color: "#ffffff" }}>{user.email}</TableCell>
-                  <TableCell sx={{ color: "#ffffff" }}>{user.name}</TableCell>
-                  <TableCell sx={{ color: "#ffffff" }}>{user.age}</TableCell>
-                  <TableCell sx={{ color: "#ffffff" }}>{user.role}</TableCell>
-                  <TableCell sx={{ color: "#ffffff" }}>
+                  <TableCell>{user.id}</TableCell>
+                  <TableCell>{user.email}</TableCell>
+                  <TableCell>{user.name}</TableCell>
+                  <TableCell>{user.age}</TableCell>
+                  <TableCell>{user.role}</TableCell>
+                  <TableCell>
                     {new Date(user.createdAt).toLocaleDateString()}
                   </TableCell>
                 </TableRow>
@@ -121,7 +94,7 @@ const AdminChat: React.FC = () => {
       );
     } else {
       // String or other
-      return <Typography sx={{ color: "#ffffff" }}>{String(res)}</Typography>;
+      return <Typography>{String(res)}</Typography>;
     }
   };
 
@@ -130,7 +103,7 @@ const AdminChat: React.FC = () => {
       <Typography variant="h5" gutterBottom>
         Chat de Administración
       </Typography>
-      <Paper sx={{ p: 2, backgroundColor: "rgba(50, 50, 50, 0.5)" }}>
+      <Paper sx={{ p: 2 }}>
         <TextField
           fullWidth
           multiline
@@ -139,26 +112,7 @@ const AdminChat: React.FC = () => {
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           onKeyPress={handleKeyPress}
-          sx={{
-            mb: 2,
-            "& .MuiInputBase-root": {
-              color: "#ffffff",
-            },
-            "& .MuiInputLabel-root": {
-              color: "#ffffff",
-            },
-            "& .MuiOutlinedInput-root": {
-              "& fieldset": {
-                borderColor: "rgba(255, 255, 255, 0.3)",
-              },
-              "&:hover fieldset": {
-                borderColor: "rgba(255, 255, 255, 0.5)",
-              },
-              "&.Mui-focused fieldset": {
-                borderColor: "#ffffff",
-              },
-            },
-          }}
+          sx={{ mb: 2 }}
         />
         <Button
           variant="contained"

@@ -115,14 +115,10 @@ const AdminDashboard: React.FC = () => {
 
   return (
     <Box>
-      <Paper sx={{ mb: 3, backgroundColor: "rgba(50, 50, 50, 0.5)" }}>
+      <Paper sx={{ mb: 3 }}>
         <Tabs
           value={tabValue}
           onChange={(_, newValue) => setTabValue(newValue)}
-          sx={{
-            "& .MuiTab-root": { color: "#ffffff" },
-            "& .Mui-selected": { color: "#1976d2" },
-          }}
         >
           <Tab label="📊 Estadísticas" />
           <Tab label="👥 Usuarios" />
@@ -137,17 +133,11 @@ const AdminDashboard: React.FC = () => {
         <>
           <TableContainer
             component={Paper}
-            sx={{
-              backgroundColor: "rgba(50, 50, 50, 0.5)",
-              "& .MuiTableCell-root": {
-                color: "#ffffff",
-                borderColor: "rgba(255, 255, 255, 0.1)",
-              },
-              "& .MuiTableCell-head": {
-                fontWeight: 600,
-                backgroundColor: "rgba(40, 40, 40, 0.8)",
-              },
-            }}
+            sx={
+              {
+                // Removidos estilos hardcodeados para usar colores del tema
+              }
+            }
           >
             <Table>
               <TableHead>
