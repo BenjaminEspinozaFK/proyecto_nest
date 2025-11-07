@@ -440,10 +440,8 @@ const Dashboard: React.FC<DashboardProps> = ({ toggleTheme, isDark }) => {
               <Card
                 sx={{
                   borderRadius: 4,
-                  boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
-                  background: "rgba(40, 40, 40, 0.8)",
-                  backdropFilter: "blur(10px)",
-                  border: "1px solid rgba(255, 255, 255, 0.1)",
+                  boxShadow: 3,
+                  // Usar colores del tema actual en lugar de hardcoded
                 }}
               >
                 <CardContent sx={{ p: 4 }}>
@@ -462,21 +460,16 @@ const Dashboard: React.FC<DashboardProps> = ({ toggleTheme, isDark }) => {
                       <Typography
                         variant="h5"
                         fontWeight="bold"
-                        color="#ffffff"
+                        color="text.primary"
                       >
                         Panel de Administración
                       </Typography>
-                      <Typography
-                        variant="body2"
-                        color="rgba(255, 255, 255, 0.7)"
-                      >
+                      <Typography variant="body2" color="text.secondary">
                         Gestión de usuarios del sistema
                       </Typography>
                     </Box>
                   </Box>
-                  <Divider
-                    sx={{ mb: 3, borderColor: "rgba(255, 255, 255, 0.1)" }}
-                  />
+                  <Divider sx={{ mb: 3 }} />
                   <AdminDashboard />
                 </CardContent>
               </Card>
