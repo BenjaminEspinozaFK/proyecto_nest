@@ -46,6 +46,11 @@ const Dashboard: React.FC<DashboardProps> = ({ toggleTheme, isDark }) => {
     return null;
   }
 
+  // Si es admin, mostrar AdminDashboard directamente a pantalla completa
+  if (user.role === "admin") {
+    return <AdminDashboard />;
+  }
+
   const handleImageUpload = async (file: File) => {
     setUploading(true);
     setError(null);
@@ -434,46 +439,6 @@ const Dashboard: React.FC<DashboardProps> = ({ toggleTheme, isDark }) => {
                 </CardContent>
               </Card>
             </Box>
-
-            {/* Panel de administrador */}
-            {user.role === "admin" && (
-              <Card
-                sx={{
-                  borderRadius: 4,
-                  boxShadow: 3,
-                  // Usar colores del tema actual en lugar de hardcoded
-                }}
-              >
-                <CardContent sx={{ p: 4 }}>
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 2,
-                      mb: 3,
-                    }}
-                  >
-                    <AdminPanelSettings
-                      sx={{ fontSize: 40, color: "warning.main" }}
-                    />
-                    <Box>
-                      <Typography
-                        variant="h5"
-                        fontWeight="bold"
-                        color="text.primary"
-                      >
-                        Panel de Administración
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        Gestión de usuarios del sistema
-                      </Typography>
-                    </Box>
-                  </Box>
-                  <Divider sx={{ mb: 3 }} />
-                  <AdminDashboard />
-                </CardContent>
-              </Card>
-            )}
           </Box>
         </Fade>
       </Container>
