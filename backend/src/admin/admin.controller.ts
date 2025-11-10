@@ -63,40 +63,22 @@ export class AdminController {
     return this.adminsService.getAdmins();
   }
 
-  @Get(':id')
-  async getAdminById(@Param('id') id: string) {
-    return this.adminsService.getAdminById(id);
-  }
-
-  @Post()
-  async createAdmin(@Body() admin: CreateAdminDto) {
-    console.log('Creating admin:', admin);
-    return this.adminsService.createAdmin(admin);
-  }
-
-  @Put(':id')
-  async updateAdmin(@Param('id') id: string, @Body() admin: UpdateAdminDto) {
-    return this.adminsService.updateAdmin(id, admin);
-  }
-
-  @Delete(':id')
-  async deleteAdmin(@Param('id') id: string) {
-    return this.adminsService.deleteAdmin(id);
-  }
-
-  @Put('users/:id')
+  // Endpoints específicos ANTES de los genéricos con :id
+  @Get('me')
   @Roles('admin')
-  async updateUser(
-    @Param('id') id: string,
-    @Body() user: UpdateUserByAdminDto,
-  ) {
-    return await this.adminsService.updateUser(id, user);
+  async getMyProfile(@Req() req: any) {
+    const adminId = req.user?.userId as string;
+    const admin = await this.adminsService.getAdminById(adminId);
+    // No devolver la contraseña
+    const { password, ...adminWithoutPassword } = admin;
+    return adminWithoutPassword;
   }
 
-  @Delete('users/:id')
+  @Put('me')
   @Roles('admin')
-  async deleteUser(@Param('id') id: string) {
-    return await this.adminsService.deleteUser(id);
+  async updateMyProfile(@Req() req: any, @Body() updateData: UpdateAdminDto) {
+    const adminId = req.user?.userId as string;
+    return this.adminsService.updateAdmin(adminId, updateData);
   }
 
   @Post('me/avatar')
@@ -131,21 +113,40 @@ export class AdminController {
     return this.adminsService.updateAvatar(adminId, file.filename);
   }
 
-  @Get('me')
-  @UseGuards(JwtAuthGuard)
-  async getMyProfile(@Req() req: any) {
-    const adminId = req.user?.userId as string;
-    const admin = await this.adminsService.getAdminById(adminId);
-    // No devolver la contraseña
-    const { password, ...adminWithoutPassword } = admin;
-    return adminWithoutPassword;
+  @Get(':id')
+  async getAdminById(@Param('id') id: string) {
+    return this.adminsService.getAdminById(id);
   }
 
-  @Put('me')
+  @Post()
+  async createAdmin(@Body() admin: CreateAdminDto) {
+    console.log('Creating admin:', admin);
+    return this.adminsService.createAdmin(admin);
+  }
+
+  @Put(':id')
+  async updateAdmin(@Param('id') id: string, @Body() admin: UpdateAdminDto) {
+    return this.adminsService.updateAdmin(id, admin);
+  }
+
+  @Delete(':id')
+  async deleteAdmin(@Param('id') id: string) {
+    return this.adminsService.deleteAdmin(id);
+  }
+
+  @Put('users/:id')
   @Roles('admin')
-  async updateMyProfile(@Req() req: any, @Body() updateData: UpdateAdminDto) {
-    const adminId = req.user?.userId as string;
-    return this.adminsService.updateAdmin(adminId, updateData);
+  async updateUser(
+    @Param('id') id: string,
+    @Body() user: UpdateUserByAdminDto,
+  ) {
+    return await this.adminsService.updateUser(id, user);
+  }
+
+  @Delete('users/:id')
+  @Roles('admin')
+  async deleteUser(@Param('id') id: string) {
+    return await this.adminsService.deleteUser(id);
   }
 
   @Post('chat')

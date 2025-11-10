@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   Box,
   Paper,
@@ -8,8 +8,9 @@ import {
   Avatar,
   Alert,
   CircularProgress,
+  IconButton,
 } from "@mui/material";
-import { Edit, Save, Cancel } from "@mui/icons-material";
+import { Edit, Save, Cancel, PhotoCamera } from "@mui/icons-material";
 import { adminService } from "../../services/adminService";
 
 interface AdminProfileData {
@@ -28,8 +29,10 @@ const AdminProfile: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -105,6 +108,50 @@ const AdminProfile: React.FC = () => {
     }
   };
 
+  const handleImageUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validar tipo de archivo
+    if (!file.type.startsWith("image/")) {
+      setError("Por favor selecciona una imagen válida");
+      return;
+    }
+
+    // Validar tamaño (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setError("La imagen no debe superar los 5MB");
+      return;
+    }
+
+    setUploading(true);
+    setError(null);
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const token = localStorage.getItem("authToken");
+      const response = await fetch("http://localhost:3001/admins/me/avatar", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+
+      if (!response.ok) throw new Error("Error al subir imagen");
+
+      await response.json();
+      setSuccess("Foto actualizada correctamente");
+      fetchProfile();
+    } catch (err) {
+      setError("Error al subir la imagen");
+    } finally {
+      setUploading(false);
+    }
+  };
+
   if (loading) {
     return (
       <Box
@@ -142,18 +189,58 @@ const AdminProfile: React.FC = () => {
             textAlign: "center",
           }}
         >
-          <Avatar
-            src={profile.avatar || undefined}
-            sx={{
-              width: 150,
-              height: 150,
-              margin: "0 auto",
-              mb: 2,
-              fontSize: 60,
-            }}
-          >
-            {profile.name?.charAt(0).toUpperCase()}
-          </Avatar>
+          <Box sx={{ position: "relative", display: "inline-block" }}>
+            <Avatar
+              src={
+                profile.avatar
+                  ? `http://localhost:3001${profile.avatar}`
+                  : undefined
+              }
+              sx={{
+                width: 150,
+                height: 150,
+                margin: "0 auto",
+                mb: 2,
+                fontSize: 60,
+                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+              }}
+            >
+              {profile.name
+                ?.split(" ")
+                .map((n) => n[0])
+                .join("")
+                .toUpperCase()}
+            </Avatar>
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleImageUpload}
+              accept="image/*"
+              style={{ display: "none" }}
+            />
+            <IconButton
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+              sx={{
+                position: "absolute",
+                bottom: 16,
+                right: -8,
+                backgroundColor: "#667eea",
+                color: "#fff",
+                "&:hover": {
+                  backgroundColor: "#764ba2",
+                },
+                boxShadow: 3,
+              }}
+            >
+              <PhotoCamera />
+            </IconButton>
+          </Box>
+          {uploading && (
+            <Typography variant="body2" color="primary" sx={{ mt: 1 }}>
+              Subiendo imagen...
+            </Typography>
+          )}
           <Typography variant="h5" fontWeight="bold" gutterBottom>
             {profile.name}
           </Typography>
@@ -171,135 +258,135 @@ const AdminProfile: React.FC = () => {
         </Paper>
 
         <Paper sx={{ p: 3, backgroundColor: "rgba(50, 50, 50, 0.5)" }}>
-            <Box
-              display="flex"
-              justifyContent="space-between"
-              alignItems="center"
-              mb={3}
-            >
-              <Typography variant="h6" fontWeight="bold">
-                Información Personal
-              </Typography>
-              {!editing ? (
+          <Box
+            display="flex"
+            justifyContent="space-between"
+            alignItems="center"
+            mb={3}
+          >
+            <Typography variant="h6" fontWeight="bold">
+              Información Personal
+            </Typography>
+            {!editing ? (
+              <Button
+                variant="contained"
+                startIcon={<Edit />}
+                onClick={handleEdit}
+              >
+                Editar
+              </Button>
+            ) : (
+              <Box>
+                <Button
+                  variant="outlined"
+                  startIcon={<Cancel />}
+                  onClick={handleCancel}
+                  sx={{ mr: 1 }}
+                  disabled={saving}
+                >
+                  Cancelar
+                </Button>
                 <Button
                   variant="contained"
-                  startIcon={<Edit />}
-                  onClick={handleEdit}
+                  color="success"
+                  startIcon={<Save />}
+                  onClick={handleSave}
+                  disabled={saving}
                 >
-                  Editar
+                  {saving ? "Guardando..." : "Guardar"}
                 </Button>
-              ) : (
-                <Box>
-                  <Button
-                    variant="outlined"
-                    startIcon={<Cancel />}
-                    onClick={handleCancel}
-                    sx={{ mr: 1 }}
-                    disabled={saving}
-                  >
-                    Cancelar
-                  </Button>
-                  <Button
-                    variant="contained"
-                    color="success"
-                    startIcon={<Save />}
-                    onClick={handleSave}
-                    disabled={saving}
-                  >
-                    {saving ? "Guardando..." : "Guardar"}
-                  </Button>
-                </Box>
-              )}
-            </Box>
-
-            {error && (
-              <Alert severity="error" sx={{ mb: 2 }}>
-                {error}
-              </Alert>
+              </Box>
             )}
+          </Box>
 
-            {success && (
-              <Alert severity="success" sx={{ mb: 2 }}>
-                {success}
-              </Alert>
-            )}
+          {error && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {error}
+            </Alert>
+          )}
 
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          {success && (
+            <Alert severity="success" sx={{ mb: 2 }}>
+              {success}
+            </Alert>
+          )}
+
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            <TextField
+              fullWidth
+              label="Nombre"
+              value={formData.name}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
+              disabled={!editing}
+              sx={{
+                "& .MuiInputBase-root": { color: "#ffffff" },
+                "& .MuiInputLabel-root": { color: "#ffffff" },
+                "& .MuiOutlinedInput-root": {
+                  "& fieldset": { borderColor: "rgba(255, 255, 255, 0.3)" },
+                },
+              }}
+            />
+
+            <TextField
+              fullWidth
+              label="Email"
+              type="email"
+              value={formData.email}
+              onChange={(e) =>
+                setFormData({ ...formData, email: e.target.value })
+              }
+              disabled={!editing}
+              sx={{
+                "& .MuiInputBase-root": { color: "#ffffff" },
+                "& .MuiInputLabel-root": { color: "#ffffff" },
+                "& .MuiOutlinedInput-root": {
+                  "& fieldset": { borderColor: "rgba(255, 255, 255, 0.3)" },
+                },
+              }}
+            />
+
+            <TextField
+              fullWidth
+              label="Edad"
+              type="number"
+              value={formData.age}
+              onChange={(e) =>
+                setFormData({ ...formData, age: parseInt(e.target.value) })
+              }
+              disabled={!editing}
+              sx={{
+                "& .MuiInputBase-root": { color: "#ffffff" },
+                "& .MuiInputLabel-root": { color: "#ffffff" },
+                "& .MuiOutlinedInput-root": {
+                  "& fieldset": { borderColor: "rgba(255, 255, 255, 0.3)" },
+                },
+              }}
+            />
+
+            {editing && (
               <TextField
                 fullWidth
-                label="Nombre"
-                value={formData.name}
+                label="Nueva Contraseña (dejar vacío para no cambiar)"
+                type="password"
+                value={formData.password}
                 onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
+                  setFormData({ ...formData, password: e.target.value })
                 }
-                disabled={!editing}
                 sx={{
                   "& .MuiInputBase-root": { color: "#ffffff" },
                   "& .MuiInputLabel-root": { color: "#ffffff" },
                   "& .MuiOutlinedInput-root": {
-                    "& fieldset": { borderColor: "rgba(255, 255, 255, 0.3)" },
-                  },
-                }}
-              />
-
-              <TextField
-                fullWidth
-                label="Email"
-                type="email"
-                value={formData.email}
-                onChange={(e) =>
-                  setFormData({ ...formData, email: e.target.value })
-                }
-                disabled={!editing}
-                sx={{
-                  "& .MuiInputBase-root": { color: "#ffffff" },
-                  "& .MuiInputLabel-root": { color: "#ffffff" },
-                  "& .MuiOutlinedInput-root": {
-                    "& fieldset": { borderColor: "rgba(255, 255, 255, 0.3)" },
-                  },
-                }}
-              />
-
-              <TextField
-                fullWidth
-                label="Edad"
-                type="number"
-                value={formData.age}
-                onChange={(e) =>
-                  setFormData({ ...formData, age: parseInt(e.target.value) })
-                }
-                disabled={!editing}
-                sx={{
-                  "& .MuiInputBase-root": { color: "#ffffff" },
-                  "& .MuiInputLabel-root": { color: "#ffffff" },
-                  "& .MuiOutlinedInput-root": {
-                    "& fieldset": { borderColor: "rgba(255, 255, 255, 0.3)" },
-                  },
-                }}
-              />
-
-              {editing && (
-                <TextField
-                  fullWidth
-                  label="Nueva Contraseña (dejar vacío para no cambiar)"
-                  type="password"
-                  value={formData.password}
-                  onChange={(e) =>
-                    setFormData({ ...formData, password: e.target.value })
-                  }
-                  sx={{
-                    "& .MuiInputBase-root": { color: "#ffffff" },
-                    "& .MuiInputLabel-root": { color: "#ffffff" },
-                    "& .MuiOutlinedInput-root": {
-                      "& fieldset": {
-                        borderColor: "rgba(255, 255, 255, 0.3)",
-                      },
+                    "& fieldset": {
+                      borderColor: "rgba(255, 255, 255, 0.3)",
                     },
-                  }}
-                />
-              )}
-            </Box>
-          </Paper>
+                  },
+                }}
+              />
+            )}
+          </Box>
+        </Paper>
       </Box>
     </Box>
   );
