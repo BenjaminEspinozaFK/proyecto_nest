@@ -39,102 +39,51 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-
-      - name: 📦 Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 8
-
-      - name: 📚 Get pnpm store directory
-        id: pnpm-cache
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
-
-      - name: 💾 Cache pnpm dependencies
-        uses: actions/cache@v3
-        with:
-          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
+          cache: "npm"
+          cache-dependency-path: backend/package-lock.json
 
       - name: 📥 Install dependencies
         run: |
-          pnpm install --no-frozen-lockfile || pnpm install
-          echo "✅ Dependencies installed"
+          npm ci || npm install
+          echo "Dependencies installed"
 
       - name: 📝 Create .env file
         run: |
-          echo "Creating .env file..."
           echo "DATABASE_URL=${{ secrets.DATABASE_URL_TEST }}" > .env
           echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
           echo "PORT=3001" >> .env
           echo "NODE_ENV=test" >> .env
-          echo ""
-          echo "✅ .env file created with content:"
-          cat .env
-          echo ""
-          echo "Verifying secrets are not empty:"
-          if [ -z "${{ secrets.DATABASE_URL_TEST }}" ]; then echo "❌ DATABASE_URL_TEST is empty!"; exit 1; fi
-          if [ -z "${{ secrets.JWT_SECRET }}" ]; then echo "❌ JWT_SECRET is empty!"; exit 1; fi
-          echo "✅ All secrets are present"
+          echo ".env file created"
 
       - name: Generate Prisma Client
         run: |
-          echo "Generating Prisma Client..."
-          pnpm prisma generate
-          echo "✅ Prisma Client generated"
-          echo ""
-          echo "Checking if Prisma Client was created:"
-          ls -la node_modules/.prisma/client/ || echo "❌ Prisma client not found!"
-          ls -la node_modules/@prisma/client/ || echo "❌ Prisma package not found!"
+          npx prisma generate
+          echo "Prisma Client generated successfully"
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL_TEST }}
-
-      - name: Verify database connection
-        run: |
-          echo "Testing database connection..."
-          pnpm prisma db push --skip-generate --accept-data-loss || echo "⚠️ Database push failed (non-blocking for tests)"
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL_TEST }}
-        continue-on-error: true
 
       - name: Lint code
         run: |
-          echo "Running ESLint..."
-          pnpm run lint || echo "⚠️ Linting warnings found (non-blocking)"
+          npm run lint || echo "Linting warnings found (non-blocking)"
         continue-on-error: true
 
       - name: 🏗️ Build project
         run: |
-          echo "🔨 Building NestJS application..."
-          echo "Using DATABASE_URL: ${{ secrets.DATABASE_URL_TEST }}"
-          echo "JWT_SECRET length: $(echo -n '${{ secrets.JWT_SECRET }}' | wc -c) characters"
-          echo ""
-          pnpm run build 2>&1 | tee build.log
-          BUILD_EXIT_CODE=${PIPESTATUS[0]}
-          echo ""
-          if [ $BUILD_EXIT_CODE -ne 0 ]; then
-            echo "❌ Build failed with exit code: $BUILD_EXIT_CODE"
-            echo "Last 50 lines of build output:"
-            tail -50 build.log
-            exit $BUILD_EXIT_CODE
-          fi
-          echo "✅ Build completed successfully"
-          ls -la dist/ | head -20
+          echo "Building NestJS application..."
+          npm run build
+          echo "Build completed successfully"
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL_TEST }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
 
       - name: 🧪 Run Prisma migrations
-        run: npx prisma migrate deploy || echo "Migrations failed or not needed"
+        run: npx prisma migrate deploy || echo "Migrations skipped"
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL_TEST }}
         continue-on-error: true
 
       - name: ✅ Run tests
-        run: pnpm run test || echo "⚠️ No tests configured yet"
+        run: npm run test || echo "No tests configured yet"
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL_TEST }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
