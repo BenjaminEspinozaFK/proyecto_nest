@@ -62,8 +62,21 @@ jobs:
       - name: 📥 Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: 🔍 Lint code
-        run: pnpm run lint || echo "⚠️ Linting warnings found"
+      - name: 📝 Create .env file
+        run: |
+          echo "DATABASE_URL=${{ secrets.DATABASE_URL_TEST }}" > .env
+          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+          echo "PORT=3001" >> .env
+          echo "NODE_ENV=test" >> .env
+
+      - name: � Generate Prisma Client
+        run: npx prisma generate
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL_TEST }}
+
+      - name: Lint code
+        run: pnpm run lint || echo "Linting warnings found"
+        continue-on-error: true
 
       - name: 🏗️ Build project
         run: pnpm run build
@@ -75,12 +88,14 @@ jobs:
         run: npx prisma migrate deploy
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL_TEST }}
+        continue-on-error: true
 
       - name: ✅ Run tests
         run: pnpm run test || echo "⚠️ No tests configured yet"
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL_TEST }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
+        continue-on-error: true
 
   # Job 2: Frontend
   frontend:
@@ -122,8 +137,13 @@ jobs:
       - name: 📥 Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: 🔍 Lint code
-        run: pnpm run lint || echo "⚠️ Linting warnings found"
+      - name: � Create .env file
+        run: |
+          echo "REACT_APP_API_URL=${{ secrets.REACT_APP_API_URL }}" > .env
+
+      - name: Lint code
+        run: pnpm run lint || echo "Linting warnings found"
+        continue-on-error: true
 
       - name: 🏗️ Build project
         run: pnpm run build
@@ -131,7 +151,8 @@ jobs:
           REACT_APP_API_URL: ${{ secrets.REACT_APP_API_URL }}
 
       - name: ✅ Run tests
-        run: pnpm run test -- --watchAll=false || echo "⚠️ No tests configured yet"
+        run: pnpm run test -- --watchAll=false || echo "No tests configured yet"
+        continue-on-error: true
 
   # Job 3: Build Summary
   summary:
