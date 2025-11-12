@@ -1,5 +1,9 @@
 # 🚀 Proyecto NestJS + React - Sistema de Gestión de Usuarios con IA
 
+[![CI/CD Pipeline](https://github.com/benjita2002djsjsda/proyecto_nest/actions/workflows/ci.yml/badge.svg)](https://github.com/benjita2002djsjsda/proyecto_nest/actions/workflows/ci.yml)
+[![Deploy](https://github.com/benjita2002djsjsda/proyecto_nest/actions/workflows/deploy.yml/badge.svg)](https://github.com/benjita2002djsjsda/proyecto_nest/actions/workflows/deploy.yml)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 Sistema completo de gestión de usuarios con autenticación JWT, panel de administración con IA (Ollama), estadísticas en tiempo real, y gestión de perfiles. Backend en NestJS + PostgreSQL y Frontend en React + TypeScript + Material-UI.
 
 ## ✨ Características Principales
@@ -624,3 +628,25 @@ Si Ollama tarda ~7 segundos en responder, las optimizaciones ya aplicadas son:
 - ✅ Límite de tokens de respuesta (`num_predict: 128`)
 
 **Resultado esperado:** Respuestas en ~1-2 segundos con GPU
+
+## 🚀 CI/CD con GitHub Actions
+
+El proyecto incluye pipelines automatizados de CI/CD:
+
+### Workflows Disponibles
+
+1. **📊 CI Pipeline** (`.github/workflows/ci.yml`)
+   - Se ejecuta en cada push/PR a `main` o `develop`
+   - **Backend**: Lint, Build, Tests con PostgreSQL
+   - **Frontend**: Lint, Build, Tests
+   - Genera resumen de resultados
+
+2. **🚀 Deploy** (`.github/workflows/deploy.yml`)
+   - Deployment automático en push a `main`
+   - Incluye ejemplos para: VPS, Vercel, Railway, Docker
+   - Configurable según tu servicio de hosting
+
+3. **🔍 PR Checks** (`.github/workflows/pr-checks.yml`)
+   - Analiza solo archivos modificados
+   - Comenta resultados en el PR
+   - Optimizado para velocidad

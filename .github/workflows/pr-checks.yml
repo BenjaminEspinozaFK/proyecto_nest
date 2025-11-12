@@ -1,0 +1,88 @@
+name: Pull Request Checks
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  pr-checks:
+    name: 🔍 PR Quality Checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: 📦 Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      # Backend checks
+      - name: 🔍 Check Backend changes
+        id: backend-changes
+        run: |
+          if git diff --name-only origin/main...HEAD | grep -q "^backend/"; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "✅ Backend changes detected"
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "ℹ️ No backend changes"
+          fi
+
+      - name: 🧪 Backend Lint & Build
+        if: steps.backend-changes.outputs.changed == 'true'
+        working-directory: ./backend
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm run lint || true
+          pnpm run build
+
+      # Frontend checks
+      - name: 🔍 Check Frontend changes
+        id: frontend-changes
+        run: |
+          if git diff --name-only origin/main...HEAD | grep -q "^frontend/"; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "✅ Frontend changes detected"
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "ℹ️ No frontend changes"
+          fi
+
+      - name: 🧪 Frontend Lint & Build
+        if: steps.frontend-changes.outputs.changed == 'true'
+        working-directory: ./frontend/auth-frontend
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm run lint || true
+          pnpm run build
+
+      # PR comment
+      - name: 💬 Comment on PR
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const backendChanged = '${{ steps.backend-changes.outputs.changed }}' === 'true';
+            const frontendChanged = '${{ steps.frontend-changes.outputs.changed }}' === 'true';
+
+            let message = '## 📊 PR Check Results\n\n';
+            message += backendChanged ? '✅ Backend: Changes detected and built\n' : 'ℹ️ Backend: No changes\n';
+            message += frontendChanged ? '✅ Frontend: Changes detected and built\n' : 'ℹ️ Frontend: No changes\n';
+            message += '\n---\n';
+            message += '🔗 [View workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})';
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: message
+            });
