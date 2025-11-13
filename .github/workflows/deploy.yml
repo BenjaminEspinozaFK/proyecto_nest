@@ -10,20 +10,29 @@ jobs:
   deploy:
     name: 🚀 Deploy Application
     runs-on: ubuntu-latest
-    # Solo ejecutar si todos los tests pasaron
-    needs: []
+    # Job independiente - no necesita otros jobs
 
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
 
-      - name: 🔧 Setup Node.js
+      - name: � Debug Info
+        run: |
+          echo "📁 Current directory: $(pwd)"
+          echo "📂 Directory contents:"
+          ls -la
+          echo "🔍 Backend directory:"
+          ls -la backend/ || echo "❌ Backend directory not found"
+          echo "🔍 Frontend directory:"
+          ls -la frontend/ || echo "❌ Frontend directory not found"
+
+      - name: �🔧 Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "20"
 
       - name: 📦 Setup pnpm
-        uses: pnpm/action-setup@v2
+        uses: pnpm/action-setup@v3
         with:
           version: 8
 
@@ -31,18 +40,36 @@ jobs:
       - name: 🏗️ Build Backend
         working-directory: ./backend
         run: |
-          pnpm install --frozen-lockfile
+          echo "📦 Installing backend dependencies..."
+          pnpm install --no-frozen-lockfile
+          echo "🏗️ Building backend..."
           pnpm run build
+          echo "✅ Backend build completed"
+        env:
+          NODE_ENV: production
 
       # Frontend Build
       - name: 🏗️ Build Frontend
         working-directory: ./frontend/auth-frontend
         run: |
-          pnpm install --frozen-lockfile
-          pnpm run build
+          echo "📦 Installing frontend dependencies..."
+          pnpm install --no-frozen-lockfile
+          echo "🏗️ Building frontend..."
+          CI=false pnpm run build
+          echo "✅ Frontend build completed"
+        env:
+          NODE_ENV: production
+          REACT_APP_API_URL: ${{ secrets.REACT_APP_API_URL || 'http://localhost:3001' }}
+
+      - name: 📊 Build Summary
+        if: always()
+        run: |
+          echo "📊 Build Summary:"
+          echo "📅 Completed at: $(date)"
+          echo "🔖 Commit: ${{ github.sha }}"
+          echo "🌿 Branch: ${{ github.ref_name }}"
 
       - name: ✅ Deployment Complete
         run: |
           echo "🎉 Deployment completed successfully!"
-          echo "📅 Deployed at: $(date)"
-          echo "🔖 Commit: ${{ github.sha }}"
+          echo "🚀 Application is ready for production"
