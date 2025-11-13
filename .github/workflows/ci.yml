@@ -52,6 +52,7 @@ jobs:
         run: pnpm install --no-frozen-lockfile
 
       - name: 📝 Create .env file
+        working-directory: ./backend
         run: |
           echo "DATABASE_URL=${{ secrets.DATABASE_URL_TEST }}" > .env
           echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
@@ -60,6 +61,7 @@ jobs:
           echo ".env file created"
 
       - name: Generate Prisma Client
+        working-directory: ./backend
         run: |
           pnpm prisma generate
           echo "Prisma Client generated successfully"
@@ -67,11 +69,13 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL_TEST }}
 
       - name: Lint code
+        working-directory: ./backend
         run: |
           pnpm run lint || echo "Linting warnings found (non-blocking)"
         continue-on-error: true
 
       - name: 🏗️ Build project
+        working-directory: ./backend
         run: |
           echo "Building NestJS application..."
           pnpm run build
@@ -81,12 +85,14 @@ jobs:
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
 
       - name: 🧪 Run Prisma migrations
+        working-directory: ./backend
         run: pnpm prisma migrate deploy || echo "Migrations skipped"
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL_TEST }}
         continue-on-error: true
 
       - name: ✅ Run tests
+        working-directory: ./backend
         run: pnpm run test || echo "No tests configured yet"
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL_TEST }}

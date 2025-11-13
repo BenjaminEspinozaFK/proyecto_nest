@@ -41,12 +41,10 @@ jobs:
         working-directory: ./backend
         run: |
           echo "📦 Installing backend dependencies..."
-          pnpm install --no-frozen-lockfile
+          pnpm install --no-frozen-lockfile --prod=false
           echo "🏗️ Building backend..."
           pnpm run build
           echo "✅ Backend build completed"
-        env:
-          NODE_ENV: production
 
       # Frontend Build
       - name: 🏗️ Build Frontend
@@ -58,7 +56,6 @@ jobs:
           CI=false pnpm run build
           echo "✅ Frontend build completed"
         env:
-          NODE_ENV: production
           REACT_APP_API_URL: ${{ secrets.REACT_APP_API_URL || 'http://localhost:3001' }}
 
       - name: 📊 Build Summary
