@@ -17,12 +17,12 @@ export class UpdateAdminDto {
   @Transform(({ value }) => value.trim())
   @IsString()
   @IsOptional()
-  @MinLength(2)
+  @MinLength(2, { message: 'El nombre debe tener al menos 2 caracteres' })
   name?: string;
 
   @IsNumber()
   @IsOptional()
-  @Min(18)
+  @Min(18, { message: 'La edad debe ser mayor o igual a 18 años' })
   age?: number;
 
   @Transform(({ value }) => value.trim())
