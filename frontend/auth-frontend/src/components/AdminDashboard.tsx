@@ -26,6 +26,7 @@ const AdminDashboard: React.FC = () => {
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [openModal, setOpenModal] = useState(false);
   const [adminProfile, setAdminProfile] = useState<any>(null);
+  const [editError, setEditError] = useState<string | null>(null); // Agregar estado para errores
 
   useEffect(() => {
     fetchUsers();
@@ -69,6 +70,7 @@ const AdminDashboard: React.FC = () => {
   const handleEdit = (user: User) => {
     setEditingUser(user);
     setOpenModal(true);
+    setEditError(null); // Limpiar errores al abrir el modal
   };
 
   const handleSave = async () => {
@@ -100,15 +102,20 @@ const AdminDashboard: React.FC = () => {
       if (!response.ok) {
         const errorData = await response.json();
         console.error("Error al actualizar usuario:", errorData);
-        alert(
-          `Error: ${errorData.message || "No se pudo actualizar el usuario"}`
-        );
+
+        // Manejar errores como array o string
+        const errorMessage = Array.isArray(errorData.message)
+          ? errorData.message.join("\n")
+          : errorData.message || "No se pudo actualizar el usuario";
+
+        setEditError(errorMessage); // Mostrar error en el modal
         return;
       }
 
       console.log("Usuario actualizado correctamente");
       setOpenModal(false);
       setEditingUser(null);
+      setEditError(null); // Limpiar error al guardar exitosamente
       fetchUsers();
     } catch (error) {
       console.error("Error en handleSave:", error);
@@ -310,6 +317,7 @@ const AdminDashboard: React.FC = () => {
               editingUser={editingUser}
               onSave={handleSave}
               onChange={setEditingUser}
+              error={editError} // Pasar el mensaje de error al modal
             />
           </>
         )}
