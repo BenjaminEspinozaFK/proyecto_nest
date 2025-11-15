@@ -19,7 +19,7 @@ export class UpdateUserByAdminDto {
   @Transform(({ value }) => value.trim())
   @IsString()
   @IsOptional()
-  @MinLength(2)
+  @MinLength(2, { message: 'El nombre debe tener al menos 2 caracteres' })
   name?: string;
 
   @IsNumber()

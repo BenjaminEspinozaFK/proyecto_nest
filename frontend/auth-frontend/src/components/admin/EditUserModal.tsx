@@ -9,6 +9,7 @@ import {
   Select,
   TextField,
   Typography,
+  Alert, // Agregar este import
 } from "@mui/material";
 import { User } from "../../types/auth";
 
@@ -18,6 +19,7 @@ interface EditUserModalProps {
   editingUser: User | null;
   onSave: () => void;
   onChange: (user: User) => void;
+  error?: string | null; // Agregar esta prop
 }
 
 const EditUserModal: React.FC<EditUserModalProps> = ({
@@ -26,6 +28,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
   editingUser,
   onSave,
   onChange,
+  error, // Agregar esta prop
 }) => {
   return (
     <Modal open={open} onClose={onClose}>
@@ -45,6 +48,13 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
         <Typography variant="h6" gutterBottom>
           Editar Usuario
         </Typography>
+
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        )}
+
         {editingUser && (
           <>
             <TextField
