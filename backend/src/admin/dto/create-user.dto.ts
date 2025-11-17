@@ -6,6 +6,7 @@ import {
   MinLength,
   Min,
 } from 'class-validator';
+import { IsOptional, IsIn } from 'class-validator';
 import { Transform } from 'class-transformer';
 
 export class CreateUserDto {
@@ -29,4 +30,8 @@ export class CreateUserDto {
   @IsNotEmpty()
   @MinLength(6)
   password: string;
+
+  @IsOptional()
+  @IsIn(['user', 'admin'])
+  role?: 'user' | 'admin';
 }
