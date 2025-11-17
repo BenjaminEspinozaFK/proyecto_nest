@@ -19,6 +19,7 @@ import EditUserModal from "./admin/EditUserModal";
 import AdminChat from "./admin/Chat";
 import AdminStats from "./admin/Stats";
 import AdminProfile from "./admin/Profile";
+import CreateUserModal from "./admin/CreateUserModal";
 
 const AdminDashboard: React.FC = () => {
   const [tabValue, setTabValue] = useState(0);
@@ -27,6 +28,7 @@ const AdminDashboard: React.FC = () => {
   const [openModal, setOpenModal] = useState(false);
   const [adminProfile, setAdminProfile] = useState<any>(null);
   const [editError, setEditError] = useState<string | null>(null); // Agregar estado para errores
+  const [createOpen, setCreateOpen] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -144,6 +146,15 @@ const AdminDashboard: React.FC = () => {
     window.location.href = "/login";
   };
 
+  const handleOpenCreate = () => {
+    setCreateOpen(true);
+  };
+
+  const handleCreated = () => {
+    // Después de crear, refrescar la lista
+    fetchUsers();
+  };
+
   return (
     <Box
       sx={{
@@ -211,19 +222,39 @@ const AdminDashboard: React.FC = () => {
               </Typography>
             </Box>
           </Box>
-          <Button
-            variant="contained"
-            onClick={handleLogout}
-            sx={{
-              background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-              color: "#fff",
-              "&:hover": {
-                background: "linear-gradient(135deg, #764ba2 0%, #667eea 100%)",
-              },
-            }}
-          >
-            Cerrar Sesión
-          </Button>
+          <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+            {adminProfile?.role === "admin" && tabValue === 1 && (
+              <Button
+                variant="contained"
+                onClick={handleOpenCreate}
+                sx={{
+                  background:
+                    "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                  color: "#fff",
+                  "&:hover": {
+                    background:
+                      "linear-gradient(135deg, #764ba2 0%, #667eea 100%)",
+                  },
+                }}
+              >
+                Crear usuario
+              </Button>
+            )}
+            <Button
+              variant="contained"
+              onClick={handleLogout}
+              sx={{
+                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                color: "#fff",
+                "&:hover": {
+                  background:
+                    "linear-gradient(135deg, #764ba2 0%, #667eea 100%)",
+                },
+              }}
+            >
+              Cerrar Sesión
+            </Button>
+          </Box>
         </Box>
 
         <Paper
@@ -272,7 +303,6 @@ const AdminDashboard: React.FC = () => {
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableCell>ID</TableCell>
                     <TableCell>Email</TableCell>
                     <TableCell>Nombre</TableCell>
                     <TableCell>Edad</TableCell>
@@ -283,7 +313,6 @@ const AdminDashboard: React.FC = () => {
                 <TableBody>
                   {users.map((user) => (
                     <TableRow key={user.id}>
-                      <TableCell>{user.id}</TableCell>
                       <TableCell>{user.email}</TableCell>
                       <TableCell>{user.name}</TableCell>
                       <TableCell>{user.age}</TableCell>
@@ -310,6 +339,14 @@ const AdminDashboard: React.FC = () => {
                 </TableBody>
               </Table>
             </TableContainer>
+
+            {/* Botón movido al header */}
+
+            <CreateUserModal
+              open={createOpen}
+              onClose={() => setCreateOpen(false)}
+              onCreated={handleCreated}
+            />
 
             <EditUserModal
               open={openModal}

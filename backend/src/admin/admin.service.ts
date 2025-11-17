@@ -268,7 +268,6 @@ export class AdminService {
       data: {
         ...user,
         password: hashedPassword,
-        role: 'user',
       },
       select: {
         id: true,
