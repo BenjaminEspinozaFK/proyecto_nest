@@ -69,7 +69,6 @@ const Login: React.FC<LoginProps> = ({
         sx={{
           maxWidth: 450,
           width: "100%",
-          boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
           borderRadius: 3,
           p: 4,
         }}
@@ -145,11 +144,6 @@ const Login: React.FC<LoginProps> = ({
             <FormControl fullWidth disabled={isLoading}>
               <InputLabel id="role-label">Tipo de cuenta</InputLabel>
               <Select
-                MenuProps={{
-                  PaperProps: {
-                    sx: { backgroundColor: "rgba(40,40,40,1)" },
-                  },
-                }}
                 labelId="role-label"
                 value={role}
                 label="Tipo de cuenta"

@@ -166,7 +166,7 @@ const AdminStats: React.FC = () => {
         }}
       >
         {/* Usuarios por rol */}
-        <Paper sx={{ p: 3, backgroundColor: "rgba(50, 50, 50, 0.5)" }}>
+        <Paper sx={{ p: 3 }}>
           <Typography variant="h6" gutterBottom fontWeight="bold">
             Usuarios por Rol
           </Typography>
@@ -189,7 +189,7 @@ const AdminStats: React.FC = () => {
         </Paper>
 
         {/* Usuarios recientes */}
-        <Paper sx={{ p: 3, backgroundColor: "rgba(50, 50, 50, 0.5)" }}>
+        <Paper sx={{ p: 3 }}>
           <Typography variant="h6" gutterBottom fontWeight="bold" mb={2}>
             Últimos Usuarios Registrados
           </Typography>
@@ -197,29 +197,19 @@ const AdminStats: React.FC = () => {
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell sx={{ color: "#ffffff", fontWeight: "bold" }}>
-                    Nombre
-                  </TableCell>
-                  <TableCell sx={{ color: "#ffffff", fontWeight: "bold" }}>
-                    Email
-                  </TableCell>
-                  <TableCell sx={{ color: "#ffffff", fontWeight: "bold" }}>
-                    Rol
-                  </TableCell>
-                  <TableCell sx={{ color: "#ffffff", fontWeight: "bold" }}>
-                    Fecha
-                  </TableCell>
+                  <TableCell sx={{ fontWeight: "bold" }}>Nombre</TableCell>
+                  <TableCell sx={{ fontWeight: "bold" }}>Email</TableCell>
+                  <TableCell sx={{ fontWeight: "bold" }}>Rol</TableCell>
+                  <TableCell sx={{ fontWeight: "bold" }}>Registrado</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {stats.recentUsers.map((user) => (
                   <TableRow key={user.id}>
-                    <TableCell sx={{ color: "#ffffff" }}>{user.name}</TableCell>
-                    <TableCell sx={{ color: "#ffffff" }}>
-                      {user.email}
-                    </TableCell>
-                    <TableCell sx={{ color: "#ffffff" }}>{user.role}</TableCell>
-                    <TableCell sx={{ color: "#ffffff" }}>
+                    <TableCell>{user.name}</TableCell>
+                    <TableCell>{user.email}</TableCell>
+                    <TableCell>{user.role}</TableCell>
+                    <TableCell>
                       {new Date(user.createdAt).toLocaleDateString()}
                     </TableCell>
                   </TableRow>
@@ -231,7 +221,7 @@ const AdminStats: React.FC = () => {
       </Box>
 
       {/* Últimos logins */}
-      <Paper sx={{ p: 3, backgroundColor: "rgba(50, 50, 50, 0.5)" }}>
+      <Paper sx={{ p: 3 }}>
         <Typography variant="h6" gutterBottom fontWeight="bold" mb={2}>
           Últimos Inicios de Sesión
         </Typography>
@@ -239,24 +229,20 @@ const AdminStats: React.FC = () => {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell sx={{ color: "#ffffff", fontWeight: "bold" }}>
-                  Nombre
-                </TableCell>
-                <TableCell sx={{ color: "#ffffff", fontWeight: "bold" }}>
-                  Email
-                </TableCell>
-                <TableCell sx={{ color: "#ffffff", fontWeight: "bold" }}>
-                  Último Login
-                </TableCell>
+                <TableCell sx={{ fontWeight: "bold" }}>Nombre</TableCell>
+                <TableCell sx={{ fontWeight: "bold" }}>Email</TableCell>
+                <TableCell sx={{ fontWeight: "bold" }}>Último Login</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {stats.recentLogins.map((user) => (
                 <TableRow key={user.id}>
-                  <TableCell sx={{ color: "#ffffff" }}>{user.name}</TableCell>
-                  <TableCell sx={{ color: "#ffffff" }}>{user.email}</TableCell>
-                  <TableCell sx={{ color: "#ffffff" }}>
-                    {new Date(user.lastLogin).toLocaleString()}
+                  <TableCell>{user.name}</TableCell>
+                  <TableCell>{user.email}</TableCell>
+                  <TableCell>
+                    {user.lastLogin
+                      ? new Date(user.lastLogin).toLocaleString()
+                      : "Nunca"}
                   </TableCell>
                 </TableRow>
               ))}

@@ -185,7 +185,6 @@ const AdminProfile: React.FC = () => {
         <Paper
           sx={{
             p: 3,
-            backgroundColor: "rgba(50, 50, 50, 0.5)",
             textAlign: "center",
           }}
         >
@@ -225,11 +224,6 @@ const AdminProfile: React.FC = () => {
                 position: "absolute",
                 bottom: 16,
                 right: -8,
-                backgroundColor: "#667eea",
-                color: "#fff",
-                "&:hover": {
-                  backgroundColor: "#764ba2",
-                },
                 boxShadow: 3,
               }}
             >
@@ -257,7 +251,7 @@ const AdminProfile: React.FC = () => {
           )}
         </Paper>
 
-        <Paper sx={{ p: 3, backgroundColor: "rgba(50, 50, 50, 0.5)" }}>
+        <Paper sx={{ p: 3 }}>
           <Box
             display="flex"
             justifyContent="space-between"
@@ -320,13 +314,6 @@ const AdminProfile: React.FC = () => {
                 setFormData({ ...formData, name: e.target.value })
               }
               disabled={!editing}
-              sx={{
-                "& .MuiInputBase-root": { color: "#ffffff" },
-                "& .MuiInputLabel-root": { color: "#ffffff" },
-                "& .MuiOutlinedInput-root": {
-                  "& fieldset": { borderColor: "rgba(255, 255, 255, 0.3)" },
-                },
-              }}
             />
 
             <TextField
@@ -338,13 +325,6 @@ const AdminProfile: React.FC = () => {
                 setFormData({ ...formData, email: e.target.value })
               }
               disabled={!editing}
-              sx={{
-                "& .MuiInputBase-root": { color: "#ffffff" },
-                "& .MuiInputLabel-root": { color: "#ffffff" },
-                "& .MuiOutlinedInput-root": {
-                  "& fieldset": { borderColor: "rgba(255, 255, 255, 0.3)" },
-                },
-              }}
             />
 
             <TextField
@@ -356,13 +336,6 @@ const AdminProfile: React.FC = () => {
                 setFormData({ ...formData, age: parseInt(e.target.value) })
               }
               disabled={!editing}
-              sx={{
-                "& .MuiInputBase-root": { color: "#ffffff" },
-                "& .MuiInputLabel-root": { color: "#ffffff" },
-                "& .MuiOutlinedInput-root": {
-                  "& fieldset": { borderColor: "rgba(255, 255, 255, 0.3)" },
-                },
-              }}
             />
 
             {editing && (
@@ -374,15 +347,6 @@ const AdminProfile: React.FC = () => {
                 onChange={(e) =>
                   setFormData({ ...formData, password: e.target.value })
                 }
-                sx={{
-                  "& .MuiInputBase-root": { color: "#ffffff" },
-                  "& .MuiInputLabel-root": { color: "#ffffff" },
-                  "& .MuiOutlinedInput-root": {
-                    "& fieldset": {
-                      borderColor: "rgba(255, 255, 255, 0.3)",
-                    },
-                  },
-                }}
               />
             )}
           </Box>

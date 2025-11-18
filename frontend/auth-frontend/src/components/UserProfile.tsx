@@ -171,7 +171,6 @@ const UserProfile: React.FC = () => {
         sx={{
           fontWeight: "bold",
           mb: 3,
-          color: "#fff",
           background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
           WebkitBackgroundClip: "text",
           WebkitTextFillColor: "transparent",
@@ -196,9 +195,6 @@ const UserProfile: React.FC = () => {
         sx={{
           p: 4,
           borderRadius: 3,
-          backgroundColor: "rgba(30, 30, 30, 0.8)",
-          backdropFilter: "blur(10px)",
-          border: "1px solid rgba(255, 255, 255, 0.1)",
         }}
       >
         <Box
@@ -248,16 +244,10 @@ const UserProfile: React.FC = () => {
 
               <IconButton
                 onClick={() => fileInputRef.current?.click()}
-                disabled={uploading}
                 sx={{
                   position: "absolute",
                   bottom: 16,
                   right: -8,
-                  backgroundColor: "#667eea",
-                  color: "#fff",
-                  "&:hover": {
-                    backgroundColor: "#764ba2",
-                  },
                   boxShadow: 3,
                 }}
               >
@@ -271,12 +261,7 @@ const UserProfile: React.FC = () => {
               </Typography>
             )}
 
-            <Typography
-              variant="h5"
-              fontWeight="bold"
-              gutterBottom
-              sx={{ color: "#fff" }}
-            >
+            <Typography variant="h5" fontWeight="bold" gutterBottom>
               {profile?.name}
             </Typography>
             <Typography
@@ -309,7 +294,7 @@ const UserProfile: React.FC = () => {
                 mb: 3,
               }}
             >
-              <Typography variant="h5" fontWeight="bold" sx={{ color: "#fff" }}>
+              <Typography variant="h5" fontWeight="bold">
                 Información Personal
               </Typography>
 
@@ -321,7 +306,6 @@ const UserProfile: React.FC = () => {
                   sx={{
                     background:
                       "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                    color: "#fff",
                     "&:hover": {
                       background:
                         "linear-gradient(135deg, #764ba2 0%, #667eea 100%)",
@@ -338,7 +322,6 @@ const UserProfile: React.FC = () => {
                     startIcon={<Save />}
                     onClick={handleSave}
                     disabled={saving}
-                    sx={{ color: "#fff" }}
                   >
                     {saving ? "Guardando..." : "Guardar"}
                   </Button>
@@ -347,14 +330,6 @@ const UserProfile: React.FC = () => {
                     startIcon={<Cancel />}
                     onClick={handleCancel}
                     disabled={saving}
-                    sx={{
-                      color: "#fff",
-                      borderColor: "rgba(255, 255, 255, 0.3)",
-                      "&:hover": {
-                        borderColor: "#fff",
-                        backgroundColor: "rgba(255, 255, 255, 0.1)",
-                      },
-                    }}
                   >
                     Cancelar
                   </Button>
@@ -372,29 +347,6 @@ const UserProfile: React.FC = () => {
                 }
                 disabled={!editing}
                 variant={editing ? "outlined" : "filled"}
-                sx={{
-                  "& .MuiInputLabel-root": {
-                    color: "rgba(255, 255, 255, 0.7)",
-                  },
-                  "& .MuiOutlinedInput-root": {
-                    color: "#fff",
-                    "& fieldset": { borderColor: "rgba(255, 255, 255, 0.3)" },
-                    "&:hover fieldset": {
-                      borderColor: "rgba(255, 255, 255, 0.5)",
-                    },
-                    "&.Mui-focused fieldset": { borderColor: "#667eea" },
-                  },
-                  "& .MuiFilledInput-root": {
-                    backgroundColor: "rgba(255, 255, 255, 0.1)",
-                    color: "#fff",
-                    "&:hover": {
-                      backgroundColor: "rgba(255, 255, 255, 0.15)",
-                    },
-                    "&.Mui-focused": {
-                      backgroundColor: "rgba(255, 255, 255, 0.2)",
-                    },
-                  },
-                }}
               />
 
               <TextField
@@ -407,29 +359,6 @@ const UserProfile: React.FC = () => {
                 }
                 disabled={!editing}
                 variant={editing ? "outlined" : "filled"}
-                sx={{
-                  "& .MuiInputLabel-root": {
-                    color: "rgba(255, 255, 255, 0.7)",
-                  },
-                  "& .MuiOutlinedInput-root": {
-                    color: "#fff",
-                    "& fieldset": { borderColor: "rgba(255, 255, 255, 0.3)" },
-                    "&:hover fieldset": {
-                      borderColor: "rgba(255, 255, 255, 0.5)",
-                    },
-                    "&.Mui-focused fieldset": { borderColor: "#667eea" },
-                  },
-                  "& .MuiFilledInput-root": {
-                    backgroundColor: "rgba(255, 255, 255, 0.1)",
-                    color: "#fff",
-                    "&:hover": {
-                      backgroundColor: "rgba(255, 255, 255, 0.15)",
-                    },
-                    "&.Mui-focused": {
-                      backgroundColor: "rgba(255, 255, 255, 0.2)",
-                    },
-                  },
-                }}
               />
 
               <TextField
@@ -446,29 +375,6 @@ const UserProfile: React.FC = () => {
                 }
                 disabled={!editing}
                 variant={editing ? "outlined" : "filled"}
-                sx={{
-                  "& .MuiInputLabel-root": {
-                    color: "rgba(255, 255, 255, 0.7)",
-                  },
-                  "& .MuiOutlinedInput-root": {
-                    color: "#fff",
-                    "& fieldset": { borderColor: "rgba(255, 255, 255, 0.3)" },
-                    "&:hover fieldset": {
-                      borderColor: "rgba(255, 255, 255, 0.5)",
-                    },
-                    "&.Mui-focused fieldset": { borderColor: "#667eea" },
-                  },
-                  "& .MuiFilledInput-root": {
-                    backgroundColor: "rgba(255, 255, 255, 0.1)",
-                    color: "#fff",
-                    "&:hover": {
-                      backgroundColor: "rgba(255, 255, 255, 0.15)",
-                    },
-                    "&.Mui-focused": {
-                      backgroundColor: "rgba(255, 255, 255, 0.2)",
-                    },
-                  },
-                }}
               />
 
               <TextField
@@ -477,21 +383,6 @@ const UserProfile: React.FC = () => {
                 value={profile?.role === "admin" ? "Administrador" : "Usuario"}
                 disabled
                 variant="filled"
-                sx={{
-                  "& .MuiInputLabel-root": {
-                    color: "rgba(255, 255, 255, 0.7)",
-                  },
-                  "& .MuiFilledInput-root": {
-                    backgroundColor: "rgba(255, 255, 255, 0.1)",
-                    color: "#fff",
-                    "&:hover": {
-                      backgroundColor: "rgba(255, 255, 255, 0.15)",
-                    },
-                    "&.Mui-focused": {
-                      backgroundColor: "rgba(255, 255, 255, 0.2)",
-                    },
-                  },
-                }}
               />
 
               <TextField
@@ -508,21 +399,6 @@ const UserProfile: React.FC = () => {
                 }
                 disabled
                 variant="filled"
-                sx={{
-                  "& .MuiInputLabel-root": {
-                    color: "rgba(255, 255, 255, 0.7)",
-                  },
-                  "& .MuiFilledInput-root": {
-                    backgroundColor: "rgba(255, 255, 255, 0.1)",
-                    color: "#fff",
-                    "&:hover": {
-                      backgroundColor: "rgba(255, 255, 255, 0.15)",
-                    },
-                    "&.Mui-focused": {
-                      backgroundColor: "rgba(255, 255, 255, 0.2)",
-                    },
-                  },
-                }}
               />
             </Box>
           </Box>
