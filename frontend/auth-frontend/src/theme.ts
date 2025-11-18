@@ -79,6 +79,15 @@ export const darkTheme = createTheme({
     fontFamily:
       '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
     h4: {
+      fontWeight: 700,
+      background: "linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)",
+      WebkitBackgroundClip: "text",
+      WebkitTextFillColor: "transparent",
+    },
+    h5: {
+      fontWeight: 600,
+    },
+    h6: {
       fontWeight: 600,
     },
   },
@@ -95,12 +104,12 @@ export const lightTheme = createTheme({
       main: "#dc004e",
     },
     background: {
-      default: "#f5f5f5", // Fondo gris claro
+      default: "#f8f9fa", // Fondo gris muy claro
       paper: "#ffffff", // Papel blanco
     },
     text: {
-      primary: "#000000", // Texto negro
-      secondary: "rgba(0, 0, 0, 0.6)",
+      primary: "#212529", // Texto negro más suave
+      secondary: "rgba(33, 37, 41, 0.6)",
     },
   },
   components: {
@@ -108,8 +117,8 @@ export const lightTheme = createTheme({
       styleOverrides: {
         root: {
           backgroundImage: "none",
-          backdropFilter: "none", // Sin blur en claro
-          border: "1px solid rgba(0, 0, 0, 0.12)", // Borde sutil
+          boxShadow: "0 2px 8px rgba(0, 0, 0, 0.08)",
+          border: "1px solid rgba(0, 0, 0, 0.08)",
         },
       },
     },
@@ -117,7 +126,7 @@ export const lightTheme = createTheme({
       styleOverrides: {
         root: {
           "& .MuiOutlinedInput-root": {
-            backgroundColor: "rgba(255, 255, 255, 0.8)", // Fondo blanco translúcido
+            backgroundColor: "#ffffff",
             "& fieldset": {
               borderColor: "rgba(0, 0, 0, 0.23)",
             },
@@ -134,7 +143,7 @@ export const lightTheme = createTheme({
     MuiSelect: {
       styleOverrides: {
         root: {
-          backgroundColor: "rgba(255, 255, 255, 0.8)",
+          backgroundColor: "#ffffff",
         },
       },
     },

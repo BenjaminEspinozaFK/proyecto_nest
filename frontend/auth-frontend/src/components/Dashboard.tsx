@@ -46,7 +46,6 @@ const Dashboard: React.FC<DashboardProps> = ({ toggleTheme, isDark }) => {
       sx={{
         minHeight: "100vh",
         width: "100%",
-        backgroundColor: "#0a0a0f",
         py: 4,
         px: 3,
       }}
@@ -88,19 +87,14 @@ const Dashboard: React.FC<DashboardProps> = ({ toggleTheme, isDark }) => {
               <Typography
                 variant="h4"
                 sx={{
-                  color: "#fff",
                   fontWeight: "bold",
-                  background:
-                    "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
                 }}
               >
                 Panel de Usuario
               </Typography>
               <Typography
                 variant="body2"
-                sx={{ color: "rgba(255, 255, 255, 0.6)", mt: 0.5 }}
+                sx={{ mt: 0.5 }}
               >
                 Bienvenido, {user.name || "Usuario"}
               </Typography>
@@ -109,7 +103,6 @@ const Dashboard: React.FC<DashboardProps> = ({ toggleTheme, isDark }) => {
           <Box sx={{ display: "flex", gap: 1 }}>
             <IconButton
               onClick={toggleTheme}
-              sx={{ color: "rgba(255, 255, 255, 0.6)" }}
             >
               {isDark ? <Brightness7 /> : <Brightness4 />}
             </IconButton>
@@ -117,14 +110,6 @@ const Dashboard: React.FC<DashboardProps> = ({ toggleTheme, isDark }) => {
               variant="contained"
               onClick={handleLogout}
               startIcon={<LogoutOutlined />}
-              sx={{
-                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                color: "#fff",
-                "&:hover": {
-                  background:
-                    "linear-gradient(135deg, #764ba2 0%, #667eea 100%)",
-                },
-              }}
             >
               Cerrar Sesión
             </Button>
@@ -134,7 +119,6 @@ const Dashboard: React.FC<DashboardProps> = ({ toggleTheme, isDark }) => {
         <Paper
           sx={{
             mb: 3,
-            backgroundColor: "rgba(50, 50, 50, 0.5)",
             borderRadius: 2,
           }}
         >
@@ -142,7 +126,6 @@ const Dashboard: React.FC<DashboardProps> = ({ toggleTheme, isDark }) => {
             value={tabValue}
             onChange={(_, newValue) => setTabValue(newValue)}
             sx={{
-              "& .MuiTab-root": { color: "#ffffff" },
               "& .Mui-selected": { color: "#667eea" },
               "& .MuiTabs-indicator": {
                 backgroundColor: "#667eea",

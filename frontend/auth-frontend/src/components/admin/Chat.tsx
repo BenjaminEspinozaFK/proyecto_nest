@@ -83,7 +83,7 @@ const AdminChat: React.FC = () => {
       return (
         <Box>
           {Object.entries(res).map(([key, value]) => (
-            <Typography key={key} sx={{ color: "#ffffff", mb: 1 }}>
+            <Typography key={key} sx={{ mb: 1 }}>
               <strong>{key}:</strong>{" "}
               {typeof value === "string" && value.includes("T")
                 ? new Date(value).toLocaleString()
@@ -134,7 +134,7 @@ const AdminChat: React.FC = () => {
             <Typography variant="h6" gutterBottom>
               Respuesta:
             </Typography>
-            <Paper sx={{ p: 2, backgroundColor: "rgba(40, 40, 40, 0.8)" }}>
+            <Paper sx={{ p: 2 }}>
               {renderResponse(response)}
             </Paper>
           </Box>
