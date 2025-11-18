@@ -160,7 +160,6 @@ const AdminDashboard: React.FC = () => {
       sx={{
         minHeight: "100vh",
         width: "100%",
-        backgroundColor: "#0a0a0f",
         py: 4,
         px: 3,
       }}
@@ -204,54 +203,23 @@ const AdminDashboard: React.FC = () => {
               <Typography
                 variant="h4"
                 sx={{
-                  color: "#fff",
                   fontWeight: "bold",
-                  background:
-                    "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
                 }}
               >
                 Panel de Administración
               </Typography>
-              <Typography
-                variant="body2"
-                sx={{ color: "rgba(255, 255, 255, 0.6)", mt: 0.5 }}
-              >
+              <Typography variant="body2" sx={{ mt: 0.5 }}>
                 Bienvenido, {adminProfile?.name || "Admin"}
               </Typography>
             </Box>
           </Box>
           <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
             {adminProfile?.role === "admin" && tabValue === 1 && (
-              <Button
-                variant="contained"
-                onClick={handleOpenCreate}
-                sx={{
-                  background:
-                    "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                  color: "#fff",
-                  "&:hover": {
-                    background:
-                      "linear-gradient(135deg, #764ba2 0%, #667eea 100%)",
-                  },
-                }}
-              >
+              <Button variant="contained" onClick={handleOpenCreate}>
                 Crear usuario
               </Button>
             )}
-            <Button
-              variant="contained"
-              onClick={handleLogout}
-              sx={{
-                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                color: "#fff",
-                "&:hover": {
-                  background:
-                    "linear-gradient(135deg, #764ba2 0%, #667eea 100%)",
-                },
-              }}
-            >
+            <Button variant="contained" onClick={handleLogout}>
               Cerrar Sesión
             </Button>
           </Box>
@@ -260,7 +228,6 @@ const AdminDashboard: React.FC = () => {
         <Paper
           sx={{
             mb: 3,
-            backgroundColor: "rgba(50, 50, 50, 0.5)",
             borderRadius: 2,
           }}
         >
@@ -268,7 +235,6 @@ const AdminDashboard: React.FC = () => {
             value={tabValue}
             onChange={(_, newValue) => setTabValue(newValue)}
             sx={{
-              "& .MuiTab-root": { color: "#ffffff" },
               "& .Mui-selected": { color: "#667eea" },
               "& .MuiTabs-indicator": {
                 backgroundColor: "#667eea",
@@ -289,14 +255,8 @@ const AdminDashboard: React.FC = () => {
             <TableContainer
               component={Paper}
               sx={{
-                backgroundColor: "rgba(50, 50, 50, 0.5)",
-                "& .MuiTableCell-root": {
-                  color: "#ffffff",
-                  borderColor: "rgba(255, 255, 255, 0.1)",
-                },
                 "& .MuiTableCell-head": {
                   fontWeight: 600,
-                  backgroundColor: "rgba(40, 40, 40, 0.8)",
                 },
               }}
             >
