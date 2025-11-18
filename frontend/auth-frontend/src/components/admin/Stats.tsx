@@ -197,18 +197,10 @@ const AdminStats: React.FC = () => {
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell sx={{ fontWeight: "bold" }}>
-                    Nombre
-                  </TableCell>
-                  <TableCell sx={{ fontWeight: "bold" }}>
-                    Email
-                  </TableCell>
-                  <TableCell sx={{ fontWeight: "bold" }}>
-                    Rol
-                  </TableCell>
-                  <TableCell sx={{ fontWeight: "bold" }}>
-                    Registrado
-                  </TableCell>
+                  <TableCell sx={{ fontWeight: "bold" }}>Nombre</TableCell>
+                  <TableCell sx={{ fontWeight: "bold" }}>Email</TableCell>
+                  <TableCell sx={{ fontWeight: "bold" }}>Rol</TableCell>
+                  <TableCell sx={{ fontWeight: "bold" }}>Registrado</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -217,7 +209,9 @@ const AdminStats: React.FC = () => {
                     <TableCell>{user.name}</TableCell>
                     <TableCell>{user.email}</TableCell>
                     <TableCell>{user.role}</TableCell>
-                    <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
+                    <TableCell>
+                      {new Date(user.createdAt).toLocaleDateString()}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -235,15 +229,9 @@ const AdminStats: React.FC = () => {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell sx={{ fontWeight: "bold" }}>
-                  Nombre
-                </TableCell>
-                <TableCell sx={{ fontWeight: "bold" }}>
-                  Email
-                </TableCell>
-                <TableCell sx={{ fontWeight: "bold" }}>
-                  Último Login
-                </TableCell>
+                <TableCell sx={{ fontWeight: "bold" }}>Nombre</TableCell>
+                <TableCell sx={{ fontWeight: "bold" }}>Email</TableCell>
+                <TableCell sx={{ fontWeight: "bold" }}>Último Login</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -251,7 +239,11 @@ const AdminStats: React.FC = () => {
                 <TableRow key={user.id}>
                   <TableCell>{user.name}</TableCell>
                   <TableCell>{user.email}</TableCell>
-                  <TableCell>{user.lastLogin ? new Date(user.lastLogin).toLocaleString() : "Nunca"}</TableCell>
+                  <TableCell>
+                    {user.lastLogin
+                      ? new Date(user.lastLogin).toLocaleString()
+                      : "Nunca"}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>

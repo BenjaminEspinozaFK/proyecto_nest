@@ -208,27 +208,18 @@ const AdminDashboard: React.FC = () => {
               >
                 Panel de Administración
               </Typography>
-              <Typography
-                variant="body2"
-                sx={{ mt: 0.5 }}
-              >
+              <Typography variant="body2" sx={{ mt: 0.5 }}>
                 Bienvenido, {adminProfile?.name || "Admin"}
               </Typography>
             </Box>
           </Box>
           <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
             {adminProfile?.role === "admin" && tabValue === 1 && (
-              <Button
-                variant="contained"
-                onClick={handleOpenCreate}
-              >
+              <Button variant="contained" onClick={handleOpenCreate}>
                 Crear usuario
               </Button>
             )}
-            <Button
-              variant="contained"
-              onClick={handleLogout}
-            >
+            <Button variant="contained" onClick={handleLogout}>
               Cerrar Sesión
             </Button>
           </Box>

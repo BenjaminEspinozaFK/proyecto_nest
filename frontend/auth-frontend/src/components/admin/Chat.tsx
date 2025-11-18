@@ -134,9 +134,7 @@ const AdminChat: React.FC = () => {
             <Typography variant="h6" gutterBottom>
               Respuesta:
             </Typography>
-            <Paper sx={{ p: 2 }}>
-              {renderResponse(response)}
-            </Paper>
+            <Paper sx={{ p: 2 }}>{renderResponse(response)}</Paper>
           </Box>
         )}
       </Paper>

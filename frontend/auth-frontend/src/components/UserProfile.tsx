@@ -261,11 +261,7 @@ const UserProfile: React.FC = () => {
               </Typography>
             )}
 
-            <Typography
-              variant="h5"
-              fontWeight="bold"
-              gutterBottom
-            >
+            <Typography variant="h5" fontWeight="bold" gutterBottom>
               {profile?.name}
             </Typography>
             <Typography

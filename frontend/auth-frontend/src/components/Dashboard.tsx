@@ -92,18 +92,13 @@ const Dashboard: React.FC<DashboardProps> = ({ toggleTheme, isDark }) => {
               >
                 Panel de Usuario
               </Typography>
-              <Typography
-                variant="body2"
-                sx={{ mt: 0.5 }}
-              >
+              <Typography variant="body2" sx={{ mt: 0.5 }}>
                 Bienvenido, {user.name || "Usuario"}
               </Typography>
             </Box>
           </Box>
           <Box sx={{ display: "flex", gap: 1 }}>
-            <IconButton
-              onClick={toggleTheme}
-            >
+            <IconButton onClick={toggleTheme}>
               {isDark ? <Brightness7 /> : <Brightness4 />}
             </IconButton>
             <Button
