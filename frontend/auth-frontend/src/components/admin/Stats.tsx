@@ -115,7 +115,21 @@ const AdminStats: React.FC = () => {
   return (
     <Box>
       <Typography variant="h4" gutterBottom fontWeight="bold" mb={3}>
-        📊 Estadísticas del Sistema
+        <Box
+          component="span"
+          sx={{
+            background: "none !important",
+            backgroundClip: "unset !important",
+            WebkitBackgroundClip: "unset !important",
+            textFillColor: "currentColor !important",
+            WebkitTextFillColor: "currentColor !important",
+            color: "text.primary !important",
+            display: "inline-block",
+          }}
+        >
+          📊
+        </Box>{" "}
+        Estadísticas del Sistema
       </Typography>
 
       {/* Cards de estadísticas principales */}
