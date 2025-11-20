@@ -14,14 +14,24 @@ import {
   Tab,
   Typography,
   Avatar,
+  IconButton,
 } from "@mui/material";
+import { Brightness4, Brightness7 } from "@mui/icons-material";
 import EditUserModal from "./admin/EditUserModal";
 import AdminChat from "./admin/Chat";
 import AdminStats from "./admin/Stats";
 import AdminProfile from "./admin/Profile";
 import CreateUserModal from "./admin/CreateUserModal";
 
-const AdminDashboard: React.FC = () => {
+interface AdminDashboardProps {
+  toggleTheme?: () => void;
+  isDark?: boolean;
+}
+
+const AdminDashboard: React.FC<AdminDashboardProps> = ({
+  toggleTheme,
+  isDark,
+}) => {
   const [tabValue, setTabValue] = useState(0);
   const [users, setUsers] = useState<User[]>([]);
   const [editingUser, setEditingUser] = useState<User | null>(null);
@@ -214,6 +224,11 @@ const AdminDashboard: React.FC = () => {
             </Box>
           </Box>
           <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+            {toggleTheme && (
+              <IconButton onClick={toggleTheme}>
+                {isDark ? <Brightness7 /> : <Brightness4 />}
+              </IconButton>
+            )}
             {adminProfile?.role === "admin" && tabValue === 1 && (
               <Button variant="contained" onClick={handleOpenCreate}>
                 Crear usuario

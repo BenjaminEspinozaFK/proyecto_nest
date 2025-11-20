@@ -34,7 +34,7 @@ const Dashboard: React.FC<DashboardProps> = ({ toggleTheme, isDark }) => {
 
   // Si es admin, mostrar AdminDashboard directamente a pantalla completa
   if (user.role === "admin") {
-    return <AdminDashboard />;
+    return <AdminDashboard toggleTheme={toggleTheme} isDark={isDark} />;
   }
 
   const handleLogout = () => {
