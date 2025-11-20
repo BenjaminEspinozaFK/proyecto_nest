@@ -16,10 +16,7 @@ import {
   Avatar,
   IconButton,
 } from "@mui/material";
-import {
-  Brightness4,
-  Brightness7,
-} from "@mui/icons-material";
+import { Brightness4, Brightness7 } from "@mui/icons-material";
 import EditUserModal from "./admin/EditUserModal";
 import AdminChat from "./admin/Chat";
 import AdminStats from "./admin/Stats";
@@ -31,7 +28,10 @@ interface AdminDashboardProps {
   isDark?: boolean;
 }
 
-const AdminDashboard: React.FC<AdminDashboardProps> = ({ toggleTheme, isDark }) => {
+const AdminDashboard: React.FC<AdminDashboardProps> = ({
+  toggleTheme,
+  isDark,
+}) => {
   const [tabValue, setTabValue] = useState(0);
   const [users, setUsers] = useState<User[]>([]);
   const [editingUser, setEditingUser] = useState<User | null>(null);
