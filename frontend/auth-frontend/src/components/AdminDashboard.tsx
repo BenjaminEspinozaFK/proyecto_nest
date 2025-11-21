@@ -17,7 +17,7 @@ import {
   IconButton,
 } from "@mui/material";
 import { Brightness4, Brightness7 } from "@mui/icons-material";
-import EditUserModal from "./admin/EditUserModal";
+import UserDetailModal from "./admin/UserDetailModal";
 import AdminChat from "./admin/Chat";
 import AdminStats from "./admin/Stats";
 import AdminProfile from "./admin/Profile";
@@ -34,11 +34,10 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
 }) => {
   const [tabValue, setTabValue] = useState(0);
   const [users, setUsers] = useState<User[]>([]);
-  const [editingUser, setEditingUser] = useState<User | null>(null);
-  const [openModal, setOpenModal] = useState(false);
   const [adminProfile, setAdminProfile] = useState<any>(null);
-  const [editError, setEditError] = useState<string | null>(null); // Agregar estado para errores
   const [createOpen, setCreateOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [openDetailModal, setOpenDetailModal] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -77,78 +76,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       console.error("Error fetching users:", error);
       setUsers([]);
     }
-  };
-
-  const handleEdit = (user: User) => {
-    setEditingUser(user);
-    setOpenModal(true);
-    setEditError(null); // Limpiar errores al abrir el modal
-  };
-
-  const handleSave = async () => {
-    if (!editingUser) return;
-
-    try {
-      const token = localStorage.getItem("authToken");
-
-      // Enviar solo los campos permitidos
-      const userDataToUpdate = {
-        email: editingUser.email,
-        name: editingUser.name,
-        age: editingUser.age,
-        role: editingUser.role,
-      };
-
-      const response = await fetch(
-        `http://localhost:3001/admins/users/${editingUser.id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(userDataToUpdate),
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error("Error al actualizar usuario:", errorData);
-
-        // Manejar errores como array o string
-        const errorMessage = Array.isArray(errorData.message)
-          ? errorData.message.join("\n")
-          : errorData.message || "No se pudo actualizar el usuario";
-
-        setEditError(errorMessage); // Mostrar error en el modal
-        return;
-      }
-
-      console.log("Usuario actualizado correctamente");
-      setOpenModal(false);
-      setEditingUser(null);
-      setEditError(null); // Limpiar error al guardar exitosamente
-      fetchUsers();
-    } catch (error) {
-      console.error("Error en handleSave:", error);
-      alert("Error al guardar los cambios");
-    }
-  };
-
-  const handleDelete = async (id: string) => {
-    if (window.confirm("¿Eliminar usuario?")) {
-      const token = localStorage.getItem("authToken");
-      await fetch(`http://localhost:3001/admins/users/${id}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      fetchUsers();
-    }
-  };
-
-  const handleCloseModal = () => {
-    setOpenModal(false);
-    setEditingUser(null);
   };
 
   const handleLogout = () => {
@@ -282,7 +209,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     <TableCell>Nombre</TableCell>
                     <TableCell>Edad</TableCell>
                     <TableCell>Rol</TableCell>
-                    <TableCell>Acciones</TableCell>
+                    <TableCell align="center">Acciones</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -292,21 +219,17 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       <TableCell>{user.name}</TableCell>
                       <TableCell>{user.age}</TableCell>
                       <TableCell>{user.role}</TableCell>
-                      <TableCell>
+                      <TableCell align="center">
                         <Button
                           variant="contained"
-                          color="success"
-                          onClick={() => handleEdit(user)}
-                          style={{ marginRight: "10px" }}
+                          color="primary"
+                          size="small"
+                          onClick={() => {
+                            setSelectedUser(user);
+                            setOpenDetailModal(true);
+                          }}
                         >
-                          Editar
-                        </Button>
-                        <Button
-                          variant="contained"
-                          color="error"
-                          onClick={() => handleDelete(user.id)}
-                        >
-                          Eliminar
+                          Ver Perfil
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -323,13 +246,14 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
               onCreated={handleCreated}
             />
 
-            <EditUserModal
-              open={openModal}
-              onClose={handleCloseModal}
-              editingUser={editingUser}
-              onSave={handleSave}
-              onChange={setEditingUser}
-              error={editError} // Pasar el mensaje de error al modal
+            <UserDetailModal
+              open={openDetailModal}
+              onClose={() => {
+                setOpenDetailModal(false);
+                setSelectedUser(null);
+              }}
+              user={selectedUser}
+              onUpdate={fetchUsers}
             />
           </>
         )}
