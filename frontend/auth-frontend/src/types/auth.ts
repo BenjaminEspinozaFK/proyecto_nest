@@ -5,6 +5,8 @@ export interface User {
   age: number;
   role: string;
   avatar?: string;
+  createdAt?: string;
+  lastLogin?: string;
 }
 
 export interface LoginRequest {
