@@ -9,9 +9,34 @@ import {
   CircularProgress,
   IconButton,
   Paper,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Chip,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Divider,
 } from "@mui/material";
-import { Edit, Save, Cancel, PhotoCamera } from "@mui/icons-material";
+import {
+  Edit,
+  Save,
+  Cancel,
+  PhotoCamera,
+  LocalGasStation,
+  Add,
+} from "@mui/icons-material";
 import { useAuth } from "./AuthContext";
+import { voucherService } from "../services/voucherService";
+import { GasVoucher, VoucherStats } from "../types/voucher";
 
 const UserProfile: React.FC = () => {
   const { user, updateUserAvatar } = useAuth();
@@ -30,8 +55,16 @@ const UserProfile: React.FC = () => {
     age: 0,
   });
 
+  // Estados para vales
+  const [vouchers, setVouchers] = useState<GasVoucher[]>([]);
+  const [voucherStats, setVoucherStats] = useState<VoucherStats | null>(null);
+  const [loadingVouchers, setLoadingVouchers] = useState(false);
+  const [openRequestDialog, setOpenRequestDialog] = useState(false);
+  const [requestKilos, setRequestKilos] = useState(15);
+
   useEffect(() => {
     fetchProfile();
+    fetchMyVouchers();
   }, []);
 
   const fetchProfile = async () => {
@@ -55,6 +88,37 @@ const UserProfile: React.FC = () => {
       setError("Error al cargar el perfil");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchMyVouchers = async () => {
+    setLoadingVouchers(true);
+    try {
+      const [vouchersData, statsData] = await Promise.all([
+        voucherService.getMyVouchers(),
+        voucherService.getMyStats(),
+      ]);
+      setVouchers(vouchersData);
+      setVoucherStats(statsData);
+    } catch (error) {
+      console.error("Error al cargar vales:", error);
+    } finally {
+      setLoadingVouchers(false);
+    }
+  };
+
+  const handleRequestVoucher = async () => {
+    try {
+      await voucherService.requestVoucher({ kilos: requestKilos });
+      setSuccess(
+        "Vale solicitado correctamente. Espera la aprobación del administrador."
+      );
+      setOpenRequestDialog(false);
+      fetchMyVouchers();
+      setTimeout(() => setSuccess(null), 3000);
+    } catch (error) {
+      setError("Error al solicitar el vale");
+      console.error(error);
     }
   };
 
@@ -403,6 +467,200 @@ const UserProfile: React.FC = () => {
             </Box>
           </Box>
         </Box>
+
+        <Divider sx={{ my: 4 }} />
+
+        {/* Sección de Vales de Gas */}
+        <Box>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              mb: 3,
+            }}
+          >
+            <Typography variant="h5" fontWeight="bold">
+              <LocalGasStation sx={{ mr: 1, verticalAlign: "middle" }} />
+              Mis Vales de Gas
+            </Typography>
+            <Button
+              variant="contained"
+              startIcon={<Add />}
+              onClick={() => setOpenRequestDialog(true)}
+            >
+              Solicitar Vale
+            </Button>
+          </Box>
+
+          {loadingVouchers ? (
+            <Box display="flex" justifyContent="center" py={4}>
+              <CircularProgress />
+            </Box>
+          ) : (
+            <>
+              {/* Estadísticas */}
+              {voucherStats && (
+                <Box
+                  sx={{
+                    display: "grid",
+                    gridTemplateColumns: {
+                      xs: "repeat(2, 1fr)",
+                      sm: "repeat(4, 1fr)",
+                    },
+                    gap: 2,
+                    mb: 3,
+                  }}
+                >
+                  <Paper sx={{ p: 2, textAlign: "center" }}>
+                    <Typography variant="h4" color="primary" fontWeight="bold">
+                      {voucherStats.total}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Total Solicitados
+                    </Typography>
+                  </Paper>
+                  <Paper
+                    sx={{
+                      p: 2,
+                      textAlign: "center",
+                      bgcolor: "warning.main",
+                      color: "white",
+                    }}
+                  >
+                    <Typography variant="h4" fontWeight="bold">
+                      {voucherStats.pending}
+                    </Typography>
+                    <Typography variant="body2">Pendientes</Typography>
+                  </Paper>
+                  <Paper
+                    sx={{
+                      p: 2,
+                      textAlign: "center",
+                      bgcolor: "success.main",
+                      color: "white",
+                    }}
+                  >
+                    <Typography variant="h4" fontWeight="bold">
+                      {voucherStats.delivered}
+                    </Typography>
+                    <Typography variant="body2">Entregados</Typography>
+                  </Paper>
+                  <Paper sx={{ p: 2, textAlign: "center" }}>
+                    <Typography variant="h4" color="primary" fontWeight="bold">
+                      ${voucherStats.totalAmount.toLocaleString()}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Total Recibido
+                    </Typography>
+                  </Paper>
+                </Box>
+              )}
+
+              {/* Tabla de Vales */}
+              {vouchers.length === 0 ? (
+                <Paper sx={{ p: 3, textAlign: "center" }}>
+                  <Typography color="text.secondary">
+                    No tienes vales solicitados. Haz clic en "Solicitar Vale"
+                    para comenzar.
+                  </Typography>
+                </Paper>
+              ) : (
+                <TableContainer component={Paper}>
+                  <Table>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Fecha Solicitud</TableCell>
+                        <TableCell align="center">Kilos</TableCell>
+                        <TableCell align="center">Monto</TableCell>
+                        <TableCell align="center">Estado</TableCell>
+                        <TableCell>Notas</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {vouchers.map((voucher) => (
+                        <TableRow key={voucher.id}>
+                          <TableCell>
+                            {new Date(voucher.requestDate).toLocaleDateString(
+                              "es-ES"
+                            )}
+                          </TableCell>
+                          <TableCell align="center">
+                            {voucher.kilos} kg
+                          </TableCell>
+                          <TableCell align="center">
+                            {voucher.amount
+                              ? `$${voucher.amount.toLocaleString()}`
+                              : "-"}
+                          </TableCell>
+                          <TableCell align="center">
+                            <Chip
+                              label={
+                                voucher.status === "pending"
+                                  ? "Pendiente"
+                                  : voucher.status === "approved"
+                                    ? "Aprobado"
+                                    : voucher.status === "rejected"
+                                      ? "Rechazado"
+                                      : "Entregado"
+                              }
+                              size="small"
+                              color={
+                                voucher.status === "pending"
+                                  ? "warning"
+                                  : voucher.status === "approved"
+                                    ? "info"
+                                    : voucher.status === "rejected"
+                                      ? "error"
+                                      : "success"
+                              }
+                            />
+                          </TableCell>
+                          <TableCell>{voucher.notes || "-"}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              )}
+            </>
+          )}
+        </Box>
+
+        {/* Dialog para solicitar vale */}
+        <Dialog
+          open={openRequestDialog}
+          onClose={() => setOpenRequestDialog(false)}
+        >
+          <DialogTitle>Solicitar Vale de Gas</DialogTitle>
+          <DialogContent>
+            <Box sx={{ pt: 2, minWidth: 300 }}>
+              <FormControl fullWidth>
+                <InputLabel>Cantidad de Kilos</InputLabel>
+                <Select
+                  value={requestKilos}
+                  label="Cantidad de Kilos"
+                  onChange={(e) => setRequestKilos(Number(e.target.value))}
+                >
+                  <MenuItem value={15}>15 kg</MenuItem>
+                  <MenuItem value={45}>45 kg</MenuItem>
+                </Select>
+              </FormControl>
+              <Alert severity="info" sx={{ mt: 2 }}>
+                Tu solicitud será revisada por un administrador. Te
+                notificaremos cuando sea aprobada.
+              </Alert>
+            </Box>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setOpenRequestDialog(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleRequestVoucher} variant="contained">
+              Solicitar
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Paper>
     </Box>
   );
