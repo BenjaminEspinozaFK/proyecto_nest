@@ -22,6 +22,7 @@ import AdminChat from "./admin/Chat";
 import AdminStats from "./admin/Stats";
 import AdminProfile from "./admin/Profile";
 import CreateUserModal from "./admin/CreateUserModal";
+import VoucherRequests from "./admin/VoucherRequests";
 
 interface AdminDashboardProps {
   toggleTheme?: () => void;
@@ -185,6 +186,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
           >
             <Tab label="📊 Estadísticas" />
             <Tab label="👥 Usuarios" />
+            <Tab label="🎫 Solicitudes Vales" />
             <Tab label="💬 Chat IA" />
             <Tab label="👤 Mi Perfil" />
           </Tabs>
@@ -258,9 +260,11 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </>
         )}
 
-        {tabValue === 2 && <AdminChat />}
+        {tabValue === 2 && <VoucherRequests />}
 
-        {tabValue === 3 && <AdminProfile />}
+        {tabValue === 3 && <AdminChat />}
+
+        {tabValue === 4 && <AdminProfile />}
       </Box>
     </Box>
   );

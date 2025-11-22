@@ -16,6 +16,14 @@ import {
   IconButton,
   Tab,
   Tabs,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  CircularProgress,
 } from "@mui/material";
 import {
   Close,
@@ -28,8 +36,11 @@ import {
   AdminPanelSettings,
   CalendarToday,
   Login,
+  LocalGasStation,
 } from "@mui/icons-material";
 import { User } from "../../types/auth";
+import { GasVoucher, VoucherStats } from "../../types/voucher";
+import { voucherService } from "../../services/voucherService";
 
 interface UserDetailModalProps {
   open: boolean;
@@ -50,14 +61,103 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
   const [success, setSuccess] = useState<string | null>(null);
   const [tabValue, setTabValue] = useState(0);
 
+  // Estados para vales
+  const [vouchers, setVouchers] = useState<GasVoucher[]>([]);
+  const [voucherStats, setVoucherStats] = useState<VoucherStats | null>(null);
+  const [loadingVouchers, setLoadingVouchers] = useState(false);
+  const [showCreateVoucher, setShowCreateVoucher] = useState(false);
+  const [newVoucher, setNewVoucher] = useState({
+    kilos: 15,
+    amount: 0,
+    notes: "",
+  });
+
   useEffect(() => {
     if (user) {
       setEditedUser(user);
       setIsEditing(false);
       setError(null);
       setSuccess(null);
+      setTabValue(0);
+
+      // Cargar vales cuando se abre el modal
+      if (open) {
+        fetchVouchers();
+      }
     }
-  }, [user]);
+  }, [user, open]);
+
+  const fetchVouchers = async () => {
+    if (!user) return;
+
+    setLoadingVouchers(true);
+    try {
+      const [vouchersData, statsData] = await Promise.all([
+        voucherService.getUserVouchers(user.id),
+        voucherService.getUserStats(user.id),
+      ]);
+      setVouchers(vouchersData);
+      setVoucherStats(statsData);
+    } catch (error) {
+      console.error("Error al cargar vales:", error);
+    } finally {
+      setLoadingVouchers(false);
+    }
+  };
+
+  const handleApproveVoucher = async (voucherId: string) => {
+    const amount = prompt("Ingrese el monto del vale (en pesos):");
+    if (!amount) return;
+
+    const notes = prompt("Notas (opcional):");
+
+    try {
+      await voucherService.approveVoucher(voucherId, {
+        amount: parseFloat(amount),
+        notes: notes || undefined,
+      });
+      setSuccess("Vale aprobado correctamente");
+      fetchVouchers();
+      setTimeout(() => setSuccess(null), 3000);
+    } catch (error) {
+      setError("Error al aprobar el vale");
+      console.error(error);
+    }
+  };
+
+  const handleRejectVoucher = async (voucherId: string) => {
+    const notes = prompt("Razón del rechazo (opcional):");
+
+    try {
+      await voucherService.rejectVoucher(voucherId, {
+        notes: notes || undefined,
+      });
+      setSuccess("Vale rechazado");
+      fetchVouchers();
+      setTimeout(() => setSuccess(null), 3000);
+    } catch (error) {
+      setError("Error al rechazar el vale");
+      console.error(error);
+    }
+  };
+
+  const handleMarkDelivered = async (voucherId: string) => {
+    if (
+      !window.confirm("¿Confirmar que el vale fue entregado al funcionario?")
+    ) {
+      return;
+    }
+
+    try {
+      await voucherService.markAsDelivered(voucherId);
+      setSuccess("Vale marcado como entregado");
+      fetchVouchers();
+      setTimeout(() => setSuccess(null), 3000);
+    } catch (error) {
+      setError("Error al marcar como entregado");
+      console.error(error);
+    }
+  };
 
   const handleSave = async () => {
     if (!editedUser) return;
@@ -263,6 +363,11 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
           <Tabs value={tabValue} onChange={(_, v) => setTabValue(v)}>
             <Tab label="Información" />
             <Tab label="Actividad" />
+            <Tab
+              label="🎫 Vales de Gas"
+              icon={<LocalGasStation />}
+              iconPosition="start"
+            />
           </Tabs>
         </Box>
 
@@ -453,6 +558,223 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
                   Historial de actividad próximamente...
                 </Typography>
               </Box>
+            </Box>
+          )}
+
+          {tabValue === 2 && (
+            <Box>
+              <Typography variant="h6" fontWeight="bold" gutterBottom mb={2}>
+                Gestión de Vales de Gas
+              </Typography>
+
+              {loadingVouchers ? (
+                <Box display="flex" justifyContent="center" py={4}>
+                  <CircularProgress />
+                </Box>
+              ) : (
+                <>
+                  {/* Estadísticas */}
+                  {voucherStats && (
+                    <Box
+                      sx={{
+                        display: "grid",
+                        gridTemplateColumns: {
+                          xs: "repeat(2, 1fr)",
+                          sm: "repeat(4, 1fr)",
+                        },
+                        gap: 2,
+                        mb: 3,
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          p: 2,
+                          bgcolor: "background.default",
+                          borderRadius: 2,
+                          textAlign: "center",
+                        }}
+                      >
+                        <Typography
+                          variant="h4"
+                          color="primary"
+                          fontWeight="bold"
+                        >
+                          {voucherStats.total}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          Total Vales
+                        </Typography>
+                      </Box>
+                      <Box
+                        sx={{
+                          p: 2,
+                          bgcolor: "warning.main",
+                          color: "white",
+                          borderRadius: 2,
+                          textAlign: "center",
+                        }}
+                      >
+                        <Typography variant="h4" fontWeight="bold">
+                          {voucherStats.pending}
+                        </Typography>
+                        <Typography variant="body2">Pendientes</Typography>
+                      </Box>
+                      <Box
+                        sx={{
+                          p: 2,
+                          bgcolor: "success.main",
+                          color: "white",
+                          borderRadius: 2,
+                          textAlign: "center",
+                        }}
+                      >
+                        <Typography variant="h4" fontWeight="bold">
+                          {voucherStats.delivered}
+                        </Typography>
+                        <Typography variant="body2">Entregados</Typography>
+                      </Box>
+                      <Box
+                        sx={{
+                          p: 2,
+                          bgcolor: "background.default",
+                          borderRadius: 2,
+                          textAlign: "center",
+                        }}
+                      >
+                        <Typography
+                          variant="h4"
+                          color="primary"
+                          fontWeight="bold"
+                        >
+                          ${voucherStats.totalAmount.toLocaleString()}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          Total Pesos
+                        </Typography>
+                      </Box>
+                    </Box>
+                  )}
+
+                  {/* Historial de Vales */}
+                  <Typography
+                    variant="subtitle1"
+                    fontWeight="bold"
+                    gutterBottom
+                  >
+                    Historial de Vales
+                  </Typography>
+
+                  {vouchers.length === 0 ? (
+                    <Box
+                      sx={{
+                        p: 3,
+                        bgcolor: "background.default",
+                        borderRadius: 2,
+                        textAlign: "center",
+                      }}
+                    >
+                      <Typography color="text.secondary">
+                        Este usuario no tiene vales registrados
+                      </Typography>
+                    </Box>
+                  ) : (
+                    <TableContainer component={Paper}>
+                      <Table size="small">
+                        <TableHead>
+                          <TableRow>
+                            <TableCell>Fecha Solicitud</TableCell>
+                            <TableCell align="center">Kilos</TableCell>
+                            <TableCell align="center">Monto</TableCell>
+                            <TableCell align="center">Estado</TableCell>
+                            <TableCell>Acciones</TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {vouchers.map((voucher) => (
+                            <TableRow key={voucher.id}>
+                              <TableCell>
+                                {new Date(
+                                  voucher.requestDate
+                                ).toLocaleDateString()}
+                              </TableCell>
+                              <TableCell align="center">
+                                {voucher.kilos} kg
+                              </TableCell>
+                              <TableCell align="center">
+                                {voucher.amount
+                                  ? `$${voucher.amount.toLocaleString()}`
+                                  : "-"}
+                              </TableCell>
+                              <TableCell align="center">
+                                <Chip
+                                  label={
+                                    voucher.status === "pending"
+                                      ? "Pendiente"
+                                      : voucher.status === "approved"
+                                        ? "Aprobado"
+                                        : voucher.status === "rejected"
+                                          ? "Rechazado"
+                                          : "Entregado"
+                                  }
+                                  size="small"
+                                  color={
+                                    voucher.status === "pending"
+                                      ? "warning"
+                                      : voucher.status === "approved"
+                                        ? "info"
+                                        : voucher.status === "rejected"
+                                          ? "error"
+                                          : "success"
+                                  }
+                                />
+                              </TableCell>
+                              <TableCell>
+                                <Box display="flex" gap={1}>
+                                  {voucher.status === "pending" && (
+                                    <>
+                                      <Button
+                                        size="small"
+                                        variant="contained"
+                                        color="success"
+                                        onClick={() =>
+                                          handleApproveVoucher(voucher.id)
+                                        }
+                                      >
+                                        Aprobar
+                                      </Button>
+                                      <Button
+                                        size="small"
+                                        variant="outlined"
+                                        color="error"
+                                        onClick={() =>
+                                          handleRejectVoucher(voucher.id)
+                                        }
+                                      >
+                                        Rechazar
+                                      </Button>
+                                    </>
+                                  )}
+                                  {voucher.status === "approved" && (
+                                    <Button
+                                      size="small"
+                                      variant="contained"
+                                      onClick={() =>
+                                        handleMarkDelivered(voucher.id)
+                                      }
+                                    >
+                                      Marcar Entregado
+                                    </Button>
+                                  )}
+                                </Box>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+                  )}
+                </>
+              )}
             </Box>
           )}
         </Box>
