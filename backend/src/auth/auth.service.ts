@@ -155,9 +155,6 @@ export class AuthService {
 
       if (!admin) {
         // Por seguridad, no revelar si el email existe o no
-        console.log(
-          `Email ${email} no encontrado, pero no revelamos esto al cliente`,
-        );
         return;
       }
 
@@ -196,9 +193,6 @@ export class AuthService {
 
       if (!user) {
         // Por seguridad, no revelar si el email existe o no
-        console.log(
-          `Email ${email} no encontrado, pero no revelamos esto al cliente`,
-        );
         return;
       }
 

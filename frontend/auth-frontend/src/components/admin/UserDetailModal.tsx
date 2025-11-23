@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Box,
   Button,
@@ -65,29 +65,8 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
   const [vouchers, setVouchers] = useState<GasVoucher[]>([]);
   const [voucherStats, setVoucherStats] = useState<VoucherStats | null>(null);
   const [loadingVouchers, setLoadingVouchers] = useState(false);
-  const [showCreateVoucher, setShowCreateVoucher] = useState(false);
-  const [newVoucher, setNewVoucher] = useState({
-    kilos: 15,
-    amount: 0,
-    notes: "",
-  });
 
-  useEffect(() => {
-    if (user) {
-      setEditedUser(user);
-      setIsEditing(false);
-      setError(null);
-      setSuccess(null);
-      setTabValue(0);
-
-      // Cargar vales cuando se abre el modal
-      if (open) {
-        fetchVouchers();
-      }
-    }
-  }, [user, open]);
-
-  const fetchVouchers = async () => {
+  const fetchVouchers = useCallback(async () => {
     if (!user) return;
 
     setLoadingVouchers(true);
@@ -103,7 +82,22 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
     } finally {
       setLoadingVouchers(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      setEditedUser(user);
+      setIsEditing(false);
+      setError(null);
+      setSuccess(null);
+      setTabValue(0);
+
+      // Cargar vales cuando se abre el modal
+      if (open) {
+        fetchVouchers();
+      }
+    }
+  }, [user, open, fetchVouchers]);
 
   const handleApproveVoucher = async (voucherId: string) => {
     const amount = prompt("Ingrese el monto del vale (en pesos):");

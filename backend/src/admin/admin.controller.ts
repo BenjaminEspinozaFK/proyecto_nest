@@ -105,10 +105,6 @@ export class AdminController {
     @UploadedFile() file: Express.Multer.File,
     @Req() req: any,
   ) {
-    console.log('=== ADMIN AVATAR ENDPOINT HIT ===');
-    console.log('User from JWT:', req.user);
-    console.log('File:', file);
-
     const adminId = req.user?.userId as string;
     return this.adminsService.updateAvatar(adminId, file.filename);
   }
@@ -120,7 +116,6 @@ export class AdminController {
 
   @Post()
   async createAdmin(@Body() admin: CreateAdminDto) {
-    console.log('Creating admin:', admin);
     return this.adminsService.createAdmin(admin);
   }
 

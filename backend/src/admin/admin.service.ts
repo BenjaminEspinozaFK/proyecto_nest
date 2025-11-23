@@ -305,12 +305,9 @@ export class AdminService {
   }
 
   async processChatMessage(message: string) {
-    console.log('Processing chat message:', message);
     // Llamar a Ollama para procesar el mensaje
     const ollamaResponse = await this.callOllama(message);
-    console.log('Ollama response:', ollamaResponse);
     const action = JSON.parse(ollamaResponse);
-    console.log('Parsed action:', action);
 
     // Ejecutar la acción basada en la respuesta de Ollama
     switch (action.action) {
@@ -354,14 +351,12 @@ Mensaje del usuario: "${message}"
 
 Responde solo con JSON, sin texto adicional.
 `;
-    console.log('Sending prompt to Ollama:', prompt);
 
     const response = await axios.post('http://localhost:11434/api/generate', {
       model: 'llama3:8b', // Cambia si usas otro modelo
       prompt,
       stream: false,
     });
-    console.log('Ollama raw response:', response.data);
 
     return response.data.response.trim();
   }
