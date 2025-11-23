@@ -63,10 +63,6 @@ export class UsersController {
     @UploadedFile() file: Express.Multer.File,
     @Req() req: any,
   ) {
-    console.log('=== AVATAR ENDPOINT HIT ===');
-    console.log('User from JWT:', req.user);
-    console.log('File:', file);
-
     const userId = req.user?.userId as string;
     return this.usersService.updateAvatar(userId, file.filename);
   }
