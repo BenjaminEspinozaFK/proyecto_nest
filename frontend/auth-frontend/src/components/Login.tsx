@@ -157,6 +157,15 @@ const Login: React.FC<LoginProps> = ({
                     )}
                   </InputAdornment>
                 }
+                MenuProps={{
+                  PaperProps: {
+                    sx: {
+                      bgcolor: (theme) =>
+                        theme.palette.mode === "dark" ? "#282828" : "#ffffff",
+                      backgroundImage: "none",
+                    },
+                  },
+                }}
               >
                 <MenuItem value="user">
                   <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
