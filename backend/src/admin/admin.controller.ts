@@ -11,7 +11,6 @@ import {
   UploadedFile,
   UseGuards,
   UseInterceptors,
-  ValidationPipe,
 } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { AdminService } from './admin.service';
@@ -19,7 +18,6 @@ import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateAdminDto } from './dto/update-admin.dto';
 import { UpdateUserByAdminDto } from './dto/update-user-by-admin.dto';
 import { CreateUserDto } from './dto/create-user.dto';
-import { ChatMessageDto } from './dto/chat-message.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorator';
@@ -142,11 +140,5 @@ export class AdminController {
   @Roles('admin')
   async deleteUser(@Param('id') id: string) {
     return await this.adminsService.deleteUser(id);
-  }
-
-  @Post('chat')
-  @Roles('admin')
-  async chatWithOllama(@Body(ValidationPipe) body: ChatMessageDto) {
-    return await this.adminsService.processChatMessage(body.message);
   }
 }

@@ -1,15 +1,14 @@
-# 🚀 Proyecto NestJS + React - Sistema de Gestión de Usuarios con IA
+# 🚀 Proyecto NestJS + React - Sistema de Gestión de Usuarios
 
 [![CI/CD Pipeline](https://github.com/benjita2002djsjsda/proyecto_nest/actions/workflows/ci.yml/badge.svg)](https://github.com/benjita2002djsjsda/proyecto_nest/actions/workflows/ci.yml)
 [![Deploy](https://github.com/benjita2002djsjsda/proyecto_nest/actions/workflows/deploy.yml/badge.svg)](https://github.com/benjita2002djsjsda/proyecto_nest/actions/workflows/deploy.yml)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-Sistema completo de gestión de usuarios con autenticación JWT, panel de administración con IA (Ollama), estadísticas en tiempo real, y gestión de perfiles. Backend en NestJS + PostgreSQL y Frontend en React + TypeScript + Material-UI.
+Sistema completo de gestión de usuarios con autenticación JWT, panel de administración, estadísticas en tiempo real, y gestión de perfiles. Backend en NestJS + PostgreSQL y Frontend en React + TypeScript + Material-UI.
 
 ## ✨ Características Principales
 
 - 🔐 **Autenticación JWT completa** con roles (Admin/User)
-- 🤖 **Chat con IA (Ollama)** para gestión de usuarios mediante lenguaje natural
 - 📊 **Dashboard de Estadísticas** con métricas en tiempo real
 - 👤 **Gestión de Perfiles** con edición y cambio de contraseña
 - 📧 **Sistema de Emails** con notificaciones automáticas
@@ -27,7 +26,7 @@ proyecto_nest/
 │   ├── src/
 │   │   ├── admin/               # Módulo de administradores
 │   │   │   ├── admin.controller.ts
-│   │   │   ├── admin.service.ts  # Incluye integración con Ollama
+│   │   │   ├── admin.service.ts
 │   │   │   └── dto/
 │   │   ├── auth/                # Módulo de autenticación
 │   │   │   ├── auth.controller.ts
@@ -56,7 +55,6 @@ proyecto_nest/
 │   │   │   ├── admin/
 │   │   │   │   ├── Stats.tsx         # Estadísticas del sistema
 │   │   │   │   ├── Profile.tsx       # Perfil del admin
-│   │   │   │   ├── Chat.tsx          # Chat con IA
 │   │   │   │   └── EditUserModal.tsx
 │   │   │   ├── Login.tsx
 │   │   │   └── Register.tsx
@@ -65,7 +63,6 @@ proyecto_nest/
 │   │   │   └── adminService.ts
 │   │   └── types/
 │   └── public/
-├── mcp-server/                  # Servidor MCP (opcional)
 └── README.md                    # Este archivo
 ```
 
@@ -76,23 +73,8 @@ proyecto_nest/
 - **Node.js** >= 18
 - **Docker Desktop** (para PostgreSQL)
 - **pnpm** (recomendado) o npm
-- **Ollama** (para el chat con IA)
-- **GPU NVIDIA** (opcional, para acelerar Ollama)
 
-### 1. Instalar Ollama (Chat con IA)
-
-```bash
-# Linux/Mac
-curl -fsSL https://ollama.com/install.sh | sh
-
-# Descargar modelo
-ollama pull llama3:8b
-
-# Iniciar servidor (se mantiene en memoria)
-ollama serve
-```
-
-### 2. Configurar el Backend (NestJS)
+### 1. Configurar el Backend (NestJS)
 
 ```bash
 cd backend
@@ -160,22 +142,6 @@ docker-compose up -d
 pnpm prisma studio
 ```
 
-### Ollama muy lento
-
-```bash
-# Verificar uso de GPU
-ollama ps
-
-# Debería mostrar algo como: 38%/62% CPU/GPU
-
-# Si usa 100% CPU, verificar drivers NVIDIA
-nvidia-smi
-
-# Reiniciar Ollama
-pkill ollama
-ollama serve
-```
-
 ### Frontend no conecta con Backend
 
 - Verificar que backend esté en `http://localhost:3001`
@@ -201,7 +167,6 @@ pnpm install
 - [NestJS Docs](https://docs.nestjs.com/)
 - [Prisma Docs](https://www.prisma.io/docs)
 - [Material-UI Docs](https://mui.com/)
-- [Ollama Docs](https://ollama.com/docs)
 
 ## 🤝 Contribuir
 
@@ -234,10 +199,6 @@ Este proyecto es de código abierto y está disponible bajo la licencia MIT.
 
 ![Dashboard](screenshots/dashboard.png)
 
-### Chat con IA
-
-![Chat](screenshots/chat.png)
-
 ### Gestión de Usuarios
 
 ![Users](screenshots/users.png)
@@ -269,11 +230,6 @@ Este proyecto es de código abierto y está disponible bajo la licencia MIT.
 #### Funcionalidades Admin
 
 - ✅ **CRUD completo** de usuarios y admins
-- ✅ **Chat con IA (Ollama)** para gestionar usuarios
-  - Agregar usuarios mediante lenguaje natural
-  - Buscar por email o nombre (insensible a mayúsculas)
-  - Eliminar usuarios por ID
-  - Listar todos los usuarios
 - ✅ **Estadísticas del sistema:**
   - Total de usuarios y admins
   - Usuarios registrados hoy/semana/mes
@@ -291,7 +247,6 @@ Este proyecto es de código abierto y está disponible bajo la licencia MIT.
 
 #### Optimizaciones
 
-- ✅ **Integración con Ollama** optimizada para GPU
 - ✅ **Búsquedas case-insensitive** con SQL raw
 - ✅ **CORS configurado** para desarrollo
 
@@ -309,8 +264,7 @@ Este proyecto es de código abierto y está disponible bajo la licencia MIT.
 - ✅ **Navegación por Tabs:**
   - 📊 **Estadísticas:** Cards con métricas, tablas de usuarios recientes
   - 👥 **Usuarios:** CRUD completo con modales de edición
-  - 💬 **Chat IA:** Interfaz para comandos en lenguaje natural
-  - 👤 **Mi Perfil:** Edición de datos personales y contraseña
+  -  **Mi Perfil:** Edición de datos personales y contraseña
 
 #### UI/UX
 
@@ -319,9 +273,6 @@ Este proyecto es de código abierto y está disponible bajo la licencia MIT.
 - ✅ **Tema oscuro personalizado**
 - ✅ **Feedback visual:** Alerts, loading states
 - ✅ **Tablas interactivas** con acciones (editar/eliminar)
-- ✅ **Renderizado inteligente** de respuestas del chat:
-  - Listas de usuarios en tablas
-  - Objetos en formato clave-valor
   - Fechas formateadas
 - ✅ **Iconos de Material-UI** para mejor UX
 
@@ -372,26 +323,11 @@ Este proyecto es de código abierto y está disponible bajo la licencia MIT.
 | PUT    | `/admins/users/:id`           | Actualizar usuario         | Admin JWT |
 | DELETE | `/admins/users/:id`           | Eliminar usuario           | Admin JWT |
 
-#### Estadísticas y Chat IA
+#### Estadísticas
 
 | Método | Endpoint        | Descripción                      | Auth      |
 | ------ | --------------- | -------------------------------- | --------- |
 | GET    | `/admins/stats` | Obtener estadísticas del sistema | Admin JWT |
-| POST   | `/admins/chat`  | Enviar comando al chat IA        | Admin JWT |
-
-**Ejemplo de uso del Chat:**
-
-```json
-POST /admins/chat
-{
-  "message": "Agrega un usuario llamado Juan Pérez con email juan@example.com, edad 30 y password 123456"
-}
-```
-
-Comandos soportados:
-
-- `"Listame todos mis usuarios"`
-- `"Busca el usuario con email juan@example.com"`
 - `"Muéstrame al usuario de nombre Juan Pérez"`
 - `"Elimina el usuario con ID abc123"`
 - `"Agrega un usuario llamado... con email... edad... y password..."`
@@ -430,13 +366,7 @@ Comandos soportados:
    - Eliminar usuarios
    - Crear nuevos usuarios
 
-   **💬 Chat IA:**
-   - Escribir: `"Listame todos mis usuarios"`
-   - Probar: `"Busca el usuario con email juan.perez@example.com"`
-   - Crear: `"Agrega un usuario llamado Test con email test@test.com, edad 25 y password 123456"`
-   - Buscar por nombre: `"Muéstrame al usuario Juan Pérez"`
-
-   **👤 Mi Perfil:**
+   ** Mi Perfil:**
    - Ver información personal
    - Editar nombre, email, edad
    - Cambiar contraseña
@@ -460,12 +390,6 @@ curl -X POST http://localhost:3001/auth/login \
 # Obtener estadísticas (reemplazar TOKEN)
 curl -X GET http://localhost:3001/admins/stats \
   -H "Authorization: Bearer TOKEN"
-
-# Chat con IA (reemplazar TOKEN)
-curl -X POST http://localhost:3001/admins/chat \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer TOKEN" \
-  -d '{"message":"Listame todos mis usuarios"}'
 ```
 
 ## �️ Tecnologías y Stack Completo
@@ -482,7 +406,6 @@ curl -X POST http://localhost:3001/admins/chat \
 | **Passport**          | -       | Estrategias de autenticación   |
 | **class-validator**   | -       | Validación de DTOs             |
 | **class-transformer** | -       | Transformación de objetos      |
-| **Axios**             | -       | Cliente HTTP para Ollama       |
 | **Multer**            | -       | Subida de archivos             |
 | **Nodemailer**        | -       | Envío de emails                |
 
@@ -501,19 +424,9 @@ curl -X POST http://localhost:3001/admins/chat \
 | Herramienta  | Uso                       |
 | ------------ | ------------------------- |
 | **Docker**   | PostgreSQL containerizado |
-| **Ollama**   | LLM local (llama3:8b)     |
 | **pnpm**     | Gestor de paquetes rápido |
 | **ESLint**   | Linting de código         |
 | **Prettier** | Formateo de código        |
-
-### IA y Machine Learning
-
-- **Ollama** (llama3:8b) - Modelo de lenguaje local
-- **GPU Acceleration** - NVIDIA CUDA para inferencia rápida
-- **Optimizaciones:**
-  - `num_ctx: 2048` - Contexto reducido
-  - `temperature: 0.1` - Respuestas deterministas
-  - `num_predict: 128` - Tokens limitados
 
 ## ✅ Estado del Proyecto
 
@@ -527,7 +440,6 @@ curl -X POST http://localhost:3001/admins/chat \
 - ✅ **CRUD completo** de usuarios y admins
 - ✅ **Password reset** con emails
 - ✅ **Subida de avatares**
-- ✅ **Chat con IA (Ollama)** integrado
 - ✅ **Dashboard de estadísticas**
 - ✅ **Gestión de perfiles**
 - ✅ **Búsqueda avanzada** (case-insensitive)
@@ -536,7 +448,6 @@ curl -X POST http://localhost:3001/admins/chat \
 - ✅ **Validaciones** en frontend y backend
 - ✅ **Manejo de errores** completo
 - ✅ **Persistencia de sesión**
-- ✅ **Optimizaciones de rendimiento** (Ollama GPU)
 
 ## 🎯 Próximas Mejoras Sugeridas (FASE 3)
 
@@ -585,49 +496,6 @@ curl -X POST http://localhost:3001/admins/chat \
 - [ ] **Backups Automáticos**
   - Comando de backup de DB
   - Restauración desde backup
-
-## 🤖 Usar el Chat con IA
-
-El sistema incluye un chat inteligente que permite gestionar usuarios usando lenguaje natural.
-
-### Ejemplos de Comandos
-
-```text
-# Listar usuarios
-"Listame todos mis usuarios"
-"Muéstrame la lista de usuarios"
-
-# Buscar usuarios
-"Busca el usuario con email juan@example.com"
-"Muéstrame al usuario de nombre Maria González"
-"Encuentra a Pedro"
-
-# Agregar usuarios
-"Agrega un usuario llamado Luis Díaz con email luis@example.com, edad 28 y password 123456"
-"Crea un usuario: nombre Ana Torres, email ana@example.com, edad 25, password 123456"
-
-# Eliminar usuarios
-"Elimina el usuario con ID abc123xyz"
-"Borra al usuario abc123xyz"
-```
-
-### Cómo Funciona
-
-1. **Ollama procesa** el mensaje en lenguaje natural
-2. **Extrae la intención** (add_user, find_user, list_users, delete_user)
-3. **Ejecuta la acción** correspondiente en el backend
-4. **Devuelve el resultado** formateado en el frontend
-
-### Optimización de Velocidad
-
-Si Ollama tarda ~7 segundos en responder, las optimizaciones ya aplicadas son:
-
-- ✅ Reducción de contexto (`num_ctx: 2048`)
-- ✅ Temperatura baja (`temperature: 0.1`)
-- ✅ Uso de GPU NVIDIA (62% GPU, 38% CPU)
-- ✅ Límite de tokens de respuesta (`num_predict: 128`)
-
-**Resultado esperado:** Respuestas en ~1-2 segundos con GPU
 
 ## 🚀 CI/CD con GitHub Actions
 
