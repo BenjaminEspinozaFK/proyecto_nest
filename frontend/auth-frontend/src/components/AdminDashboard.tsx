@@ -18,7 +18,6 @@ import {
 } from "@mui/material";
 import { Brightness4, Brightness7 } from "@mui/icons-material";
 import UserDetailModal from "./admin/UserDetailModal";
-import AdminChat from "./admin/Chat";
 import AdminStats from "./admin/Stats";
 import AdminProfile from "./admin/Profile";
 import CreateUserModal from "./admin/CreateUserModal";
@@ -187,8 +186,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
             <Tab label="📊 Estadísticas" />
             <Tab label="👥 Usuarios" />
             <Tab label="🎫 Solicitudes Vales" />
-            <Tab label="💬 Chat IA" />
-            <Tab label="👤 Mi Perfil" />
+            <Tab label=" Mi Perfil" />
           </Tabs>
         </Paper>
 
@@ -262,9 +260,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
         {tabValue === 2 && <VoucherRequests />}
 
-        {tabValue === 3 && <AdminChat />}
-
-        {tabValue === 4 && <AdminProfile />}
+        {tabValue === 3 && <AdminProfile />}
       </Box>
     </Box>
   );

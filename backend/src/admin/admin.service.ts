@@ -10,7 +10,6 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { PrismaService } from 'src/prisma.service';
 import { Admin } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
-import axios from 'axios';
 
 @Injectable()
 export class AdminService {
@@ -302,62 +301,5 @@ export class AdminService {
     }
 
     return user;
-  }
-
-  async processChatMessage(message: string) {
-    // Llamar a Ollama para procesar el mensaje
-    const ollamaResponse = await this.callOllama(message);
-    const action = JSON.parse(ollamaResponse);
-
-    // Ejecutar la acción basada en la respuesta de Ollama
-    switch (action.action) {
-      case 'add_user':
-        return await this.createUser(action.params as CreateUserDto);
-      case 'find_user':
-        return await this.searchUserByEmail(action.params.email as string);
-      case 'delete_user':
-        return await this.deleteUser(action.params.id as string);
-      case 'list_users':
-        return await this.getAllUsers();
-      default:
-        throw new Error('Acción no reconocida');
-    }
-  }
-
-  private async callOllama(message: string): Promise<string> {
-    const prompt = `
-Eres un asistente para administradores de un sistema de usuarios. Tu tarea es interpretar mensajes en español o inglés y responder SOLO con un objeto JSON válido que represente la acción a realizar.
-
-Acciones disponibles:
-- add_user: Agregar un nuevo usuario. Parámetros: { name: string, email: string, age: number, password: string }
-- find_user: Buscar usuario por email. Parámetros: { email: string }
-- delete_user: Eliminar usuario por ID. Parámetros: { id: string }
-- list_users: Listar todos los usuarios. Parámetros: {}
-
-Ejemplos:
-- Mensaje: "Agrega un usuario llamado Juan Pérez con email juan@example.com, edad 25 y password 123456"
-  Respuesta: {"action": "add_user", "params": {"name": "Juan Pérez", "email": "juan@example.com", "age": 25, "password": "123456"}}
-
-- Mensaje: "Busca el usuario con email juan@example.com"
-  Respuesta: {"action": "find_user", "params": {"email": "juan@example.com"}}
-
-- Mensaje: "Elimina el usuario con ID 123"
-  Respuesta: {"action": "delete_user", "params": {"id": "123"}}
-
-- Mensaje: "Lista todos los usuarios"
-  Respuesta: {"action": "list_users", "params": {}}
-
-Mensaje del usuario: "${message}"
-
-Responde solo con JSON, sin texto adicional.
-`;
-
-    const response = await axios.post('http://localhost:11434/api/generate', {
-      model: 'llama3:8b', // Cambia si usas otro modelo
-      prompt,
-      stream: false,
-    });
-
-    return response.data.response.trim();
   }
 }
