@@ -50,6 +50,30 @@ export class AdminController {
     return await this.adminsService.createUser(user);
   }
 
+  @Post('users/bulk-excel')
+  @Roles('admin')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      fileFilter: (req, file, cb) => {
+        const allowedMimeTypes = [
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          'application/vnd.ms-excel',
+        ];
+        if (!allowedMimeTypes.includes(file.mimetype)) {
+          return cb(
+            new Error('Solo se permiten archivos Excel (.xlsx, .xls)'),
+            false,
+          );
+        }
+        cb(null, true);
+      },
+      limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+    }),
+  )
+  async bulkCreateUsersFromExcel(@UploadedFile() file: Express.Multer.File) {
+    return await this.adminsService.bulkCreateUsersFromExcel(file.buffer);
+  }
+
   @Get('users/search')
   @Roles('admin')
   async searchUserByEmail(@Query('email') email: string) {

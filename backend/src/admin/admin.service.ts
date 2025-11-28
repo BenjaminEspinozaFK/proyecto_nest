@@ -10,6 +10,8 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { PrismaService } from 'src/prisma.service';
 import { Admin } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
+import * as XLSX from 'xlsx';
+import { BadRequestException } from '@nestjs/common';
 
 @Injectable()
 export class AdminService {
@@ -301,5 +303,113 @@ export class AdminService {
     }
 
     return user;
+  }
+
+  async bulkCreateUsersFromExcel(buffer: Buffer) {
+    try {
+      // Leer el archivo Excel desde el buffer
+      const workbook = XLSX.read(buffer, { type: 'buffer' });
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+
+      // Convertir a JSON
+      const rows: any[] = XLSX.utils.sheet_to_json(worksheet);
+
+      if (!rows || rows.length === 0) {
+        throw new BadRequestException('El archivo Excel está vacío');
+      }
+
+      const results: {
+        success: Array<{ row: number; user: any }>;
+        errors: Array<{ row: number; error: string; data: any }>;
+        total: number;
+      } = {
+        success: [],
+        errors: [],
+        total: rows.length,
+      };
+
+      // Procesar cada fila
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        try {
+          // Validar campos requeridos
+          if (!row.email || !row.password || !row.age) {
+            results.errors.push({
+              row: i + 2, // +2 porque Excel empieza en 1 y primera fila es header
+              error: 'Faltan campos requeridos (email, password, age)',
+              data: row,
+            });
+            continue;
+          }
+
+          // Crear usuario
+          const userData: any = {
+            email: String(row.email).trim(),
+            password: String(row.password).trim(),
+            name: row.name ? String(row.name).trim() : '',
+            age: Number(row.age),
+            role:
+              row.role &&
+              ['user', 'admin'].includes(String(row.role).toLowerCase())
+                ? (String(row.role).toLowerCase() as 'user' | 'admin')
+                : 'user',
+          };
+
+          // Validar que el email no exista
+          const existingUser = await this.prisma.user.findUnique({
+            where: { email: userData.email },
+          });
+
+          if (existingUser) {
+            results.errors.push({
+              row: i + 2,
+              error: `Usuario con email ${userData.email} ya existe`,
+              data: row,
+            });
+            continue;
+          }
+
+          // Crear usuario
+          const hashedPassword = await bcrypt.hash(userData.password, 10);
+          const newUser = await this.prisma.user.create({
+            data: {
+              email: userData.email,
+              password: hashedPassword,
+              name: userData.name || null,
+              age: userData.age,
+              role: userData.role,
+            },
+            select: {
+              id: true,
+              email: true,
+              name: true,
+              age: true,
+              role: true,
+            },
+          });
+
+          results.success.push({
+            row: i + 2,
+            user: newUser,
+          });
+        } catch (error) {
+          results.errors.push({
+            row: i + 2,
+            error: error.message || 'Error desconocido',
+            data: row,
+          });
+        }
+      }
+
+      return {
+        message: `Procesados ${results.total} registros: ${results.success.length} exitosos, ${results.errors.length} con errores`,
+        ...results,
+      };
+    } catch (error) {
+      throw new BadRequestException(
+        `Error procesando archivo Excel: ${error.message}`,
+      );
+    }
   }
 }
