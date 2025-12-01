@@ -3,14 +3,18 @@ import { PrismaService } from '../prisma.service';
 import { CreateVoucherDto } from './dto/create-voucher.dto';
 import { ApproveVoucherDto } from './dto/approve-voucher.dto';
 import { RejectVoucherDto } from './dto/reject-voucher.dto';
+import { VouchersGateway } from './vouchers.gateway';
 
 @Injectable()
 export class VouchersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private vouchersGateway: VouchersGateway,
+  ) {}
 
   // Funcionario solicita un vale
   async requestVoucher(userId: string, createVoucherDto: CreateVoucherDto) {
-    return this.prisma.gasVoucher.create({
+    const voucher = await this.prisma.gasVoucher.create({
       data: {
         userId,
         kilos: createVoucherDto.kilos,
@@ -26,6 +30,11 @@ export class VouchersService {
         },
       },
     });
+
+    // Emitir evento de nuevo vale creado a los admins
+    this.vouchersGateway.notifyVoucherCreated(voucher);
+
+    return voucher;
   }
 
   // Obtener vales de un usuario específico
@@ -84,7 +93,7 @@ export class VouchersService {
     approveVoucherDto: ApproveVoucherDto,
     adminId: string,
   ) {
-    return this.prisma.gasVoucher.update({
+    const voucher = await this.prisma.gasVoucher.update({
       where: { id: voucherId },
       data: {
         status: 'approved',
@@ -103,6 +112,11 @@ export class VouchersService {
         },
       },
     });
+
+    // Emitir evento de vale aprobado
+    this.vouchersGateway.notifyVoucherApproved(voucher);
+
+    return voucher;
   }
 
   // Admin: Rechazar vale
@@ -111,7 +125,7 @@ export class VouchersService {
     rejectVoucherDto: RejectVoucherDto,
     adminId: string,
   ) {
-    return this.prisma.gasVoucher.update({
+    const voucher = await this.prisma.gasVoucher.update({
       where: { id: voucherId },
       data: {
         status: 'rejected',
@@ -128,11 +142,16 @@ export class VouchersService {
         },
       },
     });
+
+    // Emitir evento de vale rechazado
+    this.vouchersGateway.notifyVoucherRejected(voucher);
+
+    return voucher;
   }
 
   // Admin: Marcar como entregado
   async markAsDelivered(voucherId: string) {
-    return this.prisma.gasVoucher.update({
+    const voucher = await this.prisma.gasVoucher.update({
       where: { id: voucherId },
       data: {
         status: 'delivered',
@@ -148,6 +167,11 @@ export class VouchersService {
         },
       },
     });
+
+    // Emitir evento de vale entregado
+    this.vouchersGateway.notifyVoucherDelivered(voucher);
+
+    return voucher;
   }
 
   // Admin: Crear vale manual (asignar directamente)

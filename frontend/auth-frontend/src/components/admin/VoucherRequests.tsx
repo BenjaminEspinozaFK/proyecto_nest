@@ -21,6 +21,7 @@ import {
 } from "@mui/material";
 import { voucherService } from "../../services/voucherService";
 import { GasVoucher, VoucherStats } from "../../types/voucher";
+import { useSocket } from "../../hooks/useSocket";
 
 const VoucherRequests: React.FC = () => {
   const [pendingVouchers, setPendingVouchers] = useState<GasVoucher[]>([]);
@@ -39,9 +40,49 @@ const VoucherRequests: React.FC = () => {
   const [amount, setAmount] = useState("");
   const [notes, setNotes] = useState("");
 
+  // Socket.IO para actualizaciones en tiempo real (admin)
+  const socket = useSocket(undefined, true);
+
   useEffect(() => {
     fetchData();
   }, []);
+
+  // Escuchar eventos de Socket.IO
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleVoucherCreated = (voucher: GasVoucher) => {
+      console.log("🎫 Nuevo vale creado:", voucher);
+      fetchData(); // Recargar datos
+    };
+
+    const handleVoucherApproved = (voucher: GasVoucher) => {
+      console.log("✅ Vale aprobado:", voucher);
+      fetchData();
+    };
+
+    const handleVoucherRejected = (voucher: GasVoucher) => {
+      console.log("❌ Vale rechazado:", voucher);
+      fetchData();
+    };
+
+    const handleVoucherDelivered = (voucher: GasVoucher) => {
+      console.log("📦 Vale entregado:", voucher);
+      fetchData();
+    };
+
+    socket.on("voucher:created", handleVoucherCreated);
+    socket.on("voucher:approved", handleVoucherApproved);
+    socket.on("voucher:rejected", handleVoucherRejected);
+    socket.on("voucher:delivered", handleVoucherDelivered);
+
+    return () => {
+      socket.off("voucher:created", handleVoucherCreated);
+      socket.off("voucher:approved", handleVoucherApproved);
+      socket.off("voucher:rejected", handleVoucherRejected);
+      socket.off("voucher:delivered", handleVoucherDelivered);
+    };
+  }, [socket]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -305,20 +346,20 @@ const VoucherRequests: React.FC = () => {
                           voucher.status === "pending"
                             ? "Pendiente"
                             : voucher.status === "approved"
-                              ? "Aprobado"
-                              : voucher.status === "rejected"
-                                ? "Rechazado"
-                                : "Entregado"
+                            ? "Aprobado"
+                            : voucher.status === "rejected"
+                            ? "Rechazado"
+                            : "Entregado"
                         }
                         size="small"
                         color={
                           voucher.status === "pending"
                             ? "warning"
                             : voucher.status === "approved"
-                              ? "info"
-                              : voucher.status === "rejected"
-                                ? "error"
-                                : "success"
+                            ? "info"
+                            : voucher.status === "rejected"
+                            ? "error"
+                            : "success"
                         }
                       />
                     </TableCell>
