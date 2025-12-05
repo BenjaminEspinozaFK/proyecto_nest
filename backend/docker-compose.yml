@@ -3,8 +3,8 @@ services:
     image: postgres
     restart: always
     environment:
-      POSTGRES_USER: benjamin
-      POSTGRES_PASSWORD: benjaminpassword
-      POSTGRES_DB: benjamin_db
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     ports:
-      - 5499:5432
+      - "${POSTGRES_PORT}:5432"
