@@ -15,6 +15,24 @@ const api = axios.create({
   },
 });
 
+// Interceptor para manejar errores de autenticación
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Token expirado o inválido
+      console.warn("Token inválido (401), limpiando sesión");
+      localStorage.removeItem("authToken");
+      localStorage.removeItem("authUser");
+      delete api.defaults.headers.common["Authorization"];
+
+      // Recargar la página para forzar logout
+      window.location.href = "/";
+    }
+    return Promise.reject(error);
+  }
+);
+
 export const authService = {
   async login(data: LoginRequest): Promise<AuthResponse> {
     try {

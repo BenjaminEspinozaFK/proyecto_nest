@@ -13,7 +13,7 @@ import { EmailModule } from '../email/email.module';
     PassportModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET,
-      signOptions: { expiresIn: '24h' },
+      signOptions: { expiresIn: '7d' }, // 7 días para evitar expiración frecuente
     }),
     EmailModule,
   ],
