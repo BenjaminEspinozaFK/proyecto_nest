@@ -44,21 +44,28 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({
   const handleCreate = async () => {
     setError(null);
 
-    if (!email || !password || !age) {
-      setError("Email, contraseña y edad son obligatorios");
+    if (!email || !age) {
+      setError("Email y edad son obligatorios");
       return;
     }
 
     setLoading(true);
     try {
       const token = localStorage.getItem("authToken");
+      const body: any = { email, name, age, role };
+      
+      // Solo incluir password si se proporcionó
+      if (password && password.trim()) {
+        body.password = password;
+      }
+
       const response = await fetch("http://localhost:3001/admins/users", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ email, password, name, age, role }),
+        body: JSON.stringify(body),
       });
 
       if (!response.ok) {
@@ -191,20 +198,29 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({
 
         {tabValue === 0 && (
           <>
+            <Alert severity="info" sx={{ mb: 2 }}>
+              <Typography variant="body2">
+                💡 <strong>Seguridad mejorada:</strong> Si no ingresas una contraseña, el sistema generará automáticamente una contraseña temporal segura y la enviará por email al usuario.
+              </Typography>
+            </Alert>
+
             <TextField
               fullWidth
               label="Email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               margin="normal"
+              required
             />
             <TextField
               fullWidth
-              label="Contraseña"
+              label="Contraseña (opcional)"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               margin="normal"
+              placeholder="Dejar vacío para generar automáticamente"
+              helperText="Si está vacío, se enviará una contraseña temporal por email"
             />
             <TextField
               fullWidth
@@ -222,6 +238,7 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({
                 setAge(e.target.value === "" ? "" : parseInt(e.target.value))
               }
               margin="normal"
+              required
             />
             <FormControl fullWidth margin="normal">
               <InputLabel id="role-label">Rol</InputLabel>
@@ -270,9 +287,9 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({
               </Typography>
               <Typography variant="caption">
                 El archivo Excel debe tener las columnas: <strong>email</strong>
-                , <strong>password</strong>, <strong>age</strong> (requeridos),
-                y opcionalmente <strong>name</strong> y <strong>role</strong>{" "}
-                (user/admin).
+                , <strong>age</strong> (requeridos),
+                y opcionalmente <strong>password</strong>, <strong>name</strong> y <strong>role</strong>{" "}
+                (user/admin). Si no se proporciona contraseña, se generará automáticamente y se enviará por email.
               </Typography>
             </Alert>
 

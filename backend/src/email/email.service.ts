@@ -9,6 +9,10 @@ import {
   passwordResetTemplate,
   passwordResetSubject,
 } from './templates/password-reset.template';
+import {
+  passwordSetupTemplate,
+  passwordSetupSubject,
+} from './templates/password-setup.template';
 
 @Injectable()
 export class EmailService {
@@ -125,6 +129,23 @@ export class EmailService {
     });
 
     await this.sendEmail(userEmail, passwordResetSubject, html);
+  }
+
+  /**
+   * Enviar email de configuración de contraseña inicial
+   */
+  async sendPasswordSetupEmail(
+    userEmail: string,
+    userName: string,
+    temporaryPassword: string,
+  ): Promise<void> {
+    const html = passwordSetupTemplate({
+      userName,
+      userEmail,
+      temporaryPassword,
+    });
+
+    await this.sendEmail(userEmail, passwordSetupSubject, html);
   }
 
   /**

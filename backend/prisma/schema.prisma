@@ -16,6 +16,7 @@ model User {
   role      String   @default("user")
   avatar    String?
   lastLogin DateTime?
+  requirePasswordChange Boolean @default(false)
 
   resetPasswordToken   String? @unique
   resetPasswordExpires DateTime?
