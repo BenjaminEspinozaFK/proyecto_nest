@@ -100,6 +100,7 @@ export class AuthService {
         role: user.role,
         avatar: user.avatar,
         lastLogin: user.lastLogin,
+        requirePasswordChange: user.requirePasswordChange || false,
       },
     };
   }
@@ -258,8 +259,13 @@ export class AuthService {
         throw new UnauthorizedException('Token inválido o expirado');
       }
 
-      user = admin;
+      // Admin no tiene requirePasswordChange, por eso lo agregamos manualmente
+      user = { ...admin, requirePasswordChange: false };
       isAdmin = true;
+    }
+
+    if (!user) {
+      throw new UnauthorizedException('Token inválido o expirado');
     }
 
     // Encriptar nueva contraseña

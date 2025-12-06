@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useAuth } from "./AuthContext";
 import AdminDashboard from "./AdminDashboard";
 import UserProfile from "./UserProfile";
+import ChangePasswordModal from "./ChangePasswordModal";
 import {
   Box,
   Button,
@@ -25,12 +26,19 @@ interface DashboardProps {
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ toggleTheme, isDark }) => {
-  const { user, logout } = useAuth();
+  const { user, logout, setUser } = useAuth();
   const [tabValue, setTabValue] = useState(0);
 
   if (!user) {
     return null;
   }
+
+  const handlePasswordChanged = () => {
+    // Actualizar el estado del usuario para quitar el flag
+    if (user) {
+      setUser({ ...user, requirePasswordChange: false });
+    }
+  };
 
   // Si es admin, mostrar AdminDashboard directamente a pantalla completa
   if (user.role === "admin") {
@@ -133,6 +141,12 @@ const Dashboard: React.FC<DashboardProps> = ({ toggleTheme, isDark }) => {
 
         <Box sx={{ mt: 3 }}>{tabValue === 0 && <UserProfile />}</Box>
       </Box>
+
+      {/* Modal obligatorio de cambio de contraseña */}
+      <ChangePasswordModal
+        open={user.requirePasswordChange === true}
+        onPasswordChanged={handlePasswordChanged}
+      />
     </Box>
   );
 };

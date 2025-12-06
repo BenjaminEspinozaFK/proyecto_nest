@@ -8,4 +8,5 @@ export interface ValidatedUser {
   createdAt: Date;
   updatedAt: Date;
   lastLogin?: Date | null;
+  requirePasswordChange?: boolean;
 }

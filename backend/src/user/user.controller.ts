@@ -10,11 +10,13 @@ import {
   UploadedFile,
   UseGuards,
   UseInterceptors,
+  Patch,
 } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { UsersService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
@@ -37,6 +39,16 @@ export class UsersController {
   async updateMyProfile(@Req() req: any, @Body() userData: UpdateUserDto) {
     const userId = req.user?.userId as string;
     return this.usersService.updateUser(userId, userData);
+  }
+
+  @Patch('me/change-password')
+  @UseGuards(JwtAuthGuard)
+  async changePassword(
+    @Req() req: any,
+    @Body() changePasswordDto: ChangePasswordDto,
+  ) {
+    const userId = req.user?.userId as string;
+    return this.usersService.changePassword(userId, changePasswordDto);
   }
 
   @Post('me/avatar')

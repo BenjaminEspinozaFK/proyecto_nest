@@ -11,11 +11,18 @@ import { PrismaService } from 'src/prisma.service';
 import { JwtStrategy } from '../auth/jwt.strategy';
 import { PassportModule } from '@nestjs/passport';
 import { RolesGuard } from 'src/auth/roles.guard';
+import { EmailService } from '../email/email.service';
 
 @Module({
   imports: [PassportModule],
   controllers: [AdminController],
-  providers: [AdminService, PrismaService, JwtStrategy, RolesGuard],
+  providers: [
+    AdminService,
+    PrismaService,
+    JwtStrategy,
+    RolesGuard,
+    EmailService,
+  ],
 })
 export class AdminModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

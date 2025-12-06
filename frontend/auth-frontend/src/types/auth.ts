@@ -7,6 +7,7 @@ export interface User {
   avatar?: string;
   createdAt?: string;
   lastLogin?: string;
+  requirePasswordChange?: boolean;
 }
 
 export interface LoginRequest {
@@ -30,6 +31,7 @@ export interface AuthResponse {
 export interface AuthContextType {
   user: User | null;
   token: string | null;
+  setUser: (user: User | null) => void;
   login: (email: string, password: string, role: string) => Promise<void>; // Agregar role
   register: (data: RegisterRequest) => Promise<void>;
   logout: () => void;
