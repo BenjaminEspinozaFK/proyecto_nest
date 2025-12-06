@@ -12,10 +12,44 @@ import { Admin } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 import * as XLSX from 'xlsx';
 import { BadRequestException } from '@nestjs/common';
+import { EmailService } from '../email/email.service';
 
 @Injectable()
 export class AdminService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private emailService: EmailService,
+  ) {}
+
+  /**
+   * Genera una contraseña temporal segura
+   */
+  private generateTemporaryPassword(): string {
+    const length = 12;
+    const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const lowercase = 'abcdefghijklmnopqrstuvwxyz';
+    const numbers = '0123456789';
+    const symbols = '@#$%&*';
+    const allChars = uppercase + lowercase + numbers + symbols;
+
+    let password = '';
+    // Asegurar que tenga al menos un carácter de cada tipo
+    password += uppercase[Math.floor(Math.random() * uppercase.length)];
+    password += lowercase[Math.floor(Math.random() * lowercase.length)];
+    password += numbers[Math.floor(Math.random() * numbers.length)];
+    password += symbols[Math.floor(Math.random() * symbols.length)];
+
+    // Rellenar el resto
+    for (let i = password.length; i < length; i++) {
+      password += allChars[Math.floor(Math.random() * allChars.length)];
+    }
+
+    // Mezclar los caracteres
+    return password
+      .split('')
+      .sort(() => Math.random() - 0.5)
+      .join('');
+  }
 
   async getAdmins() {
     return await this.prisma.admin.findMany();
@@ -262,13 +296,19 @@ export class AdminService {
       throw new ConflictException(`Usuario con email ${user.email} ya existe`);
     }
 
-    // Encriptar la contraseña
-    const hashedPassword = await bcrypt.hash(user.password, 10);
+    // Si no se proporciona contraseña, generar una temporal
+    const temporaryPassword = user.password || this.generateTemporaryPassword();
+    const hashedPassword = await bcrypt.hash(temporaryPassword, 10);
+    const requirePasswordChange = !user.password; // true si se generó automáticamente
 
     const newUser = await this.prisma.user.create({
       data: {
-        ...user,
+        email: user.email,
+        name: user.name,
+        age: user.age,
+        role: user.role || 'user',
         password: hashedPassword,
+        requirePasswordChange,
       },
       select: {
         id: true,
@@ -276,10 +316,28 @@ export class AdminService {
         name: true,
         age: true,
         role: true,
+        requirePasswordChange: true,
         createdAt: true,
         updatedAt: true,
       },
     });
+
+    // Si se generó una contraseña temporal, enviar email
+    if (!user.password) {
+      try {
+        await this.emailService.sendPasswordSetupEmail(
+          newUser.email,
+          newUser.name || 'Usuario',
+          temporaryPassword,
+        );
+        console.log(
+          `✅ Email de configuración enviado a: ${newUser.email} con contraseña temporal: ${temporaryPassword}`,
+        );
+      } catch (error) {
+        console.error('❌ Error enviando email de configuración:', error);
+        // No lanzar error, el usuario fue creado exitosamente
+      }
+    }
 
     return newUser;
   }
@@ -332,53 +390,60 @@ export class AdminService {
       // Procesar cada fila
       for (let i = 0; i < rows.length; i++) {
         const row = rows[i];
+        const rowNumber = i + 2; // +2 porque Excel empieza en 1 y primera fila es header
+
         try {
-          // Validar campos requeridos
-          if (!row.email || !row.password || !row.age) {
+          // Validar campos requeridos (solo email y age son obligatorios ahora)
+          if (!row.email || !row.age) {
             results.errors.push({
-              row: i + 2, // +2 porque Excel empieza en 1 y primera fila es header
-              error: 'Faltan campos requeridos (email, password, age)',
+              row: rowNumber,
+              error: 'Faltan campos requeridos (email, age)',
               data: row,
             });
             continue;
           }
 
-          // Crear usuario
-          const userData: any = {
-            email: String(row.email).trim(),
-            password: String(row.password).trim(),
-            name: row.name ? String(row.name).trim() : '',
-            age: Number(row.age),
-            role:
-              row.role &&
-              ['user', 'admin'].includes(String(row.role).toLowerCase())
-                ? (String(row.role).toLowerCase() as 'user' | 'admin')
-                : 'user',
-          };
+          // Preparar datos del usuario
+          const email = String(row.email).trim();
+          const age = Number(row.age);
+          const name = row.name ? String(row.name).trim() : '';
+          const role =
+            row.role &&
+            ['user', 'admin'].includes(String(row.role).toLowerCase())
+              ? (String(row.role).toLowerCase() as 'user' | 'admin')
+              : 'user';
+
+          // Generar contraseña temporal si no se proporciona
+          const temporaryPassword = row.password
+            ? String(row.password).trim()
+            : this.generateTemporaryPassword();
 
           // Validar que el email no exista
           const existingUser = await this.prisma.user.findUnique({
-            where: { email: userData.email },
+            where: { email },
           });
 
           if (existingUser) {
             results.errors.push({
-              row: i + 2,
-              error: `Usuario con email ${userData.email} ya existe`,
+              row: rowNumber,
+              error: `Usuario con email ${email} ya existe`,
               data: row,
             });
             continue;
           }
 
           // Crear usuario
-          const hashedPassword = await bcrypt.hash(userData.password, 10);
+          const hashedPassword = await bcrypt.hash(temporaryPassword, 10);
+          const requirePasswordChange = !row.password; // true si se generó automáticamente
+          
           const newUser = await this.prisma.user.create({
             data: {
-              email: userData.email,
+              email,
               password: hashedPassword,
-              name: userData.name || null,
-              age: userData.age,
-              role: userData.role,
+              name: name || null,
+              age,
+              role,
+              requirePasswordChange,
             },
             select: {
               id: true,
@@ -386,11 +451,29 @@ export class AdminService {
               name: true,
               age: true,
               role: true,
+              requirePasswordChange: true,
             },
           });
 
+          // Si se generó contraseña temporal, enviar email
+          if (!row.password) {
+            try {
+              await this.emailService.sendPasswordSetupEmail(
+                newUser.email,
+                newUser.name || 'Usuario',
+                temporaryPassword,
+              );
+            } catch (error) {
+              console.error(
+                `❌ Error enviando email a ${newUser.email}:`,
+                error,
+              );
+              // No lanzar error, el usuario fue creado exitosamente
+            }
+          }
+
           results.success.push({
-            row: i + 2,
+            row: rowNumber,
             user: newUser,
           });
         } catch (error) {

@@ -25,11 +25,11 @@ export class CreateUserDto {
   @Min(18)
   age: number;
 
-  @Transform(({ value }) => value.trim())
+  @IsOptional()
+  @Transform(({ value }) => value?.trim())
   @IsString()
-  @IsNotEmpty()
   @MinLength(6)
-  password: string;
+  password?: string;
 
   @IsOptional()
   @IsIn(['user', 'admin'])
