@@ -162,7 +162,7 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
       const userDataToUpdate = {
         email: editedUser.email,
         name: editedUser.name,
-        age: editedUser.age,
+        rut: editedUser.rut,
         role: editedUser.role,
       };
 
@@ -445,16 +445,17 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
                 <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
                   <TextField
                     sx={{ flex: 1, minWidth: "200px" }}
-                    label="Edad"
-                    type="number"
-                    value={editedUser.age || ""}
+                    label="RUT"
+                    type="text"
+                    value={editedUser.rut || ""}
                     onChange={(e) =>
                       setEditedUser({
                         ...editedUser,
-                        age: parseInt(e.target.value) || 0,
+                        rut: e.target.value,
                       })
                     }
                     disabled={!isEditing}
+                    placeholder="12345678-9"
                     InputProps={{
                       startAdornment: (
                         <Cake sx={{ mr: 1, color: "action.active" }} />

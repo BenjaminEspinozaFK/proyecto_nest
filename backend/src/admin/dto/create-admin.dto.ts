@@ -1,11 +1,9 @@
 import {
   IsString,
-  IsNumber,
   IsEmail,
   IsNotEmpty,
   IsOptional,
   MinLength,
-  Min,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
 
@@ -21,9 +19,11 @@ export class CreateAdminDto {
   @MinLength(2)
   name?: string;
 
-  @IsNumber()
-  @Min(18)
-  age: number;
+  @Transform(({ value }) => value.trim())
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(8)
+  rut: string;
 
   @Transform(({ value }) => value.trim())
   @IsString()

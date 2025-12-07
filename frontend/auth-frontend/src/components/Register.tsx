@@ -33,7 +33,7 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
     email: "",
     password: "",
     name: "",
-    age: "",
+    rut: "",
   });
   const [showPassword, setShowPassword] = useState(false);
   const { register, isLoading, error } = useAuth();
@@ -53,7 +53,7 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
         email: formData.email,
         password: formData.password,
         name: formData.name,
-        age: parseInt(formData.age),
+        rut: formData.rut,
       });
     } catch (err) {}
   };
@@ -138,14 +138,14 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
                 }}
               />
               <TextField
-                label="Edad"
-                type="number"
-                name="age"
-                value={formData.age}
+                label="RUT"
+                type="text"
+                name="rut"
+                value={formData.rut}
                 onChange={handleChange}
                 required
                 disabled={isLoading}
-                inputProps={{ min: 1, max: 120 }}
+                placeholder="12345678-9"
                 fullWidth
                 variant="outlined"
                 sx={{ flex: { sm: 1 } }}

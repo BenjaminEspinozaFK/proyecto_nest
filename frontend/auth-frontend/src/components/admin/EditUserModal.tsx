@@ -68,13 +68,14 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
             />
             <TextField
               fullWidth
-              label="Edad"
-              type="number"
-              value={editingUser.age || ""}
+              label="RUT"
+              type="text"
+              value={editingUser.rut || ""}
               onChange={(e) =>
-                onChange({ ...editingUser, age: parseInt(e.target.value) || 0 })
+                onChange({ ...editingUser, rut: e.target.value })
               }
               margin="normal"
+              placeholder="12345678-9"
             />
             <FormControl fullWidth margin="normal">
               <InputLabel>Rol</InputLabel>

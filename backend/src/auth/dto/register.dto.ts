@@ -3,10 +3,7 @@ import {
   IsString,
   IsNotEmpty,
   IsOptional,
-  IsNumber,
   MinLength,
-  Min,
-  Max,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
@@ -39,13 +36,12 @@ export class RegisterDto {
   name?: string;
 
   @ApiProperty({
-    example: 25,
-    description: 'Edad del usuario',
-    minimum: 1,
-    maximum: 120,
+    example: '12345678-9',
+    description: 'RUT del usuario',
+    minLength: 8,
   })
-  @IsNumber()
-  @Min(1)
-  @Max(120)
-  age: number;
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(8)
+  rut: string;
 }

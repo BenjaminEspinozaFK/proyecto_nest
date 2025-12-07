@@ -17,7 +17,7 @@ interface AdminProfileData {
   id: string;
   email: string;
   name: string;
-  age: number;
+  rut: string;
   role: string;
   avatar?: string;
   lastLogin?: string;
@@ -37,7 +37,7 @@ const AdminProfile: React.FC = () => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    age: 0,
+    rut: "",
     password: "",
   });
 
@@ -52,7 +52,7 @@ const AdminProfile: React.FC = () => {
       setFormData({
         name: data.name || "",
         email: data.email,
-        age: data.age,
+        rut: data.rut,
         password: "",
       });
     } catch (err: any) {
@@ -74,7 +74,7 @@ const AdminProfile: React.FC = () => {
       setFormData({
         name: profile.name || "",
         email: profile.email,
-        age: profile.age,
+        rut: profile.rut,
         password: "",
       });
     }
@@ -89,7 +89,7 @@ const AdminProfile: React.FC = () => {
       const updateData: any = {
         name: formData.name,
         email: formData.email,
-        age: formData.age,
+        rut: formData.rut,
       };
 
       // Solo incluir password si se proporcionó
@@ -329,13 +329,14 @@ const AdminProfile: React.FC = () => {
 
             <TextField
               fullWidth
-              label="Edad"
-              type="number"
-              value={formData.age}
+              label="RUT"
+              type="text"
+              value={formData.rut}
               onChange={(e) =>
-                setFormData({ ...formData, age: parseInt(e.target.value) })
+                setFormData({ ...formData, rut: e.target.value })
               }
               disabled={!editing}
+              placeholder="12345678-9"
             />
 
             {editing && (

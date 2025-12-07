@@ -208,7 +208,7 @@ export class AdminService {
         id: true,
         email: true,
         name: true,
-        age: true,
+        rut: true,
         role: true,
         createdAt: true,
         updatedAt: true,
@@ -248,7 +248,7 @@ export class AdminService {
         id: true,
         email: true,
         name: true,
-        age: true,
+        rut: true,
         role: true,
         createdAt: true,
         updatedAt: true,
@@ -305,7 +305,7 @@ export class AdminService {
       data: {
         email: user.email,
         name: user.name,
-        age: user.age,
+        rut: user.rut,
         role: user.role || 'user',
         password: hashedPassword,
         requirePasswordChange,
@@ -314,7 +314,7 @@ export class AdminService {
         id: true,
         email: true,
         name: true,
-        age: true,
+        rut: true,
         role: true,
         requirePasswordChange: true,
         createdAt: true,
@@ -349,7 +349,7 @@ export class AdminService {
         id: true,
         email: true,
         name: true,
-        age: true,
+        rut: true,
         role: true,
         createdAt: true,
         updatedAt: true,
@@ -393,11 +393,11 @@ export class AdminService {
         const rowNumber = i + 2; // +2 porque Excel empieza en 1 y primera fila es header
 
         try {
-          // Validar campos requeridos (solo email y age son obligatorios ahora)
-          if (!row.email || !row.age) {
+          // Validar campos requeridos (solo email y rut son obligatorios ahora)
+          if (!row.email || !row.rut) {
             results.errors.push({
               row: rowNumber,
-              error: 'Faltan campos requeridos (email, age)',
+              error: 'Faltan campos requeridos (email, rut)',
               data: row,
             });
             continue;
@@ -405,7 +405,7 @@ export class AdminService {
 
           // Preparar datos del usuario
           const email = String(row.email).trim();
-          const age = Number(row.age);
+          const rut = String(row.rut).trim();
           const name = row.name ? String(row.name).trim() : '';
           const role =
             row.role &&
@@ -435,13 +435,13 @@ export class AdminService {
           // Crear usuario
           const hashedPassword = await bcrypt.hash(temporaryPassword, 10);
           const requirePasswordChange = !row.password; // true si se generó automáticamente
-          
+
           const newUser = await this.prisma.user.create({
             data: {
               email,
               password: hashedPassword,
               name: name || null,
-              age,
+              rut,
               role,
               requirePasswordChange,
             },
@@ -449,7 +449,7 @@ export class AdminService {
               id: true,
               email: true,
               name: true,
-              age: true,
+              rut: true,
               role: true,
               requirePasswordChange: true,
             },
