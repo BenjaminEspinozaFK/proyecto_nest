@@ -4,10 +4,7 @@ import {
   IsNotEmpty,
   IsString,
   IsOptional,
-  IsNumber,
   MinLength,
-  Min,
-  Max,
 } from 'class-validator';
 
 export class CreateUserDto {
@@ -28,8 +25,9 @@ export class CreateUserDto {
   @MinLength(2)
   name?: string;
 
-  @IsNumber()
-  @Min(10)
-  @Max(120)
-  age: number;
+  @Transform(({ value }) => value.trim())
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(8)
+  rut: string;
 }

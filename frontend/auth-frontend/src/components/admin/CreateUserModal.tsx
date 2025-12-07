@@ -34,7 +34,7 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
-  const [age, setAge] = useState<number | "">("");
+  const [rut, setRut] = useState("");
   const [role, setRole] = useState<"user" | "admin">("user");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -44,16 +44,16 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({
   const handleCreate = async () => {
     setError(null);
 
-    if (!email || !age) {
-      setError("Email y edad son obligatorios");
+    if (!email || !rut) {
+      setError("Email y RUT son obligatorios");
       return;
     }
 
     setLoading(true);
     try {
       const token = localStorage.getItem("authToken");
-      const body: any = { email, name, age, role };
-      
+      const body: any = { email, name, rut, role };
+
       // Solo incluir password si se proporcionó
       if (password && password.trim()) {
         body.password = password;
@@ -83,7 +83,7 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({
       setEmail("");
       setPassword("");
       setName("");
-      setAge("");
+      setRut("");
       setRole("user");
     } catch (err: any) {
       setError(err.message || "Error creando usuario");
@@ -151,7 +151,7 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({
     setEmail("");
     setPassword("");
     setName("");
-    setAge("");
+    setRut("");
     setRole("user");
     setFile(null);
     setBulkResult(null);
@@ -200,7 +200,9 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({
           <>
             <Alert severity="info" sx={{ mb: 2 }}>
               <Typography variant="body2">
-                💡 <strong>Seguridad mejorada:</strong> Si no ingresas una contraseña, el sistema generará automáticamente una contraseña temporal segura y la enviará por email al usuario.
+                💡 <strong>Seguridad mejorada:</strong> Si no ingresas una
+                contraseña, el sistema generará automáticamente una contraseña
+                temporal segura y la enviará por email al usuario.
               </Typography>
             </Alert>
 
@@ -231,14 +233,13 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({
             />
             <TextField
               fullWidth
-              label="Edad"
-              type="number"
-              value={age}
-              onChange={(e) =>
-                setAge(e.target.value === "" ? "" : parseInt(e.target.value))
-              }
+              label="RUT"
+              type="text"
+              value={rut}
+              onChange={(e) => setRut(e.target.value)}
               margin="normal"
               required
+              placeholder="12345678-9"
             />
             <FormControl fullWidth margin="normal">
               <InputLabel id="role-label">Rol</InputLabel>
@@ -287,9 +288,10 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({
               </Typography>
               <Typography variant="caption">
                 El archivo Excel debe tener las columnas: <strong>email</strong>
-                , <strong>age</strong> (requeridos),
-                y opcionalmente <strong>password</strong>, <strong>name</strong> y <strong>role</strong>{" "}
-                (user/admin). Si no se proporciona contraseña, se generará automáticamente y se enviará por email.
+                , <strong>rut</strong> (requeridos), y opcionalmente{" "}
+                <strong>password</strong>, <strong>name</strong> y{" "}
+                <strong>role</strong> (user/admin). Si no se proporciona
+                contraseña, se generará automáticamente y se enviará por email.
               </Typography>
             </Alert>
 
