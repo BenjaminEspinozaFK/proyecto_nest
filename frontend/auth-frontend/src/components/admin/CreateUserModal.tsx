@@ -53,7 +53,7 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({
     try {
       const token = localStorage.getItem("authToken");
       const body: any = { email, name, rut, role };
-      
+
       // Solo incluir password si se proporcionó
       if (password && password.trim()) {
         body.password = password;
@@ -200,7 +200,9 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({
           <>
             <Alert severity="info" sx={{ mb: 2 }}>
               <Typography variant="body2">
-                💡 <strong>Seguridad mejorada:</strong> Si no ingresas una contraseña, el sistema generará automáticamente una contraseña temporal segura y la enviará por email al usuario.
+                💡 <strong>Seguridad mejorada:</strong> Si no ingresas una
+                contraseña, el sistema generará automáticamente una contraseña
+                temporal segura y la enviará por email al usuario.
               </Typography>
             </Alert>
 
@@ -286,9 +288,10 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({
               </Typography>
               <Typography variant="caption">
                 El archivo Excel debe tener las columnas: <strong>email</strong>
-                , <strong>rut</strong> (requeridos),
-                y opcionalmente <strong>password</strong>, <strong>name</strong> y <strong>role</strong>{" "}
-                (user/admin). Si no se proporciona contraseña, se generará automáticamente y se enviará por email.
+                , <strong>rut</strong> (requeridos), y opcionalmente{" "}
+                <strong>password</strong>, <strong>name</strong> y{" "}
+                <strong>role</strong> (user/admin). Si no se proporciona
+                contraseña, se generará automáticamente y se enviará por email.
               </Typography>
             </Alert>
 

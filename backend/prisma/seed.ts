@@ -54,14 +54,26 @@ async function main() {
 
   const randomUsers = [
     { email: 'juan.perez@example.com', name: 'Juan Pérez', rut: '12345678-9' },
-    { email: 'maria.gonzalez@example.com', name: 'María González', rut: '23456789-0' },
+    {
+      email: 'maria.gonzalez@example.com',
+      name: 'María González',
+      rut: '23456789-0',
+    },
     {
       email: 'carlos.rodriguez@example.com',
       name: 'Carlos Rodríguez',
       rut: '34567890-1',
     },
-    { email: 'ana.martinez@example.com', name: 'Ana Martínez', rut: '45678901-2' },
-    { email: 'pedro.sanchez@example.com', name: 'Pedro Sánchez', rut: '56789012-3' },
+    {
+      email: 'ana.martinez@example.com',
+      name: 'Ana Martínez',
+      rut: '45678901-2',
+    },
+    {
+      email: 'pedro.sanchez@example.com',
+      name: 'Pedro Sánchez',
+      rut: '56789012-3',
+    },
   ];
 
   const defaultPassword = await bcrypt.hash('user123', 10);

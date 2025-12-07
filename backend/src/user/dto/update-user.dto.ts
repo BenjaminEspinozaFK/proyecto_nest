@@ -1,10 +1,5 @@
 import { Transform } from 'class-transformer';
-import {
-  IsEmail,
-  IsString,
-  IsOptional,
-  MinLength,
-} from 'class-validator';
+import { IsEmail, IsString, IsOptional, MinLength } from 'class-validator';
 
 export class UpdateUserDto {
   @IsEmail()

@@ -435,7 +435,7 @@ export class AdminService {
           // Crear usuario
           const hashedPassword = await bcrypt.hash(temporaryPassword, 10);
           const requirePasswordChange = !row.password; // true si se generó automáticamente
-          
+
           const newUser = await this.prisma.user.create({
             data: {
               email,

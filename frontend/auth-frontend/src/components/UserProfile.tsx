@@ -634,20 +634,20 @@ const UserProfile: React.FC = () => {
                                 voucher.status === "pending"
                                   ? "Pendiente"
                                   : voucher.status === "approved"
-                                  ? "Aprobado"
-                                  : voucher.status === "rejected"
-                                  ? "Rechazado"
-                                  : "Entregado"
+                                    ? "Aprobado"
+                                    : voucher.status === "rejected"
+                                      ? "Rechazado"
+                                      : "Entregado"
                               }
                               size="small"
                               color={
                                 voucher.status === "pending"
                                   ? "warning"
                                   : voucher.status === "approved"
-                                  ? "info"
-                                  : voucher.status === "rejected"
-                                  ? "error"
-                                  : "success"
+                                    ? "info"
+                                    : voucher.status === "rejected"
+                                      ? "error"
+                                      : "success"
                               }
                             />
                           </TableCell>

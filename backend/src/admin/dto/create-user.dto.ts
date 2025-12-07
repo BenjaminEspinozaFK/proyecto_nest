@@ -1,9 +1,4 @@
-import {
-  IsString,
-  IsEmail,
-  IsNotEmpty,
-  MinLength,
-} from 'class-validator';
+import { IsString, IsEmail, IsNotEmpty, MinLength } from 'class-validator';
 import { IsOptional, IsIn } from 'class-validator';
 import { Transform } from 'class-transformer';
 
