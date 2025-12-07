@@ -1,10 +1,8 @@
 import {
   IsString,
-  IsNumber,
   IsEmail,
   IsNotEmpty,
   MinLength,
-  Min,
 } from 'class-validator';
 import { IsOptional, IsIn } from 'class-validator';
 import { Transform } from 'class-transformer';
@@ -21,9 +19,11 @@ export class CreateUserDto {
   @MinLength(2)
   name: string;
 
-  @IsNumber()
-  @Min(18)
-  age: number;
+  @Transform(({ value }) => value.trim())
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(8)
+  rut: string;
 
   @IsOptional()
   @Transform(({ value }) => value?.trim())

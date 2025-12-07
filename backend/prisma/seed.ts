@@ -21,7 +21,7 @@ async function main() {
     create: {
       email: emailUser,
       name: 'Usuario Default',
-      age: 25,
+      rut: '11111111-1',
       password: hashedUserPassword,
       role: 'user',
     },
@@ -46,22 +46,22 @@ async function main() {
     create: {
       email: emailAdmin,
       name: 'Admin Default',
-      age: 30,
+      rut: '22222222-2',
       password: hashedAdminPassword,
       role: 'admin',
     },
   });
 
   const randomUsers = [
-    { email: 'juan.perez@example.com', name: 'Juan Pérez', age: 28 },
-    { email: 'maria.gonzalez@example.com', name: 'María González', age: 32 },
+    { email: 'juan.perez@example.com', name: 'Juan Pérez', rut: '12345678-9' },
+    { email: 'maria.gonzalez@example.com', name: 'María González', rut: '23456789-0' },
     {
       email: 'carlos.rodriguez@example.com',
       name: 'Carlos Rodríguez',
-      age: 24,
+      rut: '34567890-1',
     },
-    { email: 'ana.martinez@example.com', name: 'Ana Martínez', age: 29 },
-    { email: 'pedro.sanchez@example.com', name: 'Pedro Sánchez', age: 35 },
+    { email: 'ana.martinez@example.com', name: 'Ana Martínez', rut: '45678901-2' },
+    { email: 'pedro.sanchez@example.com', name: 'Pedro Sánchez', rut: '56789012-3' },
   ];
 
   const defaultPassword = await bcrypt.hash('user123', 10);
@@ -74,7 +74,7 @@ async function main() {
         create: {
           email: userData.email,
           name: userData.name,
-          age: userData.age,
+          rut: userData.rut,
           password: defaultPassword,
           role: 'user',
         },

@@ -2,7 +2,7 @@ export interface User {
   id: string;
   email: string;
   name: string;
-  age: number;
+  rut: string;
   role: string;
   avatar?: string;
   createdAt?: string;
@@ -20,7 +20,7 @@ export interface RegisterRequest {
   email: string;
   password: string;
   name: string;
-  age: number;
+  rut: string;
 }
 
 export interface AuthResponse {

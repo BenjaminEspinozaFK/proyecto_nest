@@ -1,10 +1,8 @@
 import {
   IsString,
-  IsNumber,
   IsEmail,
   IsOptional,
   MinLength,
-  Min,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
 
@@ -20,10 +18,11 @@ export class UpdateAdminDto {
   @MinLength(2, { message: 'El nombre debe tener al menos 2 caracteres' })
   name?: string;
 
-  @IsNumber()
+  @Transform(({ value }) => value?.trim())
+  @IsString()
   @IsOptional()
-  @Min(18, { message: 'La edad debe ser mayor o igual a 18 años' })
-  age?: number;
+  @MinLength(8, { message: 'El RUT debe tener al menos 8 caracteres' })
+  rut?: string;
 
   @Transform(({ value }) => value.trim())
   @IsString()

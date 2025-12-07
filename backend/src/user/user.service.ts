@@ -152,7 +152,7 @@ export class UsersService {
         id: true,
         email: true,
         name: true,
-        age: true,
+        rut: true,
         role: true,
         requirePasswordChange: true,
       },

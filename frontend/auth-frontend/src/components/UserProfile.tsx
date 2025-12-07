@@ -53,7 +53,7 @@ const UserProfile: React.FC = () => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    age: 0,
+    rut: "",
   });
 
   // Estados para vales
@@ -114,7 +114,7 @@ const UserProfile: React.FC = () => {
         setFormData({
           name: data.name || "",
           email: data.email || "",
-          age: data.age || 0,
+          rut: data.rut || "",
         });
       }
     } catch (error) {
@@ -199,7 +199,7 @@ const UserProfile: React.FC = () => {
     setFormData({
       name: profile?.name || "",
       email: profile?.email || "",
-      age: profile?.age || 0,
+      rut: profile?.rut || "",
     });
     setEditing(false);
     setError(null);
@@ -461,18 +461,19 @@ const UserProfile: React.FC = () => {
 
               <TextField
                 fullWidth
-                label="Edad"
-                type="number"
-                value={editing ? formData.age : profile?.age || ""}
+                label="RUT"
+                type="text"
+                value={editing ? formData.rut : profile?.rut || ""}
                 onChange={(e) =>
                   editing &&
                   setFormData({
                     ...formData,
-                    age: parseInt(e.target.value) || 0,
+                    rut: e.target.value,
                   })
                 }
                 disabled={!editing}
                 variant={editing ? "outlined" : "filled"}
+                placeholder="12345678-9"
               />
 
               <TextField

@@ -3,10 +3,7 @@ import {
   IsEmail,
   IsString,
   IsOptional,
-  IsNumber,
   MinLength,
-  Min,
-  Max,
 } from 'class-validator';
 
 export class UpdateUserDto {
@@ -27,9 +24,9 @@ export class UpdateUserDto {
   @MinLength(2, { message: 'El nombre debe tener al menos 2 caracteres' })
   name?: string;
 
-  @IsNumber()
+  @Transform(({ value }) => value?.trim())
+  @IsString()
+  @MinLength(8, { message: 'El RUT debe tener al menos 8 caracteres' })
   @IsOptional()
-  @Min(10)
-  @Max(120)
-  age?: number;
+  rut?: string;
 }
