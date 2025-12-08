@@ -159,10 +159,10 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
     try {
       const token = localStorage.getItem("authToken");
 
+      // No enviar rut ya que no es modificable
       const userDataToUpdate = {
         email: editedUser.email,
         name: editedUser.name,
-        rut: editedUser.rut,
         role: editedUser.role,
       };
 
@@ -448,14 +448,9 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
                     label="RUT"
                     type="text"
                     value={editedUser.rut || ""}
-                    onChange={(e) =>
-                      setEditedUser({
-                        ...editedUser,
-                        rut: e.target.value,
-                      })
-                    }
-                    disabled={!isEditing}
+                    disabled={true}
                     placeholder="12345678-9"
+                    helperText="El RUT no puede ser modificado"
                     InputProps={{
                       startAdornment: (
                         <Cake sx={{ mr: 1, color: "action.active" }} />

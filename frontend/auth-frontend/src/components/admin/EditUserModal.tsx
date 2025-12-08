@@ -71,11 +71,10 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
               label="RUT"
               type="text"
               value={editingUser.rut || ""}
-              onChange={(e) =>
-                onChange({ ...editingUser, rut: e.target.value })
-              }
+              disabled={true}
               margin="normal"
               placeholder="12345678-9"
+              helperText="El RUT no puede ser modificado"
             />
             <FormControl fullWidth margin="normal">
               <InputLabel>Rol</InputLabel>

@@ -86,10 +86,10 @@ const AdminProfile: React.FC = () => {
     setSuccess(null);
 
     try {
+      // No incluir rut ya que no es modificable
       const updateData: any = {
         name: formData.name,
         email: formData.email,
-        rut: formData.rut,
       };
 
       // Solo incluir password si se proporcionó
@@ -332,11 +332,9 @@ const AdminProfile: React.FC = () => {
               label="RUT"
               type="text"
               value={formData.rut}
-              onChange={(e) =>
-                setFormData({ ...formData, rut: e.target.value })
-              }
-              disabled={!editing}
+              disabled={true}
               placeholder="12345678-9"
+              helperText="El RUT no puede ser modificado"
             />
 
             {editing && (
