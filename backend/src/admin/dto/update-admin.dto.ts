@@ -13,12 +13,6 @@ export class UpdateAdminDto {
   @MinLength(2, { message: 'El nombre debe tener al menos 2 caracteres' })
   name?: string;
 
-  @Transform(({ value }) => value?.trim())
-  @IsString()
-  @IsOptional()
-  @MinLength(8, { message: 'El RUT debe tener al menos 8 caracteres' })
-  rut?: string;
-
   @Transform(({ value }) => value.trim())
   @IsString()
   @IsOptional()

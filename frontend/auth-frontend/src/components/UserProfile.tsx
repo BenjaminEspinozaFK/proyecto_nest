@@ -162,13 +162,17 @@ const UserProfile: React.FC = () => {
 
     try {
       const token = localStorage.getItem("authToken");
+
+      // No enviar el campo rut ya que no es modificable
+      const { rut, ...updateData } = formData;
+
       const response = await fetch("http://localhost:3001/users/me", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(updateData),
       });
 
       if (!response.ok) {
@@ -463,17 +467,11 @@ const UserProfile: React.FC = () => {
                 fullWidth
                 label="RUT"
                 type="text"
-                value={editing ? formData.rut : profile?.rut || ""}
-                onChange={(e) =>
-                  editing &&
-                  setFormData({
-                    ...formData,
-                    rut: e.target.value,
-                  })
-                }
-                disabled={!editing}
-                variant={editing ? "outlined" : "filled"}
+                value={profile?.rut || ""}
+                disabled={true}
+                variant="filled"
                 placeholder="12345678-9"
+                helperText="El RUT no puede ser modificado"
               />
 
               <TextField
