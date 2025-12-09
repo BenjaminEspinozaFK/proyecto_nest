@@ -17,7 +17,9 @@ async function main() {
 
   const user = await prisma.user.upsert({
     where: { email: emailUser },
-    update: {},
+    update: {
+      rut: '11111111-1',
+    },
     create: {
       email: emailUser,
       name: 'Usuario Default',
@@ -42,6 +44,7 @@ async function main() {
     where: { email: emailAdmin },
     update: {
       password: hashedAdminPassword,
+      rut: '22222222-2',
     },
     create: {
       email: emailAdmin,
@@ -82,7 +85,9 @@ async function main() {
     randomUsers.map((userData) =>
       prisma.user.upsert({
         where: { email: userData.email },
-        update: {},
+        update: {
+          rut: userData.rut,
+        },
         create: {
           email: userData.email,
           name: userData.name,
