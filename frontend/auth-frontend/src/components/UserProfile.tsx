@@ -25,21 +25,32 @@ import {
   TableHead,
   TableRow,
   Divider,
+  Menu,
+  ListItemIcon,
+  ListItemText,
 } from "@mui/material";
 import {
   Edit,
-  Save,
-  Cancel,
   PhotoCamera,
   LocalGasStation,
   Add,
+  Brightness4,
+  Brightness7,
+  AccountCircle,
+  Settings,
+  Logout,
 } from "@mui/icons-material";
 import { useAuth } from "./AuthContext";
 import { voucherService } from "../services/voucherService";
 import { GasVoucher, VoucherStats } from "../types/voucher";
 import { useSocket } from "../hooks/useSocket";
 
-const UserProfile: React.FC = () => {
+interface UserProfileProps {
+  toggleTheme?: () => void;
+  isDark?: boolean;
+}
+
+const UserProfile: React.FC<UserProfileProps> = ({ toggleTheme, isDark }) => {
   const { user, updateUserAvatar } = useAuth();
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -54,6 +65,9 @@ const UserProfile: React.FC = () => {
     name: "",
     email: "",
     rut: "",
+    address: "",
+    phone: "",
+    comuna: "",
   });
 
   // Estados para vales
@@ -62,6 +76,11 @@ const UserProfile: React.FC = () => {
   const [loadingVouchers, setLoadingVouchers] = useState(false);
   const [openRequestDialog, setOpenRequestDialog] = useState(false);
   const [requestKilos, setRequestKilos] = useState(15);
+
+  // Estados para menú de usuario
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const openMenu = Boolean(anchorEl);
 
   // Socket.IO para actualizaciones en tiempo real (usuario)
   const socket = useSocket(user?.id, false);
@@ -115,6 +134,9 @@ const UserProfile: React.FC = () => {
           name: data.name || "",
           email: data.email || "",
           rut: data.rut || "",
+          address: data.address || "",
+          phone: data.phone || "",
+          comuna: data.comuna || "",
         });
       }
     } catch (error) {
@@ -199,14 +221,15 @@ const UserProfile: React.FC = () => {
     }
   };
 
-  const handleCancel = () => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
-      name: profile?.name || "",
-      email: profile?.email || "",
-      rut: profile?.rut || "",
+      ...formData,
+      [e.target.name]: e.target.value,
     });
-    setEditing(false);
-    setError(null);
+  };
+
+  const handleUpdate = () => {
+    handleSave();
   };
 
   const handleImageUpload = async (file: File) => {
@@ -253,9 +276,37 @@ const UserProfile: React.FC = () => {
     }
   };
 
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleViewProfile = () => {
+    setShowProfileModal(true);
+    handleMenuClose();
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("authToken");
+    window.location.href = "/login";
+  };
+
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" p={4}>
+      <Box
+        sx={{
+          minHeight: "100vh",
+          width: "100%",
+          py: 4,
+          px: 3,
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
         <CircularProgress />
       </Box>
     );
@@ -266,65 +317,85 @@ const UserProfile: React.FC = () => {
     : undefined;
 
   return (
-    <Box>
-      <Typography
-        variant="h4"
-        gutterBottom
-        sx={{
-          fontWeight: "bold",
-          mb: 3,
-          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-          WebkitBackgroundClip: "text",
-          WebkitTextFillColor: "transparent",
-        }}
-      >
-        👤 Mi Perfil
-      </Typography>
-
-      {error && (
-        <Alert severity="error" sx={{ mb: 3 }}>
-          {error}
-        </Alert>
-      )}
-
-      {success && (
-        <Alert severity="success" sx={{ mb: 3 }}>
-          {success}
-        </Alert>
-      )}
-
-      <Paper
-        sx={{
-          p: 4,
-          borderRadius: 3,
-        }}
-      >
+    <Box
+      sx={{
+        minHeight: "100vh",
+        width: "100%",
+        py: 4,
+        px: 3,
+      }}
+    >
+      <Box sx={{ maxWidth: "1400px", margin: "0 auto" }}>
+        {/* Header moderno con menú de usuario */}
         <Box
           sx={{
-            display: "grid",
-            gridTemplateColumns: { xs: "1fr", md: "300px 1fr" },
-            gap: 4,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mb: 4,
+            pb: 3,
+            borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
           }}
         >
-          {/* Avatar Section */}
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              textAlign: "center",
-            }}
-          >
-            <Box sx={{ position: "relative", mb: 3 }}>
+          <Box>
+            <Typography
+              variant="h4"
+              sx={{
+                fontWeight: "bold",
+                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+                mb: 0.5,
+              }}
+            >
+              Dashboard de Usuario
+            </Typography>
+            <Typography variant="body2" sx={{ color: "text.secondary" }}>
+              Gestiona tus vales de gas
+            </Typography>
+          </Box>
+
+          <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+            {toggleTheme && (
+              <IconButton
+                onClick={toggleTheme}
+                sx={{
+                  border: "1px solid",
+                  borderColor: "divider",
+                  "&:hover": {
+                    background: "rgba(102, 126, 234, 0.1)",
+                  },
+                }}
+              >
+                {isDark ? <Brightness7 /> : <Brightness4 />}
+              </IconButton>
+            )}
+
+            {/* Avatar con menú desplegable */}
+            <IconButton
+              onClick={handleMenuOpen}
+              sx={{
+                p: 0,
+                border: "3px solid transparent",
+                background:
+                  "linear-gradient(white, white) padding-box, linear-gradient(135deg, #667eea 0%, #764ba2 100%) border-box",
+                borderRadius: "50%",
+                transition: "transform 0.3s ease",
+                "&:hover": {
+                  transform: "scale(1.05)",
+                },
+              }}
+            >
               <Avatar
                 src={avatarSrc}
                 sx={{
-                  width: 150,
-                  height: 150,
-                  fontSize: 60,
+                  width: 48,
+                  height: 48,
                   background:
                     "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                  border: "4px solid rgba(255, 255, 255, 0.1)",
+                  fontSize: "1.2rem",
+                  fontWeight: "bold",
                 }}
               >
                 {profile?.name
@@ -335,192 +406,139 @@ const UserProfile: React.FC = () => {
                       .toUpperCase()
                   : "U"}
               </Avatar>
+            </IconButton>
 
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileSelect}
-                accept="image/*"
-                style={{ display: "none" }}
-              />
-
-              <IconButton
-                onClick={() => fileInputRef.current?.click()}
+            {/* Menú desplegable */}
+            <Menu
+              anchorEl={anchorEl}
+              open={openMenu}
+              onClose={handleMenuClose}
+              onClick={handleMenuClose}
+              PaperProps={{
+                elevation: 0,
+                sx: {
+                  overflow: "visible",
+                  filter: "drop-shadow(0px 2px 8px rgba(0,0,0,0.15))",
+                  mt: 1.5,
+                  borderRadius: "12px",
+                  minWidth: 220,
+                  "&:before": {
+                    content: '""',
+                    display: "block",
+                    position: "absolute",
+                    top: 0,
+                    right: 14,
+                    width: 10,
+                    height: 10,
+                    bgcolor: "background.paper",
+                    transform: "translateY(-50%) rotate(45deg)",
+                    zIndex: 0,
+                  },
+                },
+              }}
+              transformOrigin={{ horizontal: "right", vertical: "top" }}
+              anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
+            >
+              <Box sx={{ px: 2, py: 1.5 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                  {profile?.name || "Usuario"}
+                </Typography>
+                <Typography
+                  variant="body2"
+                  sx={{ color: "text.secondary", fontSize: "0.85rem" }}
+                >
+                  {profile?.email}
+                </Typography>
+              </Box>
+              <Divider />
+              <MenuItem onClick={handleViewProfile}>
+                <ListItemIcon>
+                  <AccountCircle fontSize="small" />
+                </ListItemIcon>
+                <ListItemText>Mi Perfil</ListItemText>
+              </MenuItem>
+              <MenuItem onClick={handleMenuClose}>
+                <ListItemIcon>
+                  <Settings fontSize="small" />
+                </ListItemIcon>
+                <ListItemText>Configuración</ListItemText>
+              </MenuItem>
+              <Divider />
+              <MenuItem
+                onClick={handleLogout}
                 sx={{
-                  position: "absolute",
-                  bottom: 16,
-                  right: -8,
-                  boxShadow: 3,
+                  color: "error.main",
+                  "&:hover": {
+                    backgroundColor: "error.lighter",
+                  },
                 }}
               >
-                {uploading ? <CircularProgress size={20} /> : <PhotoCamera />}
-              </IconButton>
-            </Box>
-
-            {uploading && (
-              <Typography variant="body2" color="primary" sx={{ mb: 2 }}>
-                Subiendo imagen...
-              </Typography>
-            )}
-
-            <Typography variant="h5" fontWeight="bold" gutterBottom>
-              {profile?.name}
-            </Typography>
-            <Typography
-              variant="body2"
-              color="text.secondary"
-              gutterBottom
-              sx={{ color: "rgba(255, 255, 255, 0.7)" }}
-            >
-              {profile?.role === "admin" ? "ADMINISTRADOR" : "USUARIO"}
-            </Typography>
-            <Typography
-              variant="body2"
-              color="text.secondary"
-              sx={{ color: "rgba(255, 255, 255, 0.6)" }}
-            >
-              Último acceso:{" "}
-              {profile?.lastLogin
-                ? new Date(profile.lastLogin).toLocaleDateString("es-ES")
-                : "Nunca"}
-            </Typography>
-          </Box>
-
-          {/* Profile Form */}
-          <Box>
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                mb: 3,
-              }}
-            >
-              <Typography variant="h5" fontWeight="bold">
-                Información Personal
-              </Typography>
-
-              {!editing ? (
-                <Button
-                  variant="contained"
-                  startIcon={<Edit />}
-                  onClick={() => setEditing(true)}
-                  sx={{
-                    background:
-                      "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                    "&:hover": {
-                      background:
-                        "linear-gradient(135deg, #764ba2 0%, #667eea 100%)",
-                    },
-                  }}
-                >
-                  Editar
-                </Button>
-              ) : (
-                <Box sx={{ display: "flex", gap: 1 }}>
-                  <Button
-                    variant="contained"
-                    color="success"
-                    startIcon={<Save />}
-                    onClick={handleSave}
-                    disabled={saving}
-                  >
-                    {saving ? "Guardando..." : "Guardar"}
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    startIcon={<Cancel />}
-                    onClick={handleCancel}
-                    disabled={saving}
-                  >
-                    Cancelar
-                  </Button>
-                </Box>
-              )}
-            </Box>
-
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-              <TextField
-                fullWidth
-                label="Nombre"
-                value={editing ? formData.name : profile?.name || ""}
-                onChange={(e) =>
-                  editing && setFormData({ ...formData, name: e.target.value })
-                }
-                disabled={!editing}
-                variant={editing ? "outlined" : "filled"}
-              />
-
-              <TextField
-                fullWidth
-                label="Email"
-                type="email"
-                value={editing ? formData.email : profile?.email || ""}
-                onChange={(e) =>
-                  editing && setFormData({ ...formData, email: e.target.value })
-                }
-                disabled={!editing}
-                variant={editing ? "outlined" : "filled"}
-              />
-
-              <TextField
-                fullWidth
-                label="RUT"
-                type="text"
-                value={profile?.rut || ""}
-                disabled={true}
-                variant="filled"
-                placeholder="12345678-9"
-                helperText="El RUT no puede ser modificado"
-              />
-
-              <TextField
-                fullWidth
-                label="Rol"
-                value={profile?.role === "admin" ? "Administrador" : "Usuario"}
-                disabled
-                variant="filled"
-              />
-
-              <TextField
-                fullWidth
-                label="Fecha de Registro"
-                value={
-                  profile?.createdAt
-                    ? new Date(profile.createdAt).toLocaleDateString("es-ES", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })
-                    : "Desconocido"
-                }
-                disabled
-                variant="filled"
-              />
-            </Box>
+                <ListItemIcon>
+                  <Logout fontSize="small" sx={{ color: "error.main" }} />
+                </ListItemIcon>
+                <ListItemText>Cerrar Sesión</ListItemText>
+              </MenuItem>
+            </Menu>
           </Box>
         </Box>
 
-        <Divider sx={{ my: 4 }} />
+        {/* Alertas */}
+        {error && (
+          <Alert severity="error" sx={{ mb: 3, borderRadius: "12px" }}>
+            {error}
+          </Alert>
+        )}
 
-        {/* Sección de Vales de Gas */}
-        <Box>
+        {success && (
+          <Alert severity="success" sx={{ mb: 3, borderRadius: "12px" }}>
+            {success}
+          </Alert>
+        )}
+
+        {/* Sección principal: Mis Vales de Gas */}
+        <Paper
+          sx={{
+            p: 4,
+            borderRadius: "20px",
+            boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)",
+          }}
+        >
           <Box
             sx={{
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
-              mb: 3,
+              mb: 4,
             }}
           >
-            <Typography variant="h5" fontWeight="bold">
-              <LocalGasStation sx={{ mr: 1, verticalAlign: "middle" }} />
-              Mis Vales de Gas
-            </Typography>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+              <LocalGasStation sx={{ fontSize: 32, color: "#667eea" }} />
+              <Box>
+                <Typography variant="h5" fontWeight="bold">
+                  Mis Vales de Gas
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Gestiona tus solicitudes de vales
+                </Typography>
+              </Box>
+            </Box>
             <Button
               variant="contained"
               startIcon={<Add />}
               onClick={() => setOpenRequestDialog(true)}
+              sx={{
+                background:
+                  "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                borderRadius: "12px",
+                textTransform: "none",
+                fontWeight: 600,
+                px: 3,
+                py: 1.5,
+                "&:hover": {
+                  background:
+                    "linear-gradient(135deg, #5568d3 0%, #6a3f8f 100%)",
+                },
+              }}
             >
               Solicitar Vale
             </Button>
@@ -541,46 +559,223 @@ const UserProfile: React.FC = () => {
                       xs: "repeat(2, 1fr)",
                       sm: "repeat(4, 1fr)",
                     },
-                    gap: 2,
-                    mb: 3,
+                    gap: 3,
+                    mb: 4,
                   }}
                 >
-                  <Paper sx={{ p: 2, textAlign: "center" }}>
-                    <Typography variant="h4" color="primary" fontWeight="bold">
+                  <Paper
+                    sx={{
+                      p: 3,
+                      borderRadius: "16px",
+                      borderTop: "4px solid",
+                      borderColor: "primary.main",
+                      transition: "transform 0.3s ease, box-shadow 0.3s ease",
+                      "&:hover": {
+                        transform: "translateY(-8px)",
+                        boxShadow: "0 12px 24px rgba(0, 0, 0, 0.15)",
+                      },
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 2,
+                        mb: 2,
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          width: 48,
+                          height: 48,
+                          borderRadius: "12px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          bgcolor: "primary.lighter",
+                          color: "primary.main",
+                        }}
+                      >
+                        <LocalGasStation />
+                      </Box>
+                    </Box>
+                    <Typography
+                      variant="h4"
+                      fontWeight="bold"
+                      sx={{
+                        background:
+                          "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                        WebkitBackgroundClip: "text",
+                        WebkitTextFillColor: "transparent",
+                        backgroundClip: "text",
+                        mb: 0.5,
+                      }}
+                    >
                       {voucherStats.total}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
                       Total Solicitados
                     </Typography>
                   </Paper>
+
                   <Paper
                     sx={{
-                      p: 2,
-                      textAlign: "center",
-                      bgcolor: "warning.main",
-                      color: "white",
+                      p: 3,
+                      borderRadius: "16px",
+                      borderTop: "4px solid",
+                      borderColor: "warning.main",
+                      transition: "transform 0.3s ease, box-shadow 0.3s ease",
+                      "&:hover": {
+                        transform: "translateY(-8px)",
+                        boxShadow: "0 12px 24px rgba(0, 0, 0, 0.15)",
+                      },
                     }}
                   >
-                    <Typography variant="h4" fontWeight="bold">
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 2,
+                        mb: 2,
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          width: 48,
+                          height: 48,
+                          borderRadius: "12px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          bgcolor: "warning.lighter",
+                          color: "warning.main",
+                        }}
+                      >
+                        <LocalGasStation />
+                      </Box>
+                    </Box>
+                    <Typography
+                      variant="h4"
+                      fontWeight="bold"
+                      sx={{
+                        background:
+                          "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
+                        WebkitBackgroundClip: "text",
+                        WebkitTextFillColor: "transparent",
+                        backgroundClip: "text",
+                        mb: 0.5,
+                      }}
+                    >
                       {voucherStats.pending}
                     </Typography>
-                    <Typography variant="body2">Pendientes</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Pendientes
+                    </Typography>
                   </Paper>
+
                   <Paper
                     sx={{
-                      p: 2,
-                      textAlign: "center",
-                      bgcolor: "success.main",
-                      color: "white",
+                      p: 3,
+                      borderRadius: "16px",
+                      borderTop: "4px solid",
+                      borderColor: "success.main",
+                      transition: "transform 0.3s ease, box-shadow 0.3s ease",
+                      "&:hover": {
+                        transform: "translateY(-8px)",
+                        boxShadow: "0 12px 24px rgba(0, 0, 0, 0.15)",
+                      },
                     }}
                   >
-                    <Typography variant="h4" fontWeight="bold">
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 2,
+                        mb: 2,
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          width: 48,
+                          height: 48,
+                          borderRadius: "12px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          bgcolor: "success.lighter",
+                          color: "success.main",
+                        }}
+                      >
+                        <LocalGasStation />
+                      </Box>
+                    </Box>
+                    <Typography
+                      variant="h4"
+                      fontWeight="bold"
+                      sx={{
+                        background:
+                          "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)",
+                        WebkitBackgroundClip: "text",
+                        WebkitTextFillColor: "transparent",
+                        backgroundClip: "text",
+                        mb: 0.5,
+                      }}
+                    >
                       {voucherStats.delivered}
                     </Typography>
-                    <Typography variant="body2">Entregados</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Entregados
+                    </Typography>
                   </Paper>
-                  <Paper sx={{ p: 2, textAlign: "center" }}>
-                    <Typography variant="h4" color="primary" fontWeight="bold">
+
+                  <Paper
+                    sx={{
+                      p: 3,
+                      borderRadius: "16px",
+                      borderTop: "4px solid",
+                      borderColor: "info.main",
+                      transition: "transform 0.3s ease, box-shadow 0.3s ease",
+                      "&:hover": {
+                        transform: "translateY(-8px)",
+                        boxShadow: "0 12px 24px rgba(0, 0, 0, 0.15)",
+                      },
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 2,
+                        mb: 2,
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          width: 48,
+                          height: 48,
+                          borderRadius: "12px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          bgcolor: "info.lighter",
+                          color: "info.main",
+                        }}
+                      >
+                        <LocalGasStation />
+                      </Box>
+                    </Box>
+                    <Typography
+                      variant="h4"
+                      fontWeight="bold"
+                      sx={{
+                        background:
+                          "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)",
+                        WebkitBackgroundClip: "text",
+                        WebkitTextFillColor: "transparent",
+                        backgroundClip: "text",
+                        mb: 0.5,
+                      }}
+                    >
                       ${voucherStats.totalAmount.toLocaleString()}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
@@ -592,64 +787,161 @@ const UserProfile: React.FC = () => {
 
               {/* Tabla de Vales */}
               {vouchers.length === 0 ? (
-                <Paper sx={{ p: 3, textAlign: "center" }}>
-                  <Typography color="text.secondary">
-                    No tienes vales solicitados. Haz clic en "Solicitar Vale"
-                    para comenzar.
+                <Box
+                  sx={{
+                    textAlign: "center",
+                    py: 8,
+                    px: 3,
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: 120,
+                      height: 120,
+                      borderRadius: "50%",
+                      bgcolor: "rgba(102, 126, 234, 0.1)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      margin: "0 auto",
+                      mb: 3,
+                    }}
+                  >
+                    <LocalGasStation sx={{ fontSize: 64, color: "#667eea" }} />
+                  </Box>
+                  <Typography variant="h6" fontWeight="bold" gutterBottom>
+                    No tienes vales solicitados
                   </Typography>
-                </Paper>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ mb: 3 }}
+                  >
+                    Haz clic en 'Solicitar Vale' para comenzar a gestionar tus
+                    vales de gas
+                  </Typography>
+                  <Button
+                    variant="contained"
+                    onClick={() => setOpenRequestDialog(true)}
+                    sx={{
+                      background:
+                        "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                      borderRadius: "12px",
+                      textTransform: "none",
+                      fontWeight: 600,
+                      "&:hover": {
+                        background:
+                          "linear-gradient(135deg, #5568d3 0%, #6a3f8f 100%)",
+                      },
+                    }}
+                  >
+                    Solicitar Mi Primer Vale
+                  </Button>
+                </Box>
               ) : (
-                <TableContainer component={Paper}>
+                <TableContainer
+                  component={Paper}
+                  sx={{
+                    borderRadius: "16px",
+                    overflow: "hidden",
+                    boxShadow: "0 2px 8px rgba(0, 0, 0, 0.05)",
+                  }}
+                >
                   <Table>
                     <TableHead>
-                      <TableRow>
-                        <TableCell>Fecha Solicitud</TableCell>
-                        <TableCell align="center">Kilos</TableCell>
-                        <TableCell align="center">Monto</TableCell>
-                        <TableCell align="center">Estado</TableCell>
-                        <TableCell>Notas</TableCell>
+                      <TableRow sx={{ bgcolor: "rgba(102, 126, 234, 0.05)" }}>
+                        <TableCell sx={{ fontWeight: 600 }}>
+                          Fecha Solicitud
+                        </TableCell>
+                        <TableCell align="center" sx={{ fontWeight: 600 }}>
+                          Kilos
+                        </TableCell>
+                        <TableCell align="center" sx={{ fontWeight: 600 }}>
+                          Monto
+                        </TableCell>
+                        <TableCell align="center" sx={{ fontWeight: 600 }}>
+                          Estado
+                        </TableCell>
+                        <TableCell sx={{ fontWeight: 600 }}>Notas</TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
                       {vouchers.map((voucher) => (
-                        <TableRow key={voucher.id}>
+                        <TableRow
+                          key={voucher.id}
+                          sx={{
+                            "&:hover": {
+                              bgcolor: "rgba(102, 126, 234, 0.02)",
+                            },
+                          }}
+                        >
                           <TableCell>
                             {new Date(voucher.requestDate).toLocaleDateString(
                               "es-ES"
                             )}
                           </TableCell>
                           <TableCell align="center">
-                            {voucher.kilos} kg
+                            <Typography fontWeight={600}>
+                              {voucher.kilos} kg
+                            </Typography>
                           </TableCell>
                           <TableCell align="center">
-                            {voucher.amount
-                              ? `$${voucher.amount.toLocaleString()}`
-                              : "-"}
+                            {voucher.amount ? (
+                              <Typography fontWeight={600} color="success.main">
+                                ${voucher.amount.toLocaleString()}
+                              </Typography>
+                            ) : (
+                              "-"
+                            )}
                           </TableCell>
                           <TableCell align="center">
                             <Chip
                               label={
                                 voucher.status === "pending"
-                                  ? "Pendiente"
+                                  ? "PENDIENTE"
                                   : voucher.status === "approved"
-                                    ? "Aprobado"
+                                    ? "APROBADO"
                                     : voucher.status === "rejected"
-                                      ? "Rechazado"
-                                      : "Entregado"
+                                      ? "RECHAZADO"
+                                      : "ENTREGADO"
                               }
                               size="small"
-                              color={
-                                voucher.status === "pending"
-                                  ? "warning"
-                                  : voucher.status === "approved"
-                                    ? "info"
-                                    : voucher.status === "rejected"
-                                      ? "error"
-                                      : "success"
-                              }
+                              sx={{
+                                bgcolor:
+                                  voucher.status === "pending"
+                                    ? "#f59e0b"
+                                    : voucher.status === "approved"
+                                      ? "#3b82f6"
+                                      : voucher.status === "rejected"
+                                        ? "#ef4444"
+                                        : "#22c55e",
+                                color: "#fff",
+                                fontWeight: 600,
+                                animation:
+                                  voucher.status === "pending"
+                                    ? "pulse 2s infinite"
+                                    : "none",
+                                "@keyframes pulse": {
+                                  "0%, 100%": { opacity: 1 },
+                                  "50%": { opacity: 0.7 },
+                                },
+                              }}
                             />
                           </TableCell>
-                          <TableCell>{voucher.notes || "-"}</TableCell>
+                          <TableCell>
+                            <Typography
+                              variant="body2"
+                              color="text.secondary"
+                              sx={{
+                                maxWidth: "200px",
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                whiteSpace: "nowrap",
+                              }}
+                            >
+                              {voucher.notes || "-"}
+                            </Typography>
+                          </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -658,43 +950,343 @@ const UserProfile: React.FC = () => {
               )}
             </>
           )}
-        </Box>
+        </Paper>
+
+        {/* Modal de Perfil */}
+        {showProfileModal && (
+          <Box
+            onClick={() => setShowProfileModal(false)}
+            sx={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              bgcolor: "rgba(0, 0, 0, 0.5)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 9999,
+              p: 3,
+            }}
+          >
+            <Box
+              onClick={(e) => e.stopPropagation()}
+              sx={{
+                bgcolor: "background.paper",
+                borderRadius: "20px",
+                maxWidth: 900,
+                width: "100%",
+                maxHeight: "90vh",
+                overflow: "auto",
+                boxShadow: "0 20px 60px rgba(0, 0, 0, 0.3)",
+                p: 4,
+              }}
+            >
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: { xs: "1fr", md: "300px 1fr" },
+                  gap: 4,
+                }}
+              >
+                {/* Avatar Section */}
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    textAlign: "center",
+                  }}
+                >
+                  <Box sx={{ position: "relative", mb: 3 }}>
+                    <Avatar
+                      src={avatarSrc}
+                      sx={{
+                        width: 150,
+                        height: 150,
+                        fontSize: 60,
+                        background:
+                          "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                        border: "4px solid rgba(102, 126, 234, 0.2)",
+                      }}
+                    >
+                      {profile?.name
+                        ? profile.name
+                            .split(" ")
+                            .map((n: string) => n[0])
+                            .join("")
+                            .toUpperCase()
+                        : "U"}
+                    </Avatar>
+
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleFileSelect}
+                      accept="image/*"
+                      style={{ display: "none" }}
+                    />
+
+                    <IconButton
+                      onClick={() => fileInputRef.current?.click()}
+                      sx={{
+                        position: "absolute",
+                        bottom: 8,
+                        right: 8,
+                        bgcolor: "primary.main",
+                        color: "white",
+                        "&:hover": { bgcolor: "primary.dark" },
+                        boxShadow: 3,
+                      }}
+                    >
+                      {uploading ? (
+                        <CircularProgress size={20} />
+                      ) : (
+                        <PhotoCamera />
+                      )}
+                    </IconButton>
+                  </Box>
+
+                  {uploading && (
+                    <Typography variant="body2" color="primary" sx={{ mb: 2 }}>
+                      Subiendo imagen...
+                    </Typography>
+                  )}
+
+                  <Typography variant="h5" fontWeight="bold" gutterBottom>
+                    {profile?.name}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" gutterBottom>
+                    {profile?.role === "admin" ? "ADMINISTRADOR" : "USUARIO"}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Último acceso:{" "}
+                    {profile?.lastLogin
+                      ? new Date(profile.lastLogin).toLocaleDateString("es-ES")
+                      : "Nunca"}
+                  </Typography>
+                </Box>
+
+                {/* Profile Form */}
+                <Box>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      mb: 3,
+                    }}
+                  >
+                    <Typography variant="h5" fontWeight="bold">
+                      Información Personal
+                    </Typography>
+
+                    {!editing ? (
+                      <Button
+                        variant="contained"
+                        startIcon={<Edit />}
+                        onClick={() => setEditing(true)}
+                        sx={{
+                          background:
+                            "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                          borderRadius: "12px",
+                          textTransform: "none",
+                          fontWeight: 600,
+                        }}
+                      >
+                        Editar
+                      </Button>
+                    ) : (
+                      <Box sx={{ display: "flex", gap: 1 }}>
+                        <Button
+                          variant="outlined"
+                          onClick={() => {
+                            setEditing(false);
+                            setFormData({
+                              name: profile?.name || "",
+                              email: profile?.email || "",
+                              rut: profile?.rut || "",
+                              address: profile?.address || "",
+                              phone: profile?.phone || "",
+                              comuna: profile?.comuna || "",
+                            });
+                          }}
+                          sx={{ borderRadius: "12px", textTransform: "none" }}
+                        >
+                          Cancelar
+                        </Button>
+                        <Button
+                          variant="contained"
+                          disabled={saving}
+                          onClick={handleUpdate}
+                          sx={{
+                            background:
+                              "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                            borderRadius: "12px",
+                            textTransform: "none",
+                          }}
+                        >
+                          {saving ? <CircularProgress size={20} /> : "Guardar"}
+                        </Button>
+                      </Box>
+                    )}
+                  </Box>
+
+                  <Box
+                    component="form"
+                    sx={{
+                      display: "grid",
+                      gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+                      gap: 3,
+                    }}
+                  >
+                    <TextField
+                      label="Nombre completo"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleChange}
+                      disabled={!editing}
+                      fullWidth
+                      required
+                      sx={{
+                        "& .MuiOutlinedInput-root": {
+                          borderRadius: "12px",
+                        },
+                      }}
+                    />
+                    <TextField
+                      label="Email"
+                      name="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      disabled={!editing}
+                      fullWidth
+                      required
+                      sx={{
+                        "& .MuiOutlinedInput-root": {
+                          borderRadius: "12px",
+                        },
+                      }}
+                    />
+                    <TextField
+                      label="RUT"
+                      name="rut"
+                      value={formData.rut}
+                      onChange={handleChange}
+                      disabled={!editing}
+                      fullWidth
+                      required
+                      sx={{
+                        "& .MuiOutlinedInput-root": {
+                          borderRadius: "12px",
+                        },
+                      }}
+                    />
+                    <TextField
+                      label="Dirección"
+                      name="address"
+                      value={formData.address}
+                      onChange={handleChange}
+                      disabled={!editing}
+                      fullWidth
+                      sx={{
+                        "& .MuiOutlinedInput-root": {
+                          borderRadius: "12px",
+                        },
+                      }}
+                    />
+                    <TextField
+                      label="Teléfono"
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleChange}
+                      disabled={!editing}
+                      fullWidth
+                      sx={{
+                        "& .MuiOutlinedInput-root": {
+                          borderRadius: "12px",
+                        },
+                      }}
+                    />
+                    <TextField
+                      label="Comuna"
+                      name="comuna"
+                      value={formData.comuna}
+                      onChange={handleChange}
+                      disabled={!editing}
+                      fullWidth
+                      sx={{
+                        "& .MuiOutlinedInput-root": {
+                          borderRadius: "12px",
+                        },
+                      }}
+                    />
+                  </Box>
+                </Box>
+              </Box>
+            </Box>
+          </Box>
+        )}
 
         {/* Dialog para solicitar vale */}
         <Dialog
           open={openRequestDialog}
           onClose={() => setOpenRequestDialog(false)}
+          PaperProps={{
+            sx: {
+              borderRadius: "20px",
+              minWidth: 400,
+            },
+          }}
         >
-          <DialogTitle>Solicitar Vale de Gas</DialogTitle>
+          <DialogTitle sx={{ fontWeight: "bold" }}>
+            Solicitar Vale de Gas
+          </DialogTitle>
           <DialogContent>
-            <Box sx={{ pt: 2, minWidth: 300 }}>
+            <Box sx={{ pt: 2 }}>
               <FormControl fullWidth>
                 <InputLabel>Cantidad de Kilos</InputLabel>
                 <Select
                   value={requestKilos}
                   label="Cantidad de Kilos"
                   onChange={(e) => setRequestKilos(Number(e.target.value))}
+                  sx={{ borderRadius: "12px" }}
                 >
                   <MenuItem value={15}>15 kg</MenuItem>
                   <MenuItem value={45}>45 kg</MenuItem>
                 </Select>
               </FormControl>
-              <Alert severity="info" sx={{ mt: 2 }}>
+              <Alert severity="info" sx={{ mt: 2, borderRadius: "12px" }}>
                 Tu solicitud será revisada por un administrador. Te
                 notificaremos cuando sea aprobada.
               </Alert>
             </Box>
           </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setOpenRequestDialog(false)}>
+          <DialogActions sx={{ p: 3 }}>
+            <Button
+              onClick={() => setOpenRequestDialog(false)}
+              sx={{ borderRadius: "12px", textTransform: "none" }}
+            >
               Cancelar
             </Button>
-            <Button onClick={handleRequestVoucher} variant="contained">
+            <Button
+              onClick={handleRequestVoucher}
+              variant="contained"
+              sx={{
+                background:
+                  "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                borderRadius: "12px",
+                textTransform: "none",
+                fontWeight: 600,
+              }}
+            >
               Solicitar
             </Button>
           </DialogActions>
         </Dialog>
-      </Paper>
+      </Box>
     </Box>
   );
 };
