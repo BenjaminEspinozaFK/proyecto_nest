@@ -28,17 +28,20 @@ import {
   Menu,
   ListItemIcon,
   ListItemText,
+  Switch,
+  FormControlLabel,
 } from "@mui/material";
 import {
   Edit,
   PhotoCamera,
   LocalGasStation,
   Add,
-  Brightness4,
-  Brightness7,
   AccountCircle,
   Settings,
   Logout,
+  Notifications,
+  Lock,
+  Palette,
 } from "@mui/icons-material";
 import { useAuth } from "./AuthContext";
 import { voucherService } from "../services/voucherService";
@@ -80,7 +83,20 @@ const UserProfile: React.FC<UserProfileProps> = ({ toggleTheme, isDark }) => {
   // Estados para menú de usuario
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
   const openMenu = Boolean(anchorEl);
+
+  // Estados para configuración
+  const [emailNotifications, setEmailNotifications] = useState(true);
+  const [voucherApprovedNotif, setVoucherApprovedNotif] = useState(true);
+  const [voucherRejectedNotif, setVoucherRejectedNotif] = useState(true);
+  const [voucherReadyNotif, setVoucherReadyNotif] = useState(true);
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [passwordSuccess, setPasswordSuccess] = useState("");
+  const [changingPassword, setChangingPassword] = useState(false);
 
   // Socket.IO para actualizaciones en tiempo real (usuario)
   const socket = useSocket(user?.id, false);
@@ -289,6 +305,67 @@ const UserProfile: React.FC<UserProfileProps> = ({ toggleTheme, isDark }) => {
     handleMenuClose();
   };
 
+  const handleOpenSettings = () => {
+    setShowSettingsModal(true);
+    handleMenuClose();
+  };
+
+  const handleChangePassword = async () => {
+    setPasswordError("");
+    setPasswordSuccess("");
+
+    if (!oldPassword || !newPassword || !confirmPassword) {
+      setPasswordError("Todos los campos son obligatorios");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setPasswordError("Las contraseñas nuevas no coinciden");
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      setPasswordError("La contraseña debe tener al menos 6 caracteres");
+      return;
+    }
+
+    setChangingPassword(true);
+
+    try {
+      const token = localStorage.getItem("authToken");
+      const response = await fetch(
+        "http://localhost:3001/auth/change-password",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            oldPassword,
+            newPassword,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        setPasswordError(errorData.message || "Error al cambiar la contraseña");
+        return;
+      }
+
+      setPasswordSuccess("Contraseña cambiada correctamente");
+      setOldPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setTimeout(() => setPasswordSuccess(""), 3000);
+    } catch (err) {
+      setPasswordError("Error al cambiar la contraseña");
+    } finally {
+      setChangingPassword(false);
+    }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem("authToken");
     window.location.href = "/login";
@@ -357,21 +434,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ toggleTheme, isDark }) => {
           </Box>
 
           <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
-            {toggleTheme && (
-              <IconButton
-                onClick={toggleTheme}
-                sx={{
-                  border: "1px solid",
-                  borderColor: "divider",
-                  "&:hover": {
-                    background: "rgba(102, 126, 234, 0.1)",
-                  },
-                }}
-              >
-                {isDark ? <Brightness7 /> : <Brightness4 />}
-              </IconButton>
-            )}
-
             {/* Avatar con menú desplegable */}
             <IconButton
               onClick={handleMenuOpen}
@@ -457,7 +519,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ toggleTheme, isDark }) => {
                 </ListItemIcon>
                 <ListItemText>Mi Perfil</ListItemText>
               </MenuItem>
-              <MenuItem onClick={handleMenuClose}>
+              <MenuItem onClick={handleOpenSettings}>
                 <ListItemIcon>
                   <Settings fontSize="small" />
                 </ListItemIcon>
@@ -527,8 +589,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ toggleTheme, isDark }) => {
               startIcon={<Add />}
               onClick={() => setOpenRequestDialog(true)}
               sx={{
-                background:
-                  "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
                 borderRadius: "12px",
                 textTransform: "none",
                 fontWeight: 600,
@@ -900,10 +961,10 @@ const UserProfile: React.FC<UserProfileProps> = ({ toggleTheme, isDark }) => {
                                 voucher.status === "pending"
                                   ? "PENDIENTE"
                                   : voucher.status === "approved"
-                                    ? "APROBADO"
-                                    : voucher.status === "rejected"
-                                      ? "RECHAZADO"
-                                      : "ENTREGADO"
+                                  ? "APROBADO"
+                                  : voucher.status === "rejected"
+                                  ? "RECHAZADO"
+                                  : "ENTREGADO"
                               }
                               size="small"
                               sx={{
@@ -911,10 +972,10 @@ const UserProfile: React.FC<UserProfileProps> = ({ toggleTheme, isDark }) => {
                                   voucher.status === "pending"
                                     ? "#f59e0b"
                                     : voucher.status === "approved"
-                                      ? "#3b82f6"
-                                      : voucher.status === "rejected"
-                                        ? "#ef4444"
-                                        : "#22c55e",
+                                    ? "#3b82f6"
+                                    : voucher.status === "rejected"
+                                    ? "#ef4444"
+                                    : "#22c55e",
                                 color: "#fff",
                                 fontWeight: 600,
                                 animation:
@@ -1057,7 +1118,11 @@ const UserProfile: React.FC<UserProfileProps> = ({ toggleTheme, isDark }) => {
                   <Typography variant="h5" fontWeight="bold" gutterBottom>
                     {profile?.name}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary" gutterBottom>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    gutterBottom
+                  >
                     {profile?.role === "admin" ? "ADMINISTRADOR" : "USUARIO"}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
@@ -1230,6 +1295,361 @@ const UserProfile: React.FC<UserProfileProps> = ({ toggleTheme, isDark }) => {
           </Box>
         )}
 
+        {/* Modal de Configuración */}
+        {showSettingsModal && (
+          <Box
+            onClick={() => setShowSettingsModal(false)}
+            sx={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              bgcolor: "rgba(0, 0, 0, 0.5)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 9999,
+              p: 3,
+            }}
+          >
+            <Box
+              onClick={(e) => e.stopPropagation()}
+              sx={{
+                bgcolor: "background.paper",
+                borderRadius: "20px",
+                maxWidth: 800,
+                width: "100%",
+                maxHeight: "90vh",
+                overflow: "auto",
+                boxShadow: "0 20px 60px rgba(0, 0, 0, 0.3)",
+              }}
+            >
+              <Paper
+                sx={{
+                  p: 4,
+                  borderRadius: "20px",
+                  boxShadow: "none",
+                }}
+              >
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    mb: 3,
+                  }}
+                >
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                    <Box
+                      sx={{
+                        width: 48,
+                        height: 48,
+                        borderRadius: "12px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        background:
+                          "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                        color: "white",
+                      }}
+                    >
+                      <Settings sx={{ fontSize: 28 }} />
+                    </Box>
+                    <Box>
+                      <Typography variant="h5" fontWeight="bold">
+                        Configuración
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Personaliza tu experiencia
+                      </Typography>
+                    </Box>
+                  </Box>
+                  <IconButton
+                    onClick={() => setShowSettingsModal(false)}
+                    sx={{
+                      "&:hover": { bgcolor: "action.hover" },
+                    }}
+                  >
+                    ✕
+                  </IconButton>
+                </Box>
+
+                <Divider sx={{ mb: 3 }} />
+
+                {/* Sección: Cambiar Contraseña */}
+                <Box sx={{ mb: 4 }}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                      mb: 2,
+                    }}
+                  >
+                    <Lock sx={{ color: "primary.main" }} />
+                    <Typography variant="h6" fontWeight="600">
+                      Cambiar Contraseña
+                    </Typography>
+                  </Box>
+
+                  {passwordError && (
+                    <Alert
+                      severity="error"
+                      sx={{ mb: 2, borderRadius: "12px" }}
+                    >
+                      {passwordError}
+                    </Alert>
+                  )}
+
+                  {passwordSuccess && (
+                    <Alert
+                      severity="success"
+                      sx={{ mb: 2, borderRadius: "12px" }}
+                    >
+                      {passwordSuccess}
+                    </Alert>
+                  )}
+
+                  <Box
+                    sx={{ display: "flex", flexDirection: "column", gap: 2 }}
+                  >
+                    <TextField
+                      label="Contraseña Actual"
+                      type="password"
+                      value={oldPassword}
+                      onChange={(e) => setOldPassword(e.target.value)}
+                      fullWidth
+                      sx={{
+                        "& .MuiOutlinedInput-root": {
+                          borderRadius: "12px",
+                        },
+                      }}
+                    />
+                    <TextField
+                      label="Nueva Contraseña"
+                      type="password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      fullWidth
+                      sx={{
+                        "& .MuiOutlinedInput-root": {
+                          borderRadius: "12px",
+                        },
+                      }}
+                    />
+                    <TextField
+                      label="Confirmar Nueva Contraseña"
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      fullWidth
+                      sx={{
+                        "& .MuiOutlinedInput-root": {
+                          borderRadius: "12px",
+                        },
+                      }}
+                    />
+                    <Button
+                      variant="contained"
+                      onClick={handleChangePassword}
+                      disabled={changingPassword}
+                      sx={{
+                        background:
+                          "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                        borderRadius: "12px",
+                        textTransform: "none",
+                        fontWeight: 600,
+                        py: 1.5,
+                      }}
+                    >
+                      {changingPassword ? (
+                        <CircularProgress size={24} color="inherit" />
+                      ) : (
+                        "Cambiar Contraseña"
+                      )}
+                    </Button>
+                  </Box>
+                </Box>
+
+                <Divider sx={{ mb: 4 }} />
+
+                {/* Sección: Notificaciones */}
+                <Box sx={{ mb: 4 }}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                      mb: 2,
+                    }}
+                  >
+                    <Notifications sx={{ color: "primary.main" }} />
+                    <Typography variant="h6" fontWeight="600">
+                      Notificaciones
+                    </Typography>
+                  </Box>
+
+                  <Box
+                    sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}
+                  >
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={emailNotifications}
+                          onChange={(e) =>
+                            setEmailNotifications(e.target.checked)
+                          }
+                          color="primary"
+                        />
+                      }
+                      label={
+                        <Box>
+                          <Typography variant="body1" fontWeight="500">
+                            Notificaciones por Email
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            Recibe actualizaciones importantes por correo
+                          </Typography>
+                        </Box>
+                      }
+                      sx={{ alignItems: "flex-start", m: 0 }}
+                    />
+
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={voucherApprovedNotif}
+                          onChange={(e) =>
+                            setVoucherApprovedNotif(e.target.checked)
+                          }
+                          color="primary"
+                          disabled={!emailNotifications}
+                        />
+                      }
+                      label={
+                        <Box>
+                          <Typography variant="body1" fontWeight="500">
+                            Vale Aprobado
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            Notificarme cuando un vale sea aprobado
+                          </Typography>
+                        </Box>
+                      }
+                      sx={{ alignItems: "flex-start", m: 0, ml: 4 }}
+                    />
+
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={voucherRejectedNotif}
+                          onChange={(e) =>
+                            setVoucherRejectedNotif(e.target.checked)
+                          }
+                          color="primary"
+                          disabled={!emailNotifications}
+                        />
+                      }
+                      label={
+                        <Box>
+                          <Typography variant="body1" fontWeight="500">
+                            Vale Rechazado
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            Notificarme cuando un vale sea rechazado
+                          </Typography>
+                        </Box>
+                      }
+                      sx={{ alignItems: "flex-start", m: 0, ml: 4 }}
+                    />
+
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={voucherReadyNotif}
+                          onChange={(e) =>
+                            setVoucherReadyNotif(e.target.checked)
+                          }
+                          color="primary"
+                          disabled={!emailNotifications}
+                        />
+                      }
+                      label={
+                        <Box>
+                          <Typography variant="body1" fontWeight="500">
+                            Vale Listo para Retiro
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            Notificarme cuando un vale esté entregado
+                          </Typography>
+                        </Box>
+                      }
+                      sx={{ alignItems: "flex-start", m: 0, ml: 4 }}
+                    />
+                  </Box>
+                </Box>
+
+                <Divider sx={{ mb: 4 }} />
+
+                {/* Sección: Apariencia */}
+                <Box sx={{ mb: 4 }}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                      mb: 2,
+                    }}
+                  >
+                    <Palette sx={{ color: "primary.main" }} />
+                    <Typography variant="h6" fontWeight="600">
+                      Apariencia
+                    </Typography>
+                  </Box>
+
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={isDark}
+                        onChange={toggleTheme}
+                        color="primary"
+                      />
+                    }
+                    label={
+                      <Box>
+                        <Typography variant="body1" fontWeight="500">
+                          Tema Oscuro
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          Activa el modo oscuro para reducir la fatiga visual
+                        </Typography>
+                      </Box>
+                    }
+                    sx={{ alignItems: "flex-start", m: 0 }}
+                  />
+                </Box>
+
+                <Box
+                  sx={{ display: "flex", justifyContent: "flex-end", mt: 3 }}
+                >
+                  <Button
+                    variant="outlined"
+                    onClick={() => setShowSettingsModal(false)}
+                    sx={{
+                      borderRadius: "12px",
+                      textTransform: "none",
+                      fontWeight: 600,
+                    }}
+                  >
+                    Cerrar
+                  </Button>
+                </Box>
+              </Paper>
+            </Box>
+          </Box>
+        )}
+
         {/* Dialog para solicitar vale */}
         <Dialog
           open={openRequestDialog}
@@ -1275,8 +1695,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ toggleTheme, isDark }) => {
               onClick={handleRequestVoucher}
               variant="contained"
               sx={{
-                background:
-                  "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
                 borderRadius: "12px",
                 textTransform: "none",
                 fontWeight: 600,

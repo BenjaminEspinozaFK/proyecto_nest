@@ -20,10 +20,13 @@ import {
   ListItemIcon,
   ListItemText,
   Divider,
+  Switch,
+  FormControlLabel,
+  TextField,
+  Alert,
+  CircularProgress,
 } from "@mui/material";
 import {
-  Brightness4,
-  Brightness7,
   People,
   Receipt,
   BarChart,
@@ -31,6 +34,9 @@ import {
   Settings,
   Logout,
   Add,
+  Notifications,
+  Lock,
+  Palette,
 } from "@mui/icons-material";
 import UserDetailModal from "./admin/UserDetailModal";
 import AdminStats from "./admin/Stats";
@@ -55,7 +61,20 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [openDetailModal, setOpenDetailModal] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [showProfile, setShowProfile] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
   const openMenu = Boolean(anchorEl);
+
+  // Estados para configuración
+  const [emailNotifications, setEmailNotifications] = useState(true);
+  const [systemAlerts, setSystemAlerts] = useState(true);
+  const [userCreatedNotif, setUserCreatedNotif] = useState(true);
+  const [voucherRequestNotif, setVoucherRequestNotif] = useState(true);
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [passwordSuccess, setPasswordSuccess] = useState("");
+  const [changingPassword, setChangingPassword] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -123,6 +142,67 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     handleMenuClose();
   };
 
+  const handleOpenSettings = () => {
+    setShowSettingsModal(true);
+    handleMenuClose();
+  };
+
+  const handleChangePassword = async () => {
+    setPasswordError("");
+    setPasswordSuccess("");
+
+    if (!oldPassword || !newPassword || !confirmPassword) {
+      setPasswordError("Todos los campos son obligatorios");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setPasswordError("Las contraseñas nuevas no coinciden");
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      setPasswordError("La contraseña debe tener al menos 6 caracteres");
+      return;
+    }
+
+    setChangingPassword(true);
+
+    try {
+      const token = localStorage.getItem("authToken");
+      const response = await fetch(
+        "http://localhost:3001/auth/change-password",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            oldPassword,
+            newPassword,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        setPasswordError(errorData.message || "Error al cambiar la contraseña");
+        return;
+      }
+
+      setPasswordSuccess("Contraseña cambiada correctamente");
+      setOldPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setTimeout(() => setPasswordSuccess(""), 3000);
+    } catch (err) {
+      setPasswordError("Error al cambiar la contraseña");
+    } finally {
+      setChangingPassword(false);
+    }
+  };
+
   return (
     <Box
       sx={{
@@ -164,34 +244,21 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </Box>
 
           <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
-            {toggleTheme && (
-              <IconButton
-                onClick={toggleTheme}
-                sx={{
-                  border: "1px solid",
-                  borderColor: "divider",
-                  "&:hover": {
-                    background: "rgba(102, 126, 234, 0.1)",
-                  },
-                }}
-              >
-                {isDark ? <Brightness7 /> : <Brightness4 />}
-              </IconButton>
-            )}
-
             {adminProfile?.role === "admin" && tabValue === 0 && (
               <Button
                 variant="contained"
                 startIcon={<Add />}
                 onClick={handleOpenCreate}
                 sx={{
-                  background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                  background:
+                    "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
                   borderRadius: "12px",
                   textTransform: "none",
                   fontWeight: 600,
                   px: 3,
                   "&:hover": {
-                    background: "linear-gradient(135deg, #5568d3 0%, #6a3f8f 100%)",
+                    background:
+                      "linear-gradient(135deg, #5568d3 0%, #6a3f8f 100%)",
                   },
                 }}
               >
@@ -205,7 +272,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
               sx={{
                 p: 0,
                 border: "3px solid transparent",
-                background: "linear-gradient(white, white) padding-box, linear-gradient(135deg, #667eea 0%, #764ba2 100%) border-box",
+                background:
+                  "linear-gradient(white, white) padding-box, linear-gradient(135deg, #667eea 0%, #764ba2 100%) border-box",
                 borderRadius: "50%",
                 transition: "transform 0.3s ease",
                 "&:hover": {
@@ -222,7 +290,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 sx={{
                   width: 48,
                   height: 48,
-                  background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                  background:
+                    "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
                   fontSize: "1.2rem",
                   fontWeight: "bold",
                 }}
@@ -278,7 +347,10 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
                   {adminProfile?.name || "Admin"}
                 </Typography>
-                <Typography variant="body2" sx={{ color: "text.secondary", fontSize: "0.85rem" }}>
+                <Typography
+                  variant="body2"
+                  sx={{ color: "text.secondary", fontSize: "0.85rem" }}
+                >
                   {adminProfile?.email}
                 </Typography>
               </Box>
@@ -289,7 +361,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 </ListItemIcon>
                 <ListItemText>Mi Perfil</ListItemText>
               </MenuItem>
-              <MenuItem onClick={handleMenuClose}>
+              <MenuItem onClick={handleOpenSettings}>
                 <ListItemIcon>
                   <Settings fontSize="small" />
                 </ListItemIcon>
@@ -347,8 +419,16 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
             }}
           >
             <Tab icon={<People />} iconPosition="start" label="Usuarios" />
-            <Tab icon={<Receipt />} iconPosition="start" label="Solicitudes de Vales" />
-            <Tab icon={<BarChart />} iconPosition="start" label="Estadísticas" />
+            <Tab
+              icon={<Receipt />}
+              iconPosition="start"
+              label="Solicitudes de Vales"
+            />
+            <Tab
+              icon={<BarChart />}
+              iconPosition="start"
+              label="Estadísticas"
+            />
           </Tabs>
         </Paper>
 
@@ -452,6 +532,359 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
               onClick={(e) => e.stopPropagation()}
             >
               <AdminProfile />
+            </Box>
+          </Box>
+        )}
+
+        {/* Modal de Configuración */}
+        {showSettingsModal && (
+          <Box
+            onClick={() => setShowSettingsModal(false)}
+            sx={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              bgcolor: "rgba(0, 0, 0, 0.5)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 9999,
+              p: 3,
+            }}
+          >
+            <Box
+              onClick={(e) => e.stopPropagation()}
+              sx={{
+                bgcolor: "background.paper",
+                borderRadius: "20px",
+                maxWidth: 800,
+                width: "100%",
+                maxHeight: "90vh",
+                overflow: "auto",
+                boxShadow: "0 20px 60px rgba(0, 0, 0, 0.3)",
+              }}
+            >
+              <Paper
+                sx={{
+                  p: 4,
+                  borderRadius: "20px",
+                  boxShadow: "none",
+                }}
+              >
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    mb: 3,
+                  }}
+                >
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                    <Box
+                      sx={{
+                        width: 48,
+                        height: 48,
+                        borderRadius: "12px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        background:
+                          "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                        color: "white",
+                      }}
+                    >
+                      <Settings sx={{ fontSize: 28 }} />
+                    </Box>
+                    <Box>
+                      <Typography variant="h5" fontWeight="bold">
+                        Configuración del Sistema
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Administra preferencias y seguridad
+                      </Typography>
+                    </Box>
+                  </Box>
+                  <IconButton
+                    onClick={() => setShowSettingsModal(false)}
+                    sx={{
+                      "&:hover": { bgcolor: "action.hover" },
+                    }}
+                  >
+                    ✕
+                  </IconButton>
+                </Box>
+
+                <Divider sx={{ mb: 3 }} />
+
+                {/* Sección: Cambiar Contraseña */}
+                <Box sx={{ mb: 4 }}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                      mb: 2,
+                    }}
+                  >
+                    <Lock sx={{ color: "primary.main" }} />
+                    <Typography variant="h6" fontWeight="600">
+                      Cambiar Contraseña
+                    </Typography>
+                  </Box>
+
+                  {passwordError && (
+                    <Alert
+                      severity="error"
+                      sx={{ mb: 2, borderRadius: "12px" }}
+                    >
+                      {passwordError}
+                    </Alert>
+                  )}
+
+                  {passwordSuccess && (
+                    <Alert
+                      severity="success"
+                      sx={{ mb: 2, borderRadius: "12px" }}
+                    >
+                      {passwordSuccess}
+                    </Alert>
+                  )}
+
+                  <Box
+                    sx={{ display: "flex", flexDirection: "column", gap: 2 }}
+                  >
+                    <TextField
+                      label="Contraseña Actual"
+                      type="password"
+                      value={oldPassword}
+                      onChange={(e) => setOldPassword(e.target.value)}
+                      fullWidth
+                      sx={{
+                        "& .MuiOutlinedInput-root": {
+                          borderRadius: "12px",
+                        },
+                      }}
+                    />
+                    <TextField
+                      label="Nueva Contraseña"
+                      type="password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      fullWidth
+                      sx={{
+                        "& .MuiOutlinedInput-root": {
+                          borderRadius: "12px",
+                        },
+                      }}
+                    />
+                    <TextField
+                      label="Confirmar Nueva Contraseña"
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      fullWidth
+                      sx={{
+                        "& .MuiOutlinedInput-root": {
+                          borderRadius: "12px",
+                        },
+                      }}
+                    />
+                    <Button
+                      variant="contained"
+                      onClick={handleChangePassword}
+                      disabled={changingPassword}
+                      sx={{
+                        background:
+                          "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                        borderRadius: "12px",
+                        textTransform: "none",
+                        fontWeight: 600,
+                        py: 1.5,
+                      }}
+                    >
+                      {changingPassword ? (
+                        <CircularProgress size={24} color="inherit" />
+                      ) : (
+                        "Cambiar Contraseña"
+                      )}
+                    </Button>
+                  </Box>
+                </Box>
+
+                <Divider sx={{ mb: 4 }} />
+
+                {/* Sección: Notificaciones del Sistema */}
+                <Box sx={{ mb: 4 }}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                      mb: 2,
+                    }}
+                  >
+                    <Notifications sx={{ color: "primary.main" }} />
+                    <Typography variant="h6" fontWeight="600">
+                      Notificaciones del Sistema
+                    </Typography>
+                  </Box>
+
+                  <Box
+                    sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}
+                  >
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={emailNotifications}
+                          onChange={(e) =>
+                            setEmailNotifications(e.target.checked)
+                          }
+                          color="primary"
+                        />
+                      }
+                      label={
+                        <Box>
+                          <Typography variant="body1" fontWeight="500">
+                            Notificaciones por Email
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            Recibe alertas importantes del sistema por correo
+                          </Typography>
+                        </Box>
+                      }
+                      sx={{ alignItems: "flex-start", m: 0 }}
+                    />
+
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={systemAlerts}
+                          onChange={(e) => setSystemAlerts(e.target.checked)}
+                          color="primary"
+                          disabled={!emailNotifications}
+                        />
+                      }
+                      label={
+                        <Box>
+                          <Typography variant="body1" fontWeight="500">
+                            Alertas del Sistema
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            Notificarme sobre errores o problemas del sistema
+                          </Typography>
+                        </Box>
+                      }
+                      sx={{ alignItems: "flex-start", m: 0, ml: 4 }}
+                    />
+
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={userCreatedNotif}
+                          onChange={(e) =>
+                            setUserCreatedNotif(e.target.checked)
+                          }
+                          color="primary"
+                          disabled={!emailNotifications}
+                        />
+                      }
+                      label={
+                        <Box>
+                          <Typography variant="body1" fontWeight="500">
+                            Nuevo Usuario Registrado
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            Notificarme cuando se registre un nuevo usuario
+                          </Typography>
+                        </Box>
+                      }
+                      sx={{ alignItems: "flex-start", m: 0, ml: 4 }}
+                    />
+
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={voucherRequestNotif}
+                          onChange={(e) =>
+                            setVoucherRequestNotif(e.target.checked)
+                          }
+                          color="primary"
+                          disabled={!emailNotifications}
+                        />
+                      }
+                      label={
+                        <Box>
+                          <Typography variant="body1" fontWeight="500">
+                            Nueva Solicitud de Vale
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            Notificarme cuando un usuario solicite un vale
+                          </Typography>
+                        </Box>
+                      }
+                      sx={{ alignItems: "flex-start", m: 0, ml: 4 }}
+                    />
+                  </Box>
+                </Box>
+
+                <Divider sx={{ mb: 4 }} />
+
+                {/* Sección: Apariencia */}
+                <Box sx={{ mb: 4 }}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                      mb: 2,
+                    }}
+                  >
+                    <Palette sx={{ color: "primary.main" }} />
+                    <Typography variant="h6" fontWeight="600">
+                      Apariencia
+                    </Typography>
+                  </Box>
+
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={isDark}
+                        onChange={toggleTheme}
+                        color="primary"
+                      />
+                    }
+                    label={
+                      <Box>
+                        <Typography variant="body1" fontWeight="500">
+                          Tema Oscuro
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          Activa el modo oscuro para reducir la fatiga visual
+                        </Typography>
+                      </Box>
+                    }
+                    sx={{ alignItems: "flex-start", m: 0 }}
+                  />
+                </Box>
+
+                <Box
+                  sx={{ display: "flex", justifyContent: "flex-end", mt: 3 }}
+                >
+                  <Button
+                    variant="outlined"
+                    onClick={() => setShowSettingsModal(false)}
+                    sx={{
+                      borderRadius: "12px",
+                      textTransform: "none",
+                      fontWeight: 600,
+                    }}
+                  >
+                    Cerrar
+                  </Button>
+                </Box>
+              </Paper>
             </Box>
           </Box>
         )}
