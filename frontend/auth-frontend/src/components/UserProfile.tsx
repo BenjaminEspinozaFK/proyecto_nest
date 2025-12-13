@@ -1095,16 +1095,23 @@ const UserProfile: React.FC<UserProfileProps> = ({ toggleTheme, isDark }) => {
                         position: "absolute",
                         bottom: 8,
                         right: 8,
-                        bgcolor: "primary.main",
-                        color: "white",
-                        "&:hover": { bgcolor: "primary.dark" },
-                        boxShadow: 3,
+                        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                        color: "#ffffff !important",
+                        "&:hover": { 
+                          background: "linear-gradient(135deg, #5568d3 0%, #6a3f8f 100%)",
+                          transform: "scale(1.1)",
+                        },
+                        boxShadow: "0 4px 12px rgba(102, 126, 234, 0.5)",
+                        transition: "all 0.3s ease",
+                        "& .MuiSvgIcon-root": {
+                          color: "#ffffff",
+                        },
                       }}
                     >
                       {uploading ? (
-                        <CircularProgress size={20} />
+                        <CircularProgress size={20} sx={{ color: "#ffffff" }} />
                       ) : (
-                        <PhotoCamera />
+                        <PhotoCamera sx={{ color: "#ffffff" }} />
                       )}
                     </IconButton>
                   </Box>
@@ -1240,9 +1247,10 @@ const UserProfile: React.FC<UserProfileProps> = ({ toggleTheme, isDark }) => {
                       name="rut"
                       value={formData.rut}
                       onChange={handleChange}
-                      disabled={!editing}
+                      disabled={true}
                       fullWidth
                       required
+                      helperText="El RUT no puede ser modificado"
                       sx={{
                         "& .MuiOutlinedInput-root": {
                           borderRadius: "12px",
