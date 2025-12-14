@@ -12,14 +12,37 @@ import {
   TableHead,
   TableRow,
   CircularProgress,
+  ToggleButtonGroup,
+  ToggleButton,
+  Chip,
 } from "@mui/material";
 import {
-  People,
-  PersonAdd,
-  TrendingUp,
-  AdminPanelSettings,
+  CalendarToday,
+  CalendarMonth,
+  DateRange,
+  LocalGasStation,
+  HourglassEmpty,
+  CheckCircle,
+  AttachMoney,
 } from "@mui/icons-material";
 import { adminService } from "../../services/adminService";
+import { voucherService } from "../../services/voucherService";
+import { GasVoucher } from "../../types/voucher";
+import {
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 
 interface Stats {
   totalUsers: number;
@@ -46,40 +69,18 @@ interface Stats {
   }>;
 }
 
-const StatsCard: React.FC<{
-  title: string;
-  value: number;
-  icon: React.ReactNode;
-  color: string;
-}> = ({ title, value, icon, color }) => (
-  <Card
-    sx={{
-      background: `linear-gradient(135deg, ${color}33 0%, ${color}11 100%)`,
-      border: `1px solid ${color}44`,
-    }}
-  >
-    <CardContent>
-      <Box display="flex" justifyContent="space-between" alignItems="center">
-        <Box>
-          <Typography variant="body2" color="text.secondary" gutterBottom>
-            {title}
-          </Typography>
-          <Typography variant="h4" fontWeight="bold" color={color}>
-            {value}
-          </Typography>
-        </Box>
-        <Box sx={{ color, fontSize: 48, opacity: 0.8 }}>{icon}</Box>
-      </Box>
-    </CardContent>
-  </Card>
-);
+const CHART_COLORS = ["#667eea", "#764ba2", "#22c55e", "#f59e0b", "#3b82f6"];
 
 const AdminStats: React.FC = () => {
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [timeRange, setTimeRange] = useState<"day" | "week" | "month">("week");
+  const [allVouchers, setAllVouchers] = useState<GasVoucher[]>([]);
+  const [voucherStats, setVoucherStats] = useState<any>(null);
 
   useEffect(() => {
     fetchStats();
+    fetchVoucherData();
   }, []);
 
   const fetchStats = async () => {
@@ -90,6 +91,19 @@ const AdminStats: React.FC = () => {
       console.error("Error fetching stats:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchVoucherData = async () => {
+    try {
+      const [vouchers, vStats] = await Promise.all([
+        voucherService.getAllVouchers(),
+        voucherService.getGeneralStats(),
+      ]);
+      setAllVouchers(vouchers);
+      setVoucherStats(vStats);
+    } catch (error) {
+      console.error("Error fetching voucher data:", error);
     }
   };
 
@@ -112,25 +126,142 @@ const AdminStats: React.FC = () => {
     );
   }
 
+  // Preparar datos para gráficos de VALES
+  const voucherStatusData = [
+    {
+      name: "Pendientes",
+      value: allVouchers.filter((v) => v.status === "pending").length,
+      color: "#f59e0b",
+    },
+    {
+      name: "Aprobados",
+      value: allVouchers.filter((v) => v.status === "approved").length,
+      color: "#3b82f6",
+    },
+    {
+      name: "Rechazados",
+      value: allVouchers.filter((v) => v.status === "rejected").length,
+      color: "#ef4444",
+    },
+    {
+      name: "Entregados",
+      value: allVouchers.filter((v) => v.status === "delivered").length,
+      color: "#22c55e",
+    },
+  ];
+
+  const voucherKilosData = [
+    {
+      name: "15 kg",
+      cantidad: allVouchers.filter((v) => v.kilos === 15).length,
+      monto: allVouchers
+        .filter((v) => v.kilos === 15)
+        .reduce((acc, v) => acc + (v.amount || 0), 0),
+    },
+    {
+      name: "45 kg",
+      cantidad: allVouchers.filter((v) => v.kilos === 45).length,
+      monto: allVouchers
+        .filter((v) => v.kilos === 45)
+        .reduce((acc, v) => acc + (v.amount || 0), 0),
+    },
+  ];
+
+  // Agrupar vales por mes (últimos 6 meses)
+  const monthlyVoucherData = () => {
+    const months = ["Ene", "Feb", "Mar", "Abr", "May", "Jun"];
+    const currentMonth = new Date().getMonth();
+
+    return months.map((month, index) => {
+      const monthIndex = (currentMonth - 5 + index + 12) % 12;
+      const vouchersInMonth = allVouchers.filter((v) => {
+        const voucherMonth = new Date(v.requestDate).getMonth();
+        return voucherMonth === monthIndex;
+      });
+
+      return {
+        mes: month,
+        vales: vouchersInMonth.length,
+        pendientes: vouchersInMonth.filter((v) => v.status === "pending")
+          .length,
+        aprobados: vouchersInMonth.filter((v) => v.status === "approved")
+          .length,
+        entregados: vouchersInMonth.filter((v) => v.status === "delivered")
+          .length,
+      };
+    });
+  };
+
+  const totalAmount = allVouchers.reduce((acc, v) => acc + (v.amount || 0), 0);
+  const totalKilos = allVouchers.reduce((acc, v) => acc + v.kilos, 0);
+
   return (
     <Box>
-      <Typography variant="h4" gutterBottom fontWeight="bold" mb={3}>
-        <Box
-          component="span"
+      {/* Header con filtros */}
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 4,
+          flexWrap: "wrap",
+          gap: 2,
+        }}
+      >
+        <Box>
+          <Typography variant="h4" fontWeight="bold" gutterBottom>
+            <Box
+              component="span"
+              sx={{
+                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}
+            >
+              📊 Estadísticas de Vales de Gas
+            </Box>
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Monitoreo en tiempo real de vales y distribución
+          </Typography>
+        </Box>
+
+        <ToggleButtonGroup
+          value={timeRange}
+          exclusive
+          onChange={(_, newValue) => newValue && setTimeRange(newValue)}
+          size="small"
           sx={{
-            background: "none !important",
-            backgroundClip: "unset !important",
-            WebkitBackgroundClip: "unset !important",
-            textFillColor: "currentColor !important",
-            WebkitTextFillColor: "currentColor !important",
-            color: "text.primary !important",
-            display: "inline-block",
+            "& .MuiToggleButton-root": {
+              borderRadius: "12px",
+              textTransform: "none",
+              fontWeight: 600,
+              "&.Mui-selected": {
+                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                color: "white",
+                "&:hover": {
+                  background:
+                    "linear-gradient(135deg, #5568d3 0%, #6a3f8f 100%)",
+                },
+              },
+            },
           }}
         >
-          📊
-        </Box>{" "}
-        Estadísticas del Sistema
-      </Typography>
+          <ToggleButton value="day">
+            <CalendarToday sx={{ mr: 0.5, fontSize: 18 }} />
+            Hoy
+          </ToggleButton>
+          <ToggleButton value="week">
+            <DateRange sx={{ mr: 0.5, fontSize: 18 }} />
+            Semana
+          </ToggleButton>
+          <ToggleButton value="month">
+            <CalendarMonth sx={{ mr: 0.5, fontSize: 18 }} />
+            Mes
+          </ToggleButton>
+        </ToggleButtonGroup>
+      </Box>
 
       {/* Cards de estadísticas principales */}
       <Box
@@ -145,63 +276,440 @@ const AdminStats: React.FC = () => {
           mb: 4,
         }}
       >
-        <StatsCard
-          title="Total Usuarios"
-          value={stats.totalUsers}
-          icon={<People />}
-          color="#1976d2"
-        />
-        <StatsCard
-          title="Administradores"
-          value={stats.totalAdmins}
-          icon={<AdminPanelSettings />}
-          color="#9c27b0"
-        />
-        <StatsCard
-          title="Usuarios Hoy"
-          value={stats.usersToday}
-          icon={<PersonAdd />}
-          color="#2e7d32"
-        />
-        <StatsCard
-          title="Esta Semana"
-          value={stats.usersThisWeek}
-          icon={<TrendingUp />}
-          color="#ed6c02"
-        />
+        <Card
+          sx={{
+            background: "linear-gradient(135deg, #667eea22 0%, #764ba211 100%)",
+            border: "1px solid #667eea44",
+            borderRadius: "16px",
+            transition: "transform 0.3s ease, box-shadow 0.3s ease",
+            "&:hover": {
+              transform: "translateY(-8px)",
+              boxShadow: "0 12px 24px rgba(102, 126, 234, 0.2)",
+            },
+          }}
+        >
+          <CardContent>
+            <Box
+              display="flex"
+              justifyContent="space-between"
+              alignItems="center"
+            >
+              <Box>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  gutterBottom
+                  fontWeight={600}
+                >
+                  Total Vales
+                </Typography>
+                <Typography
+                  variant="h3"
+                  fontWeight="bold"
+                  sx={{ color: "#667eea" }}
+                >
+                  {voucherStats?.total || allVouchers.length}
+                </Typography>
+                <Chip
+                  label={`${totalKilos.toLocaleString()} kg`}
+                  size="small"
+                  sx={{
+                    mt: 1,
+                    bgcolor: "#667eea22",
+                    color: "#667eea",
+                    fontWeight: 600,
+                  }}
+                />
+              </Box>
+              <Box
+                sx={{
+                  width: 64,
+                  height: 64,
+                  borderRadius: "16px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  background:
+                    "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                }}
+              >
+                <LocalGasStation sx={{ fontSize: 36, color: "white" }} />
+              </Box>
+            </Box>
+          </CardContent>
+        </Card>
+
+        <Card
+          sx={{
+            background: "linear-gradient(135deg, #764ba222 0%, #667eea11 100%)",
+            border: "1px solid #764ba244",
+            borderRadius: "16px",
+            transition: "transform 0.3s ease, box-shadow 0.3s ease",
+            "&:hover": {
+              transform: "translateY(-8px)",
+              boxShadow: "0 12px 24px rgba(118, 75, 162, 0.2)",
+            },
+          }}
+        >
+          <CardContent>
+            <Box
+              display="flex"
+              justifyContent="space-between"
+              alignItems="center"
+            >
+              <Box>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  gutterBottom
+                  fontWeight={600}
+                >
+                  Pendientes
+                </Typography>
+                <Typography
+                  variant="h3"
+                  fontWeight="bold"
+                  sx={{ color: "#764ba2" }}
+                >
+                  {voucherStats?.pending ||
+                    allVouchers.filter((v) => v.status === "pending").length}
+                </Typography>
+                <Chip
+                  label="Por revisar"
+                  size="small"
+                  sx={{
+                    mt: 1,
+                    bgcolor: "#764ba222",
+                    color: "#764ba2",
+                    fontWeight: 600,
+                  }}
+                />
+              </Box>
+              <Box
+                sx={{
+                  width: 64,
+                  height: 64,
+                  borderRadius: "16px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  background:
+                    "linear-gradient(135deg, #764ba2 0%, #667eea 100%)",
+                }}
+              >
+                <HourglassEmpty sx={{ fontSize: 36, color: "white" }} />
+              </Box>
+            </Box>
+          </CardContent>
+        </Card>
+
+        <Card
+          sx={{
+            background: "linear-gradient(135deg, #22c55e22 0%, #16a34a11 100%)",
+            border: "1px solid #22c55e44",
+            borderRadius: "16px",
+            transition: "transform 0.3s ease, box-shadow 0.3s ease",
+            "&:hover": {
+              transform: "translateY(-8px)",
+              boxShadow: "0 12px 24px rgba(34, 197, 94, 0.2)",
+            },
+          }}
+        >
+          <CardContent>
+            <Box
+              display="flex"
+              justifyContent="space-between"
+              alignItems="center"
+            >
+              <Box>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  gutterBottom
+                  fontWeight={600}
+                >
+                  Entregados
+                </Typography>
+                <Typography
+                  variant="h3"
+                  fontWeight="bold"
+                  sx={{ color: "#22c55e" }}
+                >
+                  {voucherStats?.delivered ||
+                    allVouchers.filter((v) => v.status === "delivered").length}
+                </Typography>
+                <Chip
+                  label="Completados"
+                  size="small"
+                  sx={{
+                    mt: 1,
+                    bgcolor: "#22c55e22",
+                    color: "#22c55e",
+                    fontWeight: 600,
+                  }}
+                />
+              </Box>
+              <Box
+                sx={{
+                  width: 64,
+                  height: 64,
+                  borderRadius: "16px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  background:
+                    "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)",
+                }}
+              >
+                <CheckCircle sx={{ fontSize: 36, color: "white" }} />
+              </Box>
+            </Box>
+          </CardContent>
+        </Card>
+
+        <Card
+          sx={{
+            background:
+              "linear-gradient(135deg, #f59e0b22 0%, #d97706 11 100%)",
+            border: "1px solid #f59e0b44",
+            borderRadius: "16px",
+            transition: "transform 0.3s ease, box-shadow 0.3s ease",
+            "&:hover": {
+              transform: "translateY(-8px)",
+              boxShadow: "0 12px 24px rgba(245, 158, 11, 0.2)",
+            },
+          }}
+        >
+          <CardContent>
+            <Box
+              display="flex"
+              justifyContent="space-between"
+              alignItems="center"
+            >
+              <Box>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  gutterBottom
+                  fontWeight={600}
+                >
+                  Monto Total
+                </Typography>
+                <Typography
+                  variant="h3"
+                  fontWeight="bold"
+                  sx={{ color: "#f59e0b" }}
+                >
+                  ${(voucherStats?.totalAmount || totalAmount).toLocaleString()}
+                </Typography>
+                <Chip
+                  label="Distribuido"
+                  size="small"
+                  sx={{
+                    mt: 1,
+                    bgcolor: "#f59e0b22",
+                    color: "#f59e0b",
+                    fontWeight: 600,
+                  }}
+                />
+              </Box>
+              <Box
+                sx={{
+                  width: 64,
+                  height: 64,
+                  borderRadius: "16px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  background:
+                    "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
+                }}
+              >
+                <AttachMoney sx={{ fontSize: 36, color: "white" }} />
+              </Box>
+            </Box>
+          </CardContent>
+        </Card>
       </Box>
 
+      {/* Gráficos Principales */}
       <Box
         sx={{
           display: "grid",
-          gridTemplateColumns: { xs: "1fr", md: "1fr 2fr" },
+          gridTemplateColumns: { xs: "1fr", lg: "repeat(2, 1fr)" },
           gap: 3,
           mb: 3,
         }}
       >
-        {/* Usuarios por rol */}
-        <Paper sx={{ p: 3 }}>
-          <Typography variant="h6" gutterBottom fontWeight="bold">
-            Usuarios por Rol
+        {/* Gráfico de Distribución de Vales por Estado (Pie Chart) */}
+        <Paper
+          sx={{
+            p: 3,
+            borderRadius: "20px",
+            boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)",
+          }}
+        >
+          <Typography variant="h6" gutterBottom fontWeight="bold" mb={2}>
+            📊 Estado de Vales
           </Typography>
-          {stats.usersByRole.map((item) => (
-            <Box
-              key={item.role}
-              display="flex"
-              justifyContent="space-between"
-              alignItems="center"
-              mb={2}
-            >
-              <Typography variant="body1" textTransform="capitalize">
-                {item.role}
-              </Typography>
-              <Typography variant="h6" fontWeight="bold" color="primary.main">
-                {item.count}
-              </Typography>
-            </Box>
-          ))}
+          <ResponsiveContainer width="100%" height={300}>
+            <PieChart>
+              <Pie
+                data={voucherStatusData}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                label={({ name, percent }) =>
+                  `${name}: ${((percent || 0) * 100).toFixed(0)}%`
+                }
+                outerRadius={100}
+                fill="#8884d8"
+                dataKey="value"
+              >
+                {voucherStatusData.map((entry, index) => (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={
+                      entry.color || CHART_COLORS[index % CHART_COLORS.length]
+                    }
+                  />
+                ))}
+              </Pie>
+              <Tooltip />
+              <Legend />
+            </PieChart>
+          </ResponsiveContainer>
         </Paper>
 
+        {/* Gráfico de Distribución por Kilos (Bar Chart) */}
+        <Paper
+          sx={{
+            p: 3,
+            borderRadius: "20px",
+            boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)",
+          }}
+        >
+          <Typography variant="h6" gutterBottom fontWeight="bold" mb={2}>
+            📈 Distribución por Kilos
+          </Typography>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={voucherKilosData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+              <XAxis dataKey="name" stroke="#666" />
+              <YAxis stroke="#666" />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "#fff",
+                  border: "1px solid #ddd",
+                  borderRadius: "8px",
+                }}
+                formatter={(value, name) => {
+                  if (name === "monto")
+                    return [`$${value.toLocaleString()}`, "Monto"];
+                  return [value, "Cantidad"];
+                }}
+              />
+              <Legend />
+              <Bar
+                dataKey="cantidad"
+                fill="url(#colorGradient1)"
+                radius={[8, 8, 0, 0]}
+              />
+              <Bar
+                dataKey="monto"
+                fill="url(#colorGradient2)"
+                radius={[8, 8, 0, 0]}
+              />
+              <defs>
+                <linearGradient id="colorGradient1" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#667eea" stopOpacity={1} />
+                  <stop offset="100%" stopColor="#764ba2" stopOpacity={1} />
+                </linearGradient>
+                <linearGradient id="colorGradient2" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#22c55e" stopOpacity={1} />
+                  <stop offset="100%" stopColor="#16a34a" stopOpacity={1} />
+                </linearGradient>
+              </defs>
+            </BarChart>
+          </ResponsiveContainer>
+        </Paper>
+      </Box>
+
+      {/* Gráfico de Tendencia de Vales (Area Chart) */}
+      <Paper
+        sx={{
+          p: 3,
+          borderRadius: "20px",
+          boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)",
+          mb: 3,
+        }}
+      >
+        <Typography variant="h6" gutterBottom fontWeight="bold" mb={2}>
+          📉 Tendencia de Solicitudes (Últimos 6 Meses)
+        </Typography>
+        <ResponsiveContainer width="100%" height={300}>
+          <AreaChart data={monthlyVoucherData()}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+            <XAxis dataKey="mes" stroke="#666" />
+            <YAxis stroke="#666" />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: "#fff",
+                border: "1px solid #ddd",
+                borderRadius: "8px",
+              }}
+            />
+            <Legend />
+            <Area
+              type="monotone"
+              dataKey="vales"
+              stroke="#667eea"
+              fill="url(#areaGradient)"
+              strokeWidth={2}
+              name="Total Vales"
+            />
+            <Area
+              type="monotone"
+              dataKey="pendientes"
+              stroke="#f59e0b"
+              fill="url(#areaGradient2)"
+              strokeWidth={2}
+              name="Pendientes"
+            />
+            <Area
+              type="monotone"
+              dataKey="entregados"
+              stroke="#22c55e"
+              fill="url(#areaGradient3)"
+              strokeWidth={2}
+              name="Entregados"
+            />
+            <defs>
+              <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#667eea" stopOpacity={0.8} />
+                <stop offset="100%" stopColor="#764ba2" stopOpacity={0.2} />
+              </linearGradient>
+              <linearGradient id="areaGradient2" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#f59e0b" stopOpacity={0.6} />
+                <stop offset="100%" stopColor="#d97706" stopOpacity={0.1} />
+              </linearGradient>
+              <linearGradient id="areaGradient3" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#22c55e" stopOpacity={0.6} />
+                <stop offset="100%" stopColor="#16a34a" stopOpacity={0.1} />
+              </linearGradient>
+            </defs>
+          </AreaChart>
+        </ResponsiveContainer>
+      </Paper>
+
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
+          gap: 3,
+          mb: 3,
+        }}
+      >
         {/* Usuarios recientes */}
         <Paper sx={{ p: 3 }}>
           <Typography variant="h6" gutterBottom fontWeight="bold" mb={2}>
