@@ -559,9 +559,7 @@ const AdminStats: React.FC = () => {
                 cx="50%"
                 cy="50%"
                 labelLine={false}
-                label={({ name, percent }) =>
-                  `${name}: ${((percent || 0) * 100).toFixed(0)}%`
-                }
+                label={false}
                 outerRadius={100}
                 fill="#8884d8"
                 dataKey="value"
@@ -575,7 +573,9 @@ const AdminStats: React.FC = () => {
                   />
                 ))}
               </Pie>
-              <Tooltip />
+              <Tooltip 
+                formatter={(value, name) => [`${value} vales`, name]}
+              />
               <Legend />
             </PieChart>
           </ResponsiveContainer>
@@ -705,15 +705,21 @@ const AdminStats: React.FC = () => {
       <Box
         sx={{
           display: "grid",
-          gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
+          gridTemplateColumns: { xs: "1fr", lg: "1fr 1fr" },
           gap: 3,
           mb: 3,
         }}
       >
         {/* Usuarios recientes */}
-        <Paper sx={{ p: 3 }}>
+        <Paper 
+          sx={{ 
+            p: 3,
+            borderRadius: "20px",
+            boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)",
+          }}
+        >
           <Typography variant="h6" gutterBottom fontWeight="bold" mb={2}>
-            Últimos Usuarios Registrados
+            👥 Últimos Usuarios Registrados
           </Typography>
           <TableContainer>
             <Table>
@@ -740,38 +746,44 @@ const AdminStats: React.FC = () => {
             </Table>
           </TableContainer>
         </Paper>
-      </Box>
 
-      {/* Últimos logins */}
-      <Paper sx={{ p: 3 }}>
-        <Typography variant="h6" gutterBottom fontWeight="bold" mb={2}>
-          Últimos Inicios de Sesión
-        </Typography>
-        <TableContainer>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell sx={{ fontWeight: "bold" }}>Nombre</TableCell>
-                <TableCell sx={{ fontWeight: "bold" }}>Email</TableCell>
-                <TableCell sx={{ fontWeight: "bold" }}>Último Login</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {stats.recentLogins.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell>{user.name}</TableCell>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell>
-                    {user.lastLogin
-                      ? new Date(user.lastLogin).toLocaleString()
-                      : "Nunca"}
-                  </TableCell>
+        {/* Últimos logins */}
+        <Paper 
+          sx={{ 
+            p: 3,
+            borderRadius: "20px",
+            boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)",
+          }}
+        >
+          <Typography variant="h6" gutterBottom fontWeight="bold" mb={2}>
+            🔐 Últimos Inicios de Sesión
+          </Typography>
+          <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell sx={{ fontWeight: "bold" }}>Nombre</TableCell>
+                  <TableCell sx={{ fontWeight: "bold" }}>Email</TableCell>
+                  <TableCell sx={{ fontWeight: "bold" }}>Último Login</TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Paper>
+              </TableHead>
+              <TableBody>
+                {stats.recentLogins.map((user) => (
+                  <TableRow key={user.id}>
+                    <TableCell>{user.name}</TableCell>
+                    <TableCell>{user.email}</TableCell>
+                    <TableCell>
+                      {user.lastLogin
+                        ? new Date(user.lastLogin).toLocaleString()
+                        : "Nunca"}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Paper>
+      </Box>
     </Box>
   );
 };
