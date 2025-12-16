@@ -15,6 +15,7 @@ import {
   ToggleButtonGroup,
   ToggleButton,
   Chip,
+  useTheme,
 } from "@mui/material";
 import {
   CalendarToday,
@@ -72,6 +73,8 @@ interface Stats {
 const CHART_COLORS = ["#667eea", "#764ba2", "#22c55e", "#f59e0b", "#3b82f6"];
 
 const AdminStats: React.FC = () => {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === "dark";
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState<"day" | "week" | "month">("week");
@@ -546,23 +549,60 @@ const AdminStats: React.FC = () => {
           sx={{
             p: 3,
             borderRadius: "20px",
-            boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)",
+            boxShadow: isDark
+              ? "0 4px 20px rgba(0, 0, 0, 0.5)"
+              : "0 4px 20px rgba(0, 0, 0, 0.08)",
+            background: isDark
+              ? "linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)"
+              : "linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)",
+            transition: "transform 0.3s ease, box-shadow 0.3s ease",
+            "&:hover": {
+              transform: "translateY(-4px)",
+              boxShadow: isDark
+                ? "0 8px 30px rgba(102, 126, 234, 0.3)"
+                : "0 8px 30px rgba(102, 126, 234, 0.15)",
+            },
           }}
         >
-          <Typography variant="h6" gutterBottom fontWeight="bold" mb={2}>
+          <Typography
+            variant="h6"
+            gutterBottom
+            fontWeight="bold"
+            mb={2}
+            sx={{
+              background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+            }}
+          >
             📊 Estado de Vales
           </Typography>
-          <ResponsiveContainer width="100%" height={300}>
+          <ResponsiveContainer width="100%" height={320}>
             <PieChart>
+              <defs>
+                <filter id="shadow" height="200%">
+                  <feDropShadow
+                    dx="0"
+                    dy="4"
+                    stdDeviation="4"
+                    floodOpacity="0.3"
+                  />
+                </filter>
+              </defs>
               <Pie
                 data={voucherStatusData}
                 cx="50%"
                 cy="50%"
                 labelLine={false}
                 label={false}
-                outerRadius={100}
+                outerRadius={110}
+                innerRadius={60}
                 fill="#8884d8"
                 dataKey="value"
+                paddingAngle={2}
+                animationBegin={0}
+                animationDuration={800}
               >
                 {voucherStatusData.map((entry, index) => (
                   <Cell
@@ -570,13 +610,41 @@ const AdminStats: React.FC = () => {
                     fill={
                       entry.color || CHART_COLORS[index % CHART_COLORS.length]
                     }
+                    filter="url(#shadow)"
                   />
                 ))}
               </Pie>
-              <Tooltip 
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: isDark
+                    ? "rgba(30, 30, 30, 0.95)"
+                    : "rgba(255, 255, 255, 0.95)",
+                  color: isDark ? "#ffffff" : "#000000",
+                  border: "none",
+                  borderRadius: "12px",
+                  boxShadow: "0 4px 20px rgba(0, 0, 0, 0.15)",
+                  padding: "12px 16px",
+                }}
+                labelStyle={{
+                  color: isDark ? "#ffffff" : "#000000",
+                  fontWeight: 600,
+                }}
+                itemStyle={{
+                  color: isDark ? "#ffffff" : "#000000",
+                }}
                 formatter={(value, name) => [`${value} vales`, name]}
               />
-              <Legend />
+              <Legend
+                verticalAlign="bottom"
+                height={36}
+                iconType="circle"
+                wrapperStyle={{
+                  paddingTop: "20px",
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  color: isDark ? "#e0e0e0" : "#000000",
+                }}
+              />
             </PieChart>
           </ResponsiveContainer>
         </Paper>
@@ -586,22 +654,88 @@ const AdminStats: React.FC = () => {
           sx={{
             p: 3,
             borderRadius: "20px",
-            boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)",
+            boxShadow: isDark
+              ? "0 4px 20px rgba(0, 0, 0, 0.5)"
+              : "0 4px 20px rgba(0, 0, 0, 0.08)",
+            background: isDark
+              ? "linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)"
+              : "linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)",
+            transition: "transform 0.3s ease, box-shadow 0.3s ease",
+            "&:hover": {
+              transform: "translateY(-4px)",
+              boxShadow: isDark
+                ? "0 8px 30px rgba(102, 126, 234, 0.3)"
+                : "0 8px 30px rgba(102, 126, 234, 0.15)",
+            },
           }}
         >
-          <Typography variant="h6" gutterBottom fontWeight="bold" mb={2}>
+          <Typography
+            variant="h6"
+            gutterBottom
+            fontWeight="bold"
+            mb={2}
+            sx={{
+              background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+            }}
+          >
             📈 Distribución por Kilos
           </Typography>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={voucherKilosData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-              <XAxis dataKey="name" stroke="#666" />
-              <YAxis stroke="#666" />
+          <ResponsiveContainer width="100%" height={320}>
+            <BarChart
+              data={voucherKilosData}
+              margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+            >
+              <defs>
+                <linearGradient id="colorGradient1" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#667eea" stopOpacity={0.9} />
+                  <stop offset="100%" stopColor="#764ba2" stopOpacity={0.7} />
+                </linearGradient>
+                <linearGradient id="colorGradient2" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#22c55e" stopOpacity={0.9} />
+                  <stop offset="100%" stopColor="#16a34a" stopOpacity={0.7} />
+                </linearGradient>
+                <filter id="barShadow">
+                  <feDropShadow
+                    dx="0"
+                    dy="2"
+                    stdDeviation="3"
+                    floodOpacity="0.3"
+                  />
+                </filter>
+              </defs>
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke={isDark ? "#444" : "#e0e0e0"}
+                vertical={false}
+                opacity={0.5}
+              />
+              <XAxis
+                dataKey="name"
+                stroke={isDark ? "#e0e0e0" : "#666"}
+                style={{ fontSize: "14px", fontWeight: 600 }}
+              />
+              <YAxis
+                stroke={isDark ? "#e0e0e0" : "#666"}
+                style={{ fontSize: "12px" }}
+              />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: "#fff",
-                  border: "1px solid #ddd",
-                  borderRadius: "8px",
+                  backgroundColor: isDark
+                    ? "rgba(30, 30, 30, 0.95)"
+                    : "rgba(255, 255, 255, 0.95)",
+                  color: isDark ? "#ffffff" : "#000000",
+                  border: "none",
+                  borderRadius: "12px",
+                  boxShadow: "0 4px 20px rgba(0, 0, 0, 0.15)",
+                  padding: "12px 16px",
+                }}
+                cursor={{
+                  fill: isDark
+                    ? "rgba(102, 126, 234, 0.2)"
+                    : "rgba(102, 126, 234, 0.1)",
                 }}
                 formatter={(value, name) => {
                   if (name === "monto")
@@ -609,27 +743,31 @@ const AdminStats: React.FC = () => {
                   return [value, "Cantidad"];
                 }}
               />
-              <Legend />
+              <Legend
+                wrapperStyle={{
+                  paddingTop: "20px",
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  color: isDark ? "#e0e0e0" : "#000000",
+                }}
+                iconType="circle"
+              />
               <Bar
                 dataKey="cantidad"
                 fill="url(#colorGradient1)"
-                radius={[8, 8, 0, 0]}
+                radius={[12, 12, 0, 0]}
+                filter="url(#barShadow)"
+                animationBegin={0}
+                animationDuration={800}
               />
               <Bar
                 dataKey="monto"
                 fill="url(#colorGradient2)"
-                radius={[8, 8, 0, 0]}
+                radius={[12, 12, 0, 0]}
+                filter="url(#barShadow)"
+                animationBegin={200}
+                animationDuration={800}
               />
-              <defs>
-                <linearGradient id="colorGradient1" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#667eea" stopOpacity={1} />
-                  <stop offset="100%" stopColor="#764ba2" stopOpacity={1} />
-                </linearGradient>
-                <linearGradient id="colorGradient2" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#22c55e" stopOpacity={1} />
-                  <stop offset="100%" stopColor="#16a34a" stopOpacity={1} />
-                </linearGradient>
-              </defs>
             </BarChart>
           </ResponsiveContainer>
         </Paper>
@@ -640,64 +778,141 @@ const AdminStats: React.FC = () => {
         sx={{
           p: 3,
           borderRadius: "20px",
-          boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)",
+          boxShadow: isDark
+            ? "0 4px 20px rgba(0, 0, 0, 0.5)"
+            : "0 4px 20px rgba(0, 0, 0, 0.08)",
           mb: 3,
+          background: isDark
+            ? "linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)"
+            : "linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)",
+          transition: "transform 0.3s ease, box-shadow 0.3s ease",
+          "&:hover": {
+            transform: "translateY(-4px)",
+            boxShadow: isDark
+              ? "0 8px 30px rgba(102, 126, 234, 0.3)"
+              : "0 8px 30px rgba(102, 126, 234, 0.15)",
+          },
         }}
       >
-        <Typography variant="h6" gutterBottom fontWeight="bold" mb={2}>
+        <Typography
+          variant="h6"
+          gutterBottom
+          fontWeight="bold"
+          mb={2}
+          sx={{
+            background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            backgroundClip: "text",
+          }}
+        >
           📉 Tendencia de Solicitudes (Últimos 6 Meses)
         </Typography>
-        <ResponsiveContainer width="100%" height={300}>
-          <AreaChart data={monthlyVoucherData()}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-            <XAxis dataKey="mes" stroke="#666" />
-            <YAxis stroke="#666" />
+        <ResponsiveContainer width="100%" height={350}>
+          <AreaChart
+            data={monthlyVoucherData()}
+            margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+          >
+            <defs>
+              <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#667eea" stopOpacity={0.8} />
+                <stop offset="95%" stopColor="#764ba2" stopOpacity={0.1} />
+              </linearGradient>
+              <linearGradient id="areaGradient2" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.7} />
+                <stop offset="95%" stopColor="#d97706" stopOpacity={0.05} />
+              </linearGradient>
+              <linearGradient id="areaGradient3" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#22c55e" stopOpacity={0.7} />
+                <stop offset="95%" stopColor="#16a34a" stopOpacity={0.05} />
+              </linearGradient>
+              <filter id="areaShadow">
+                <feDropShadow
+                  dx="0"
+                  dy="2"
+                  stdDeviation="2"
+                  floodOpacity="0.2"
+                />
+              </filter>
+            </defs>
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke={isDark ? "#444" : "#e0e0e0"}
+              vertical={false}
+              opacity={0.5}
+            />
+            <XAxis
+              dataKey="mes"
+              stroke={isDark ? "#e0e0e0" : "#666"}
+              style={{ fontSize: "14px", fontWeight: 600 }}
+            />
+            <YAxis
+              stroke={isDark ? "#e0e0e0" : "#666"}
+              style={{ fontSize: "12px" }}
+            />
             <Tooltip
               contentStyle={{
-                backgroundColor: "#fff",
-                border: "1px solid #ddd",
-                borderRadius: "8px",
+                backgroundColor: isDark
+                  ? "rgba(30, 30, 30, 0.95)"
+                  : "rgba(255, 255, 255, 0.95)",
+                color: isDark ? "#ffffff" : "#000000",
+                border: "none",
+                borderRadius: "12px",
+                boxShadow: "0 4px 20px rgba(0, 0, 0, 0.15)",
+                padding: "12px 16px",
+              }}
+              cursor={{
+                stroke: "#667eea",
+                strokeWidth: 2,
+                strokeDasharray: "5 5",
               }}
             />
-            <Legend />
+            <Legend
+              wrapperStyle={{
+                paddingTop: "20px",
+                fontSize: "14px",
+                fontWeight: 600,
+                color: isDark ? "#e0e0e0" : "#000000",
+              }}
+              iconType="circle"
+            />
             <Area
               type="monotone"
               dataKey="vales"
               stroke="#667eea"
               fill="url(#areaGradient)"
-              strokeWidth={2}
+              strokeWidth={3}
               name="Total Vales"
+              filter="url(#areaShadow)"
+              animationBegin={0}
+              animationDuration={1000}
+              dot={{ fill: "#667eea", strokeWidth: 2, r: 5 }}
+              activeDot={{ r: 8, strokeWidth: 2 }}
             />
             <Area
               type="monotone"
               dataKey="pendientes"
               stroke="#f59e0b"
               fill="url(#areaGradient2)"
-              strokeWidth={2}
+              strokeWidth={3}
               name="Pendientes"
+              animationBegin={200}
+              animationDuration={1000}
+              dot={{ fill: "#f59e0b", strokeWidth: 2, r: 4 }}
+              activeDot={{ r: 7, strokeWidth: 2 }}
             />
             <Area
               type="monotone"
               dataKey="entregados"
               stroke="#22c55e"
               fill="url(#areaGradient3)"
-              strokeWidth={2}
+              strokeWidth={3}
               name="Entregados"
+              animationBegin={400}
+              animationDuration={1000}
+              dot={{ fill: "#22c55e", strokeWidth: 2, r: 4 }}
+              activeDot={{ r: 7, strokeWidth: 2 }}
             />
-            <defs>
-              <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#667eea" stopOpacity={0.8} />
-                <stop offset="100%" stopColor="#764ba2" stopOpacity={0.2} />
-              </linearGradient>
-              <linearGradient id="areaGradient2" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#f59e0b" stopOpacity={0.6} />
-                <stop offset="100%" stopColor="#d97706" stopOpacity={0.1} />
-              </linearGradient>
-              <linearGradient id="areaGradient3" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#22c55e" stopOpacity={0.6} />
-                <stop offset="100%" stopColor="#16a34a" stopOpacity={0.1} />
-              </linearGradient>
-            </defs>
           </AreaChart>
         </ResponsiveContainer>
       </Paper>
@@ -711,8 +926,8 @@ const AdminStats: React.FC = () => {
         }}
       >
         {/* Usuarios recientes */}
-        <Paper 
-          sx={{ 
+        <Paper
+          sx={{
             p: 3,
             borderRadius: "20px",
             boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)",
@@ -748,8 +963,8 @@ const AdminStats: React.FC = () => {
         </Paper>
 
         {/* Últimos logins */}
-        <Paper 
-          sx={{ 
+        <Paper
+          sx={{
             p: 3,
             borderRadius: "20px",
             boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)",
@@ -764,7 +979,9 @@ const AdminStats: React.FC = () => {
                 <TableRow>
                   <TableCell sx={{ fontWeight: "bold" }}>Nombre</TableCell>
                   <TableCell sx={{ fontWeight: "bold" }}>Email</TableCell>
-                  <TableCell sx={{ fontWeight: "bold" }}>Último Login</TableCell>
+                  <TableCell sx={{ fontWeight: "bold" }}>
+                    Último Login
+                  </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
