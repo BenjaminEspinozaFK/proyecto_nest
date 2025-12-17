@@ -738,6 +738,7 @@ const AdminStats: React.FC = () => {
                     : "rgba(102, 126, 234, 0.1)",
                 }}
                 formatter={(value, name) => {
+                  if (!value) return ["0", name];
                   if (name === "monto")
                     return [`$${value.toLocaleString()}`, "Monto"];
                   return [value, "Cantidad"];
