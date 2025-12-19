@@ -570,13 +570,24 @@ const AdminStats: React.FC = () => {
             fontWeight="bold"
             mb={2}
             sx={{
-              background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
+              color: isDark ? "#e0e0e0" : "#1a1a1a",
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
             }}
           >
-            📊 Estado de Vales
+            <Box component="span" sx={{ fontSize: "1.2em" }}>📊</Box>
+            <Box
+              component="span"
+              sx={{
+                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}
+            >
+              Estado de Vales
+            </Box>
           </Typography>
           <ResponsiveContainer width="100%" height={320}>
             <PieChart>
@@ -675,13 +686,24 @@ const AdminStats: React.FC = () => {
             fontWeight="bold"
             mb={2}
             sx={{
-              background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
+              color: isDark ? "#e0e0e0" : "#1a1a1a",
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
             }}
           >
-            📈 Distribución por Kilos
+            <Box component="span" sx={{ fontSize: "1.2em" }}>📈</Box>
+            <Box
+              component="span"
+              sx={{
+                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}
+            >
+              Distribución por Kilos
+            </Box>
           </Typography>
           <ResponsiveContainer width="100%" height={320}>
             <BarChart
@@ -801,13 +823,24 @@ const AdminStats: React.FC = () => {
           fontWeight="bold"
           mb={2}
           sx={{
-            background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-            backgroundClip: "text",
+            color: isDark ? "#e0e0e0" : "#1a1a1a",
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
           }}
         >
-          📉 Tendencia de Solicitudes (Últimos 6 Meses)
+          <Box component="span" sx={{ fontSize: "1.2em" }}>📉</Box>
+          <Box
+            component="span"
+            sx={{
+              background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+            }}
+          >
+            Tendencia de Solicitudes (Últimos 6 Meses)
+          </Box>
         </Typography>
         <ResponsiveContainer width="100%" height={350}>
           <AreaChart
@@ -934,8 +967,20 @@ const AdminStats: React.FC = () => {
             boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)",
           }}
         >
-          <Typography variant="h6" gutterBottom fontWeight="bold" mb={2}>
-            👥 Últimos Usuarios Registrados
+          <Typography
+            variant="h6"
+            gutterBottom
+            fontWeight="bold"
+            mb={2}
+            sx={{
+              color: isDark ? "#e0e0e0" : "#1a1a1a",
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+            }}
+          >
+            <Box component="span" sx={{ fontSize: "1.2em" }}>👥</Box>
+            <Box component="span">Últimos Usuarios Registrados</Box>
           </Typography>
           <TableContainer>
             <Table>
@@ -971,8 +1016,20 @@ const AdminStats: React.FC = () => {
             boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)",
           }}
         >
-          <Typography variant="h6" gutterBottom fontWeight="bold" mb={2}>
-            🔐 Últimos Inicios de Sesión
+          <Typography
+            variant="h6"
+            gutterBottom
+            fontWeight="bold"
+            mb={2}
+            sx={{
+              color: isDark ? "#e0e0e0" : "#1a1a1a",
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+            }}
+          >
+            <Box component="span" sx={{ fontSize: "1.2em" }}>🔐</Box>
+            <Box component="span">Últimos Inicios de Sesión</Box>
           </Typography>
           <TableContainer>
             <Table>
