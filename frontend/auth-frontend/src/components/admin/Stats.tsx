@@ -576,7 +576,9 @@ const AdminStats: React.FC = () => {
               gap: 1,
             }}
           >
-            <Box component="span" sx={{ fontSize: "1.2em" }}>📊</Box>
+            <Box component="span" sx={{ fontSize: "1.2em" }}>
+              📊
+            </Box>
             <Box
               component="span"
               sx={{
@@ -692,7 +694,9 @@ const AdminStats: React.FC = () => {
               gap: 1,
             }}
           >
-            <Box component="span" sx={{ fontSize: "1.2em" }}>📈</Box>
+            <Box component="span" sx={{ fontSize: "1.2em" }}>
+              📈
+            </Box>
             <Box
               component="span"
               sx={{
@@ -829,7 +833,9 @@ const AdminStats: React.FC = () => {
             gap: 1,
           }}
         >
-          <Box component="span" sx={{ fontSize: "1.2em" }}>📉</Box>
+          <Box component="span" sx={{ fontSize: "1.2em" }}>
+            📉
+          </Box>
           <Box
             component="span"
             sx={{
@@ -979,7 +985,9 @@ const AdminStats: React.FC = () => {
               gap: 1,
             }}
           >
-            <Box component="span" sx={{ fontSize: "1.2em" }}>👥</Box>
+            <Box component="span" sx={{ fontSize: "1.2em" }}>
+              👥
+            </Box>
             <Box component="span">Últimos Usuarios Registrados</Box>
           </Typography>
           <TableContainer>
@@ -1028,7 +1036,9 @@ const AdminStats: React.FC = () => {
               gap: 1,
             }}
           >
-            <Box component="span" sx={{ fontSize: "1.2em" }}>🔐</Box>
+            <Box component="span" sx={{ fontSize: "1.2em" }}>
+              🔐
+            </Box>
             <Box component="span">Últimos Inicios de Sesión</Box>
           </Typography>
           <TableContainer>
