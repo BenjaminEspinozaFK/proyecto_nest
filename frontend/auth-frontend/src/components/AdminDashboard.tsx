@@ -37,6 +37,7 @@ import {
   Notifications,
   Lock,
   Palette,
+  Search,
 } from "@mui/icons-material";
 import UserDetailModal from "./admin/UserDetailModal";
 import AdminStats from "./admin/Stats";
@@ -55,6 +56,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
 }) => {
   const [tabValue, setTabValue] = useState(0);
   const [users, setUsers] = useState<User[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const [adminProfile, setAdminProfile] = useState<any>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -434,6 +436,30 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
         {tabValue === 0 && (
           <>
+            <Box sx={{ mb: 3 }}>
+              <TextField
+                fullWidth
+                placeholder="Buscar usuario por nombre..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                InputProps={{
+                  startAdornment: (
+                    <Search sx={{ mr: 1, color: "text.secondary" }} />
+                  ),
+                }}
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: "12px",
+                    "&:hover fieldset": {
+                      borderColor: "#667eea",
+                    },
+                    "&.Mui-focused fieldset": {
+                      borderColor: "#667eea",
+                    },
+                  },
+                }}
+              />
+            </Box>
             <TableContainer
               component={Paper}
               sx={{
@@ -453,27 +479,38 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {users.map((user) => (
-                    <TableRow key={user.id}>
-                      <TableCell>{user.email}</TableCell>
-                      <TableCell>{user.name}</TableCell>
-                      <TableCell>{user.rut}</TableCell>
-                      <TableCell>{user.role}</TableCell>
-                      <TableCell align="center">
-                        <Button
-                          variant="contained"
-                          color="primary"
-                          size="small"
-                          onClick={() => {
-                            setSelectedUser(user);
-                            setOpenDetailModal(true);
-                          }}
-                        >
-                          Ver Perfil
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {users
+                    .filter((user) => {
+                      const normalizeText = (text: string) =>
+                        text
+                          .toLowerCase()
+                          .normalize("NFD")
+                          .replace(/[\u0300-\u036f]/g, "");
+                      return normalizeText(user.name).includes(
+                        normalizeText(searchTerm)
+                      );
+                    })
+                    .map((user) => (
+                      <TableRow key={user.id}>
+                        <TableCell>{user.email}</TableCell>
+                        <TableCell>{user.name}</TableCell>
+                        <TableCell>{user.rut}</TableCell>
+                        <TableCell>{user.role}</TableCell>
+                        <TableCell align="center">
+                          <Button
+                            variant="contained"
+                            color="primary"
+                            size="small"
+                            onClick={() => {
+                              setSelectedUser(user);
+                              setOpenDetailModal(true);
+                            }}
+                          >
+                            Ver Perfil
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
                 </TableBody>
               </Table>
             </TableContainer>
