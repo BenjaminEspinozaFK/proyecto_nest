@@ -25,6 +25,7 @@ import {
   HourglassEmpty,
   CheckCircle,
   AttachMoney,
+  BarChart as BarChartIcon,
 } from "@mui/icons-material";
 import { adminService } from "../../services/adminService";
 import { voucherService } from "../../services/voucherService";
@@ -212,7 +213,22 @@ const AdminStats: React.FC = () => {
         }}
       >
         <Box>
-          <Typography variant="h4" fontWeight="bold" gutterBottom>
+          <Typography
+            variant="h4"
+            fontWeight="bold"
+            gutterBottom
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+            }}
+          >
+            <BarChartIcon
+              sx={{
+                fontSize: "2rem",
+                color: isDark ? "#667eea" : "#764ba2",
+              }}
+            />
             <Box
               component="span"
               sx={{
@@ -222,7 +238,7 @@ const AdminStats: React.FC = () => {
                 backgroundClip: "text",
               }}
             >
-              📊 Estadísticas de Vales de Gas
+              Estadísticas de Vales de Gas
             </Box>
           </Typography>
           <Typography variant="body2" color="text.secondary">
