@@ -327,15 +327,45 @@ const AdminProfile: React.FC = () => {
               disabled={!editing}
             />
 
-            <TextField
-              fullWidth
-              label="RUT"
-              type="text"
-              value={formData.rut}
-              disabled={true}
-              placeholder="12345678-9"
-              helperText="El RUT no puede ser modificado"
-            />
+            <Box
+              sx={{
+                p: 2,
+                borderRadius: "12px",
+                bgcolor: "rgba(102, 126, 234, 0.1)",
+                border: "1px solid rgba(102, 126, 234, 0.3)",
+              }}
+            >
+              <Typography
+                variant="caption"
+                sx={{
+                  color: "text.secondary",
+                  fontWeight: 600,
+                  display: "block",
+                  mb: 0.5,
+                }}
+              >
+                RUT
+              </Typography>
+              <Typography
+                variant="body1"
+                sx={{
+                  fontWeight: 500,
+                  color: "text.primary",
+                }}
+              >
+                {formData.rut || "No especificado"}
+              </Typography>
+              <Typography
+                variant="caption"
+                sx={{
+                  color: "text.secondary",
+                  display: "block",
+                  mt: 0.5,
+                }}
+              >
+                El RUT no puede ser modificado
+              </Typography>
+            </Box>
 
             {editing && (
               <TextField

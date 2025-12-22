@@ -961,10 +961,10 @@ const UserProfile: React.FC<UserProfileProps> = ({ toggleTheme, isDark }) => {
                                 voucher.status === "pending"
                                   ? "PENDIENTE"
                                   : voucher.status === "approved"
-                                  ? "APROBADO"
-                                  : voucher.status === "rejected"
-                                  ? "RECHAZADO"
-                                  : "ENTREGADO"
+                                    ? "APROBADO"
+                                    : voucher.status === "rejected"
+                                      ? "RECHAZADO"
+                                      : "ENTREGADO"
                               }
                               size="small"
                               sx={{
@@ -972,10 +972,10 @@ const UserProfile: React.FC<UserProfileProps> = ({ toggleTheme, isDark }) => {
                                   voucher.status === "pending"
                                     ? "#f59e0b"
                                     : voucher.status === "approved"
-                                    ? "#3b82f6"
-                                    : voucher.status === "rejected"
-                                    ? "#ef4444"
-                                    : "#22c55e",
+                                      ? "#3b82f6"
+                                      : voucher.status === "rejected"
+                                        ? "#ef4444"
+                                        : "#22c55e",
                                 color: "#fff",
                                 fontWeight: 600,
                                 animation:
@@ -1095,10 +1095,12 @@ const UserProfile: React.FC<UserProfileProps> = ({ toggleTheme, isDark }) => {
                         position: "absolute",
                         bottom: 8,
                         right: 8,
-                        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                        background:
+                          "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
                         color: "#ffffff !important",
-                        "&:hover": { 
-                          background: "linear-gradient(135deg, #5568d3 0%, #6a3f8f 100%)",
+                        "&:hover": {
+                          background:
+                            "linear-gradient(135deg, #5568d3 0%, #6a3f8f 100%)",
                           transform: "scale(1.1)",
                         },
                         boxShadow: "0 4px 12px rgba(102, 126, 234, 0.5)",
@@ -1242,21 +1244,47 @@ const UserProfile: React.FC<UserProfileProps> = ({ toggleTheme, isDark }) => {
                         },
                       }}
                     />
-                    <TextField
-                      label="RUT"
-                      name="rut"
-                      value={formData.rut}
-                      onChange={handleChange}
-                      disabled={true}
-                      fullWidth
-                      required
-                      helperText="El RUT no puede ser modificado"
+                    <Box
                       sx={{
-                        "& .MuiOutlinedInput-root": {
-                          borderRadius: "12px",
-                        },
+                        p: 2,
+                        borderRadius: "12px",
+                        bgcolor: isDark
+                          ? "rgba(102, 126, 234, 0.1)"
+                          : "rgba(102, 126, 234, 0.05)",
+                        border: `1px solid ${isDark ? "rgba(102, 126, 234, 0.3)" : "rgba(102, 126, 234, 0.2)"}`,
                       }}
-                    />
+                    >
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          color: "text.secondary",
+                          fontWeight: 600,
+                          display: "block",
+                          mb: 0.5,
+                        }}
+                      >
+                        RUT
+                      </Typography>
+                      <Typography
+                        variant="body1"
+                        sx={{
+                          fontWeight: 500,
+                          color: isDark ? "#e0e0e0" : "#1a1a1a",
+                        }}
+                      >
+                        {formData.rut || "No especificado"}
+                      </Typography>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          color: "text.secondary",
+                          display: "block",
+                          mt: 0.5,
+                        }}
+                      >
+                        El RUT no puede ser modificado
+                      </Typography>
+                    </Box>
                     <TextField
                       label="Dirección"
                       name="address"
