@@ -161,7 +161,18 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({
   };
 
   return (
-    <Modal open={open} onClose={handleCloseModal}>
+    <Modal
+      open={open}
+      onClose={handleCloseModal}
+      slotProps={{
+        backdrop: {
+          sx: {
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            backdropFilter: "blur(4px)",
+          },
+        },
+      }}
+    >
       <Box
         sx={{
           position: "absolute",
@@ -175,6 +186,12 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({
           boxShadow: 24,
           p: 4,
           borderRadius: 2,
+          border: (theme) =>
+            `1px solid ${
+              theme.palette.mode === "dark"
+                ? "rgba(255, 255, 255, 0.12)"
+                : "rgba(0, 0, 0, 0.12)"
+            }`,
         }}
       >
         <Typography variant="h6" gutterBottom>

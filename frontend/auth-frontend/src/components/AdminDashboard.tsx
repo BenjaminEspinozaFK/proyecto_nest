@@ -322,6 +322,14 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   mt: 1.5,
                   borderRadius: "12px",
                   minWidth: 220,
+                  backgroundColor: "background.paper",
+                  backdropFilter: "blur(10px)",
+                  border: (theme) =>
+                    `1px solid ${
+                      theme.palette.mode === "dark"
+                        ? "rgba(255, 255, 255, 0.12)"
+                        : "rgba(0, 0, 0, 0.12)"
+                    }`,
                   "& .MuiAvatar-root": {
                     width: 32,
                     height: 32,
@@ -339,6 +347,21 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     bgcolor: "background.paper",
                     transform: "translateY(-50%) rotate(45deg)",
                     zIndex: 0,
+                    border: (theme) =>
+                      `1px solid ${
+                        theme.palette.mode === "dark"
+                          ? "rgba(255, 255, 255, 0.12)"
+                          : "rgba(0, 0, 0, 0.12)"
+                      }`,
+                    borderRight: "none",
+                    borderBottom: "none",
+                  },
+                },
+              }}
+              slotProps={{
+                backdrop: {
+                  sx: {
+                    backgroundColor: "rgba(0, 0, 0, 0.2)",
                   },
                 },
               }}
@@ -549,6 +572,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
               right: 0,
               bottom: 0,
               bgcolor: "rgba(0, 0, 0, 0.5)",
+              backdropFilter: "blur(4px)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -565,6 +589,12 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 maxHeight: "90vh",
                 overflow: "auto",
                 boxShadow: "0 20px 60px rgba(0, 0, 0, 0.3)",
+                border: (theme) =>
+                  `1px solid ${
+                    theme.palette.mode === "dark"
+                      ? "rgba(255, 255, 255, 0.12)"
+                      : "rgba(0, 0, 0, 0.12)"
+                  }`,
               }}
               onClick={(e) => e.stopPropagation()}
             >
@@ -584,6 +614,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
               right: 0,
               bottom: 0,
               bgcolor: "rgba(0, 0, 0, 0.5)",
+              backdropFilter: "blur(4px)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -601,6 +632,12 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 maxHeight: "90vh",
                 overflow: "auto",
                 boxShadow: "0 20px 60px rgba(0, 0, 0, 0.3)",
+                border: (theme) =>
+                  `1px solid ${
+                    theme.palette.mode === "dark"
+                      ? "rgba(255, 255, 255, 0.12)"
+                      : "rgba(0, 0, 0, 0.12)"
+                  }`,
               }}
             >
               <Paper
