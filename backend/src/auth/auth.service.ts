@@ -97,6 +97,7 @@ export class AuthService {
         email: user.email,
         name: user.name,
         rut: user.rut,
+        phone: user.phone,
         role: user.role,
         avatar: user.avatar,
         lastLogin: user.lastLogin,

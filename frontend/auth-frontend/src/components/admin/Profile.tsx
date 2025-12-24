@@ -18,6 +18,7 @@ interface AdminProfileData {
   email: string;
   name: string;
   rut: string;
+  phone?: string;
   role: string;
   avatar?: string;
   lastLogin?: string;
@@ -38,6 +39,7 @@ const AdminProfile: React.FC = () => {
     name: "",
     email: "",
     rut: "",
+    phone: "",
     password: "",
   });
 
@@ -53,6 +55,7 @@ const AdminProfile: React.FC = () => {
         name: data.name || "",
         email: data.email,
         rut: data.rut,
+        phone: data.phone || "",
         password: "",
       });
     } catch (err: any) {
@@ -75,6 +78,7 @@ const AdminProfile: React.FC = () => {
         name: profile.name || "",
         email: profile.email,
         rut: profile.rut,
+        phone: profile.phone || "",
         password: "",
       });
     }
@@ -90,6 +94,7 @@ const AdminProfile: React.FC = () => {
       const updateData: any = {
         name: formData.name,
         email: formData.email,
+        phone: formData.phone || undefined,
       };
 
       // Solo incluir password si se proporcionó
@@ -366,6 +371,23 @@ const AdminProfile: React.FC = () => {
                 El RUT no puede ser modificado
               </Typography>
             </Box>
+
+            <TextField
+              fullWidth
+              label="Teléfono"
+              type="text"
+              value={formData.phone}
+              onChange={(e) =>
+                setFormData({ ...formData, phone: e.target.value })
+              }
+              disabled={!editing}
+              placeholder="98765432"
+              helperText="8 dígitos, sin +569"
+              inputProps={{
+                maxLength: 8,
+                pattern: "[0-9]{8}",
+              }}
+            />
 
             {editing && (
               <TextField

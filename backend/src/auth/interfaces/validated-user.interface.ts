@@ -3,6 +3,7 @@ export interface ValidatedUser {
   email: string;
   name: string | null;
   rut: string;
+  phone?: string | null;
   role: 'user' | 'admin';
   avatar?: string | null;
   createdAt: Date;

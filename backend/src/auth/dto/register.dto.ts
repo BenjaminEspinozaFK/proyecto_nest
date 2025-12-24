@@ -4,6 +4,7 @@ import {
   IsNotEmpty,
   IsOptional,
   MinLength,
+  Matches,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
@@ -44,4 +45,16 @@ export class RegisterDto {
   @IsNotEmpty()
   @MinLength(8)
   rut: string;
+
+  @ApiProperty({
+    example: '98765432',
+    description: 'Teléfono del usuario (8 dígitos, sin +569)',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  @Matches(/^[0-9]{8}$/, {
+    message: 'El teléfono debe tener exactamente 8 dígitos',
+  })
+  phone?: string;
 }

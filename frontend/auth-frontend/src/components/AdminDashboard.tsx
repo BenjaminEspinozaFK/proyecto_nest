@@ -497,6 +497,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     <TableCell>Email</TableCell>
                     <TableCell>Nombre</TableCell>
                     <TableCell>RUT</TableCell>
+                    <TableCell>Teléfono</TableCell>
                     <TableCell>Rol</TableCell>
                     <TableCell align="center">Acciones</TableCell>
                   </TableRow>
@@ -518,6 +519,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         <TableCell>{user.email}</TableCell>
                         <TableCell>{user.name}</TableCell>
                         <TableCell>{user.rut}</TableCell>
+                        <TableCell>{user.phone || "-"}</TableCell>
                         <TableCell>{user.role}</TableCell>
                         <TableCell align="center">
                           <Button

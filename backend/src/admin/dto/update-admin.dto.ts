@@ -1,4 +1,10 @@
-import { IsString, IsEmail, IsOptional, MinLength } from 'class-validator';
+import {
+  IsString,
+  IsEmail,
+  IsOptional,
+  MinLength,
+  Matches,
+} from 'class-validator';
 import { Transform } from 'class-transformer';
 
 export class UpdateAdminDto {
@@ -12,6 +18,14 @@ export class UpdateAdminDto {
   @IsOptional()
   @MinLength(2, { message: 'El nombre debe tener al menos 2 caracteres' })
   name?: string;
+
+  @Transform(({ value }) => value?.trim())
+  @IsString()
+  @IsOptional()
+  @Matches(/^[0-9]{8}$/, {
+    message: 'El teléfono debe tener exactamente 8 dígitos',
+  })
+  phone?: string;
 
   @Transform(({ value }) => value.trim())
   @IsString()

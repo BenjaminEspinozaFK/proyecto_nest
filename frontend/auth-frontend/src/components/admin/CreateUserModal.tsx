@@ -35,6 +35,7 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [rut, setRut] = useState("");
+  const [phone, setPhone] = useState("");
   const [role, setRole] = useState<"user" | "admin">("user");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -57,6 +58,11 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({
       // Solo incluir password si se proporcionó
       if (password && password.trim()) {
         body.password = password;
+      }
+
+      // Solo incluir phone si se proporcionó
+      if (phone && phone.trim()) {
+        body.phone = phone;
       }
 
       const response = await fetch("http://localhost:3001/admins/users", {
@@ -152,6 +158,7 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({
     setPassword("");
     setName("");
     setRut("");
+    setPhone("");
     setRole("user");
     setFile(null);
     setBulkResult(null);
@@ -258,6 +265,20 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({
               required
               placeholder="12345678-9"
             />
+            <TextField
+              fullWidth
+              label="Teléfono"
+              type="text"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              margin="normal"
+              placeholder="98765432"
+              helperText="8 dígitos, sin +569 (opcional)"
+              inputProps={{
+                maxLength: 8,
+                pattern: "[0-9]{8}",
+              }}
+            />
             <FormControl fullWidth margin="normal">
               <InputLabel id="role-label">Rol</InputLabel>
               <Select
@@ -306,9 +327,10 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({
               <Typography variant="caption">
                 El archivo Excel debe tener las columnas: <strong>email</strong>
                 , <strong>rut</strong> (requeridos), y opcionalmente{" "}
-                <strong>password</strong>, <strong>name</strong> y{" "}
-                <strong>role</strong> (user/admin). Si no se proporciona
-                contraseña, se generará automáticamente y se enviará por email.
+                <strong>password</strong>, <strong>name</strong>,{" "}
+                <strong>phone</strong> (8 dígitos) y <strong>role</strong>{" "}
+                (user/admin). Si no se proporciona contraseña, se generará
+                automáticamente y se enviará por email.
               </Typography>
             </Alert>
 

@@ -3,11 +3,9 @@ import {
   IsEmail,
   IsString,
   IsOptional,
-  IsNumber,
   MinLength,
-  Min,
-  Max,
   IsEnum,
+  Matches,
 } from 'class-validator';
 
 export class UpdateUserByAdminDto {
@@ -22,11 +20,13 @@ export class UpdateUserByAdminDto {
   @MinLength(2, { message: 'El nombre debe tener al menos 2 caracteres' })
   name?: string;
 
-  @IsNumber()
+  @Transform(({ value }) => value?.trim())
+  @IsString()
   @IsOptional()
-  @Min(10)
-  @Max(120)
-  age?: number;
+  @Matches(/^[0-9]{8}$/, {
+    message: 'El teléfono debe tener exactamente 8 dígitos',
+  })
+  phone?: string;
 
   @IsOptional()
   @IsEnum(['user', 'admin'])
