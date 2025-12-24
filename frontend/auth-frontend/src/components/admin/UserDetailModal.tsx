@@ -32,6 +32,7 @@ import {
   Cancel,
   Person,
   Email,
+  Phone,
   Cake,
   AdminPanelSettings,
   CalendarToday,
@@ -163,6 +164,7 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
       const userDataToUpdate = {
         email: editedUser.email,
         name: editedUser.name,
+        phone: editedUser.phone,
         role: editedUser.role,
       };
 
@@ -479,6 +481,28 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
                     </Select>
                   </FormControl>
                 </Box>
+
+                <TextField
+                  fullWidth
+                  label="Teléfono"
+                  type="text"
+                  value={editedUser.phone || ""}
+                  onChange={(e) =>
+                    setEditedUser({ ...editedUser, phone: e.target.value })
+                  }
+                  disabled={!isEditing}
+                  placeholder="98765432"
+                  helperText="8 dígitos, sin +569"
+                  inputProps={{
+                    maxLength: 8,
+                    pattern: "[0-9]{8}",
+                  }}
+                  InputProps={{
+                    startAdornment: (
+                      <Phone sx={{ mr: 1, color: "action.active" }} />
+                    ),
+                  }}
+                />
               </Box>
 
               <Divider sx={{ my: 3 }} />

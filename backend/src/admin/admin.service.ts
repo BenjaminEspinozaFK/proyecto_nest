@@ -163,6 +163,7 @@ export class AdminService {
         id: true,
         name: true,
         email: true,
+        phone: true,
         createdAt: true,
         role: true,
       },
@@ -177,6 +178,7 @@ export class AdminService {
         id: true,
         name: true,
         email: true,
+        phone: true,
         lastLogin: true,
       },
     });
@@ -209,6 +211,7 @@ export class AdminService {
         email: true,
         name: true,
         rut: true,
+        phone: true,
         role: true,
         createdAt: true,
         updatedAt: true,
@@ -234,8 +237,8 @@ export class AdminService {
     if (userData.name !== undefined) {
       dataToUpdate.name = userData.name;
     }
-    if (userData.age !== undefined) {
-      dataToUpdate.age = userData.age;
+    if (userData.phone !== undefined) {
+      dataToUpdate.phone = userData.phone;
     }
     if (userData.role !== undefined) {
       dataToUpdate.role = userData.role;
@@ -249,6 +252,7 @@ export class AdminService {
         email: true,
         name: true,
         rut: true,
+        phone: true,
         role: true,
         createdAt: true,
         updatedAt: true,
@@ -306,6 +310,7 @@ export class AdminService {
         email: user.email,
         name: user.name,
         rut: user.rut,
+        phone: user.phone,
         role: user.role || 'user',
         password: hashedPassword,
         requirePasswordChange,
@@ -315,6 +320,7 @@ export class AdminService {
         email: true,
         name: true,
         rut: true,
+        phone: true,
         role: true,
         requirePasswordChange: true,
         createdAt: true,
@@ -350,6 +356,7 @@ export class AdminService {
         email: true,
         name: true,
         rut: true,
+        phone: true,
         role: true,
         createdAt: true,
         updatedAt: true,
@@ -407,11 +414,22 @@ export class AdminService {
           const email = String(row.email).trim();
           const rut = String(row.rut).trim();
           const name = row.name ? String(row.name).trim() : '';
+          const phone = row.phone ? String(row.phone).trim() : null;
           const role =
             row.role &&
             ['user', 'admin'].includes(String(row.role).toLowerCase())
               ? (String(row.role).toLowerCase() as 'user' | 'admin')
               : 'user';
+
+          // Validar phone si se proporciona (debe ser 8 dígitos)
+          if (phone && !/^[0-9]{8}$/.test(phone)) {
+            results.errors.push({
+              row: rowNumber,
+              error: 'El teléfono debe tener exactamente 8 dígitos',
+              data: row,
+            });
+            continue;
+          }
 
           // Generar contraseña temporal si no se proporciona
           const temporaryPassword = row.password
@@ -442,6 +460,7 @@ export class AdminService {
               password: hashedPassword,
               name: name || null,
               rut,
+              phone,
               role,
               requirePasswordChange,
             },
@@ -450,6 +469,7 @@ export class AdminService {
               email: true,
               name: true,
               rut: true,
+              phone: true,
               role: true,
               requirePasswordChange: true,
             },

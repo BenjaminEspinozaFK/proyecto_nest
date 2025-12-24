@@ -20,6 +20,7 @@ import {
   Lock,
   Person,
   Cake,
+  Phone,
   Visibility,
   VisibilityOff,
 } from "@mui/icons-material";
@@ -34,6 +35,7 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
     password: "",
     name: "",
     rut: "",
+    phone: "",
   });
   const [showPassword, setShowPassword] = useState(false);
   const { register, isLoading, error } = useAuth();
@@ -54,6 +56,7 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
         password: formData.password,
         name: formData.name,
         rut: formData.rut,
+        phone: formData.phone || undefined,
       });
     } catch (err) {}
   };
@@ -158,6 +161,31 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
                 }}
               />
             </Stack>
+
+            {/* Teléfono */}
+            <TextField
+              label="Teléfono (opcional)"
+              type="text"
+              name="phone"
+              value={formData.phone}
+              onChange={handleChange}
+              disabled={isLoading}
+              placeholder="98765432"
+              fullWidth
+              variant="outlined"
+              helperText="8 dígitos, sin +569"
+              inputProps={{
+                maxLength: 8,
+                pattern: "[0-9]{8}",
+              }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Phone color="action" />
+                  </InputAdornment>
+                ),
+              }}
+            />
 
             {/* Password con toggle visibility */}
             <TextField

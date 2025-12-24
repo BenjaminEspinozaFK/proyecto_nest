@@ -153,6 +153,7 @@ export class UsersService {
         email: true,
         name: true,
         rut: true,
+        phone: true,
         role: true,
         requirePasswordChange: true,
       },
