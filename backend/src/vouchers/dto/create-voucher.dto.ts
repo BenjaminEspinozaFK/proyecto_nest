@@ -1,7 +1,9 @@
-import { IsInt, Min } from 'class-validator';
+import { IsInt, IsIn } from 'class-validator';
 
 export class CreateVoucherDto {
   @IsInt()
-  @Min(1)
-  kilos: number; // 15 o 45 kg
+  @IsIn([5, 11, 15, 45], {
+    message: 'Los kilos deben ser 5, 11, 15 o 45',
+  })
+  kilos: number; // 5, 11, 15 o 45 kg
 }
