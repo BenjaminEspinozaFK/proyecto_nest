@@ -984,10 +984,10 @@ const UserProfile: React.FC<UserProfileProps> = ({ toggleTheme, isDark }) => {
                                 voucher.status === "pending"
                                   ? "PENDIENTE"
                                   : voucher.status === "approved"
-                                  ? "APROBADO"
-                                  : voucher.status === "rejected"
-                                  ? "RECHAZADO"
-                                  : "ENTREGADO"
+                                    ? "APROBADO"
+                                    : voucher.status === "rejected"
+                                      ? "RECHAZADO"
+                                      : "ENTREGADO"
                               }
                               size="small"
                               sx={{
@@ -995,10 +995,10 @@ const UserProfile: React.FC<UserProfileProps> = ({ toggleTheme, isDark }) => {
                                   voucher.status === "pending"
                                     ? "#f59e0b"
                                     : voucher.status === "approved"
-                                    ? "#3b82f6"
-                                    : voucher.status === "rejected"
-                                    ? "#ef4444"
-                                    : "#22c55e",
+                                      ? "#3b82f6"
+                                      : voucher.status === "rejected"
+                                        ? "#ef4444"
+                                        : "#22c55e",
                                 color: "#fff",
                                 fontWeight: 600,
                                 animation:
@@ -1751,6 +1751,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ toggleTheme, isDark }) => {
                   onChange={(e) => setRequestKilos(Number(e.target.value))}
                   sx={{ borderRadius: "12px" }}
                 >
+                  <MenuItem value={5}>5 kg</MenuItem>
+                  <MenuItem value={11}>11 kg</MenuItem>
                   <MenuItem value={15}>15 kg</MenuItem>
                   <MenuItem value={45}>45 kg</MenuItem>
                 </Select>
