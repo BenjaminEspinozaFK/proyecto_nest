@@ -156,6 +156,20 @@ const AdminStats: React.FC = () => {
 
   const voucherKilosData = [
     {
+      name: "5 kg",
+      cantidad: allVouchers.filter((v) => v.kilos === 5).length,
+      monto: allVouchers
+        .filter((v) => v.kilos === 5)
+        .reduce((acc, v) => acc + (v.amount || 0), 0),
+    },
+    {
+      name: "11 kg",
+      cantidad: allVouchers.filter((v) => v.kilos === 11).length,
+      monto: allVouchers
+        .filter((v) => v.kilos === 11)
+        .reduce((acc, v) => acc + (v.amount || 0), 0),
+    },
+    {
       name: "15 kg",
       cantidad: allVouchers.filter((v) => v.kilos === 15).length,
       monto: allVouchers
