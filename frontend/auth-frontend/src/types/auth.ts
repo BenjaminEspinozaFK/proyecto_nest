@@ -4,6 +4,7 @@ export interface User {
   name: string;
   rut: string;
   phone?: string;
+  banco?: string;
   role: string;
   avatar?: string;
   createdAt?: string;
