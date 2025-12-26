@@ -34,6 +34,11 @@ export class CreateUserDto {
   })
   phone?: string;
 
+  @Transform(({ value }) => value?.trim())
+  @IsString()
+  @IsOptional()
+  banco?: string;
+
   @IsOptional()
   @Transform(({ value }) => value?.trim())
   @IsString()

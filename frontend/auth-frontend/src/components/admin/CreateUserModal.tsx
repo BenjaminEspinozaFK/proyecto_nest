@@ -36,6 +36,7 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({
   const [name, setName] = useState("");
   const [rut, setRut] = useState("");
   const [phone, setPhone] = useState("");
+  const [banco, setBanco] = useState("");
   const [role, setRole] = useState<"user" | "admin">("user");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -65,6 +66,11 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({
         body.phone = phone;
       }
 
+      // Solo incluir banco si se proporcionó
+      if (banco && banco.trim()) {
+        body.banco = banco;
+      }
+
       const response = await fetch("http://localhost:3001/admins/users", {
         method: "POST",
         headers: {
@@ -90,6 +96,8 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({
       setPassword("");
       setName("");
       setRut("");
+      setPhone("");
+      setBanco("");
       setRole("user");
     } catch (err: any) {
       setError(err.message || "Error creando usuario");
@@ -159,6 +167,7 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({
     setName("");
     setRut("");
     setPhone("");
+    setBanco("");
     setRole("user");
     setFile(null);
     setBulkResult(null);
@@ -280,6 +289,29 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({
               }}
             />
             <FormControl fullWidth margin="normal">
+              <InputLabel id="banco-label">Banco</InputLabel>
+              <Select
+                labelId="banco-label"
+                value={banco}
+                label="Banco"
+                onChange={(e) => setBanco(e.target.value)}
+              >
+                <MenuItem value="">Sin especificar</MenuItem>
+                <MenuItem value="ESTADO">Banco Estado</MenuItem>
+                <MenuItem value="Falabella">Falabella</MenuItem>
+                <MenuItem value="Itaú">Itaú</MenuItem>
+                <MenuItem value="BCI">BCI</MenuItem>
+                <MenuItem value="Coopeuch">Coopeuch</MenuItem>
+                <MenuItem value="Tenpo">Tenpo</MenuItem>
+                <MenuItem value="Santander">Santander</MenuItem>
+                <MenuItem value="Banco Chile">Banco Chile</MenuItem>
+                <MenuItem value="Scotiabank">Scotiabank</MenuItem>
+                <MenuItem value="Bice">Bice</MenuItem>
+                <MenuItem value="Otro">Otro</MenuItem>
+                <MenuItem value="Efectivo">Efectivo</MenuItem>
+              </Select>
+            </FormControl>
+            <FormControl fullWidth margin="normal">
               <InputLabel id="role-label">Rol</InputLabel>
               <Select
                 labelId="role-label"
@@ -328,9 +360,15 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({
                 El archivo Excel debe tener las columnas: <strong>email</strong>
                 , <strong>rut</strong> (requeridos), y opcionalmente{" "}
                 <strong>password</strong>, <strong>name</strong>,{" "}
-                <strong>phone</strong> (8 dígitos) y <strong>role</strong>{" "}
-                (user/admin). Si no se proporciona contraseña, se generará
-                automáticamente y se enviará por email.
+                <strong>phone</strong> (8 dígitos), <strong>banco</strong>{" "}
+                (nombre del banco) y <strong>role</strong> (user/admin). Si no
+                se proporciona contraseña, se generará automáticamente y se
+                enviará por email.
+              </Typography>
+              <Typography variant="caption" display="block" sx={{ mt: 1 }}>
+                💡 <strong>Bancos válidos:</strong> ESTADO, Falabella, Itaú,
+                BCI, Coopeuch, Tenpo, Santander, Banco Chile, Scotiabank, Bice,
+                Otro, Efectivo
               </Typography>
             </Alert>
 

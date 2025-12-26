@@ -164,6 +164,7 @@ export class AdminService {
         name: true,
         email: true,
         phone: true,
+        banco: true,
         createdAt: true,
         role: true,
       },
@@ -179,6 +180,7 @@ export class AdminService {
         name: true,
         email: true,
         phone: true,
+        banco: true,
         lastLogin: true,
       },
     });
@@ -212,6 +214,7 @@ export class AdminService {
         name: true,
         rut: true,
         phone: true,
+        banco: true,
         role: true,
         createdAt: true,
         updatedAt: true,
@@ -240,6 +243,9 @@ export class AdminService {
     if (userData.phone !== undefined) {
       dataToUpdate.phone = userData.phone;
     }
+    if (userData.banco !== undefined) {
+      dataToUpdate.banco = userData.banco;
+    }
     if (userData.role !== undefined) {
       dataToUpdate.role = userData.role;
     }
@@ -253,6 +259,7 @@ export class AdminService {
         name: true,
         rut: true,
         phone: true,
+        banco: true,
         role: true,
         createdAt: true,
         updatedAt: true,
@@ -311,6 +318,7 @@ export class AdminService {
         name: user.name,
         rut: user.rut,
         phone: user.phone,
+        banco: user.banco,
         role: user.role || 'user',
         password: hashedPassword,
         requirePasswordChange,
@@ -321,6 +329,7 @@ export class AdminService {
         name: true,
         rut: true,
         phone: true,
+        banco: true,
         role: true,
         requirePasswordChange: true,
         createdAt: true,
@@ -357,6 +366,7 @@ export class AdminService {
         name: true,
         rut: true,
         phone: true,
+        banco: true,
         role: true,
         createdAt: true,
         updatedAt: true,
@@ -415,6 +425,7 @@ export class AdminService {
           const rut = String(row.rut).trim();
           const name = row.name ? String(row.name).trim() : '';
           const phone = row.phone ? String(row.phone).trim() : null;
+          const banco = row.banco ? String(row.banco).trim() : null;
           const role =
             row.role &&
             ['user', 'admin'].includes(String(row.role).toLowerCase())
@@ -461,6 +472,7 @@ export class AdminService {
               name: name || null,
               rut,
               phone,
+              banco,
               role,
               requirePasswordChange,
             },
@@ -470,6 +482,7 @@ export class AdminService {
               name: true,
               rut: true,
               phone: true,
+              banco: true,
               role: true,
               requirePasswordChange: true,
             },
