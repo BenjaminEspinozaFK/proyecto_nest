@@ -79,6 +79,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ toggleTheme, isDark }) => {
   const [loadingVouchers, setLoadingVouchers] = useState(false);
   const [openRequestDialog, setOpenRequestDialog] = useState(false);
   const [requestKilos, setRequestKilos] = useState(15);
+  const [requestBank, setRequestBank] = useState("");
 
   // Estados para menú de usuario
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -181,11 +182,15 @@ const UserProfile: React.FC<UserProfileProps> = ({ toggleTheme, isDark }) => {
 
   const handleRequestVoucher = async () => {
     try {
-      await voucherService.requestVoucher({ kilos: requestKilos });
+      await voucherService.requestVoucher({
+        kilos: requestKilos,
+        bank: requestBank || undefined,
+      });
       setSuccess(
         "Vale solicitado correctamente. Espera la aprobación del administrador."
       );
       setOpenRequestDialog(false);
+      setRequestBank(""); // Limpiar el banco seleccionado
       fetchMyVouchers();
       setTimeout(() => setSuccess(null), 3000);
     } catch (error) {
@@ -1757,6 +1762,29 @@ const UserProfile: React.FC<UserProfileProps> = ({ toggleTheme, isDark }) => {
                   <MenuItem value={45}>45 kg</MenuItem>
                 </Select>
               </FormControl>
+
+              <FormControl fullWidth sx={{ mt: 2 }}>
+                <InputLabel>Banco de Pago</InputLabel>
+                <Select
+                  value={requestBank}
+                  label="Banco de Pago"
+                  onChange={(e) => setRequestBank(e.target.value)}
+                  sx={{ borderRadius: "12px" }}
+                >
+                  <MenuItem value="">Sin especificar</MenuItem>
+                  <MenuItem value="Banco Estado">Banco Estado</MenuItem>
+                  <MenuItem value="Banco de Chile">Banco de Chile</MenuItem>
+                  <MenuItem value="Santander">Santander</MenuItem>
+                  <MenuItem value="BCI">BCI</MenuItem>
+                  <MenuItem value="Scotiabank">Scotiabank</MenuItem>
+                  <MenuItem value="Itaú">Itaú</MenuItem>
+                  <MenuItem value="Security">Security</MenuItem>
+                  <MenuItem value="Falabella">Falabella</MenuItem>
+                  <MenuItem value="Ripley">Ripley</MenuItem>
+                  <MenuItem value="Coopeuch">Coopeuch</MenuItem>
+                </Select>
+              </FormControl>
+
               <Alert severity="info" sx={{ mt: 2, borderRadius: "12px" }}>
                 Tu solicitud será revisada por un administrador. Te
                 notificaremos cuando sea aprobada.
