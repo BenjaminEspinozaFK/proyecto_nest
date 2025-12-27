@@ -8,6 +8,7 @@ export interface GasVoucher {
   };
   kilos: number;
   amount?: number;
+  bank?: string;
   status: "pending" | "approved" | "rejected" | "delivered";
   requestDate: string;
   approvalDate?: string;
@@ -30,6 +31,7 @@ export interface VoucherStats {
 
 export interface CreateVoucherRequest {
   kilos: number;
+  bank?: string;
 }
 
 export interface ApproveVoucherRequest {
