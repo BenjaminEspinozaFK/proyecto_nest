@@ -18,6 +18,7 @@ export class VouchersService {
       data: {
         userId,
         kilos: createVoucherDto.kilos,
+        bank: createVoucherDto.bank,
         status: 'pending',
       },
       include: {
