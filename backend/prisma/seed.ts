@@ -3,6 +3,13 @@ import * as bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
+// Función para generar números de teléfono aleatorios de 8 dígitos (sin +569)
+function generateRandomPhone(): string {
+  // Genera un número entre 10000000 y 99999999
+  const phone = Math.floor(Math.random() * 90000000) + 10000000;
+  return phone.toString();
+}
+
 async function main() {
   const emailUser = process.env.USER_EMAIL;
   const passUser = process.env.USER_PASS;
@@ -19,11 +26,13 @@ async function main() {
     where: { email: emailUser },
     update: {
       rut: '11111111-1',
+      phone: generateRandomPhone(),
     },
     create: {
       email: emailUser,
       name: 'Usuario Default',
       rut: '11111111-1',
+      phone: generateRandomPhone(),
       password: hashedUserPassword,
       role: 'user',
     },
@@ -45,11 +54,13 @@ async function main() {
     update: {
       password: hashedAdminPassword,
       rut: '22222222-2',
+      phone: generateRandomPhone(),
     },
     create: {
       email: emailAdmin,
       name: 'Admin Default',
       rut: '22222222-2',
+      phone: generateRandomPhone(),
       password: hashedAdminPassword,
       role: 'admin',
     },
@@ -87,11 +98,13 @@ async function main() {
         where: { email: userData.email },
         update: {
           rut: userData.rut,
+          phone: generateRandomPhone(),
         },
         create: {
           email: userData.email,
           name: userData.name,
           rut: userData.rut,
+          phone: generateRandomPhone(),
           password: defaultPassword,
           role: 'user',
         },
