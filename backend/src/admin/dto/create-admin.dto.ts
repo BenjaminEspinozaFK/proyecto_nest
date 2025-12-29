@@ -34,11 +34,6 @@ export class CreateAdminDto {
   })
   phone?: string;
 
-  @Transform(({ value }) => value?.trim())
-  @IsString()
-  @IsOptional()
-  banco?: string;
-
   @Transform(({ value }) => value.trim())
   @IsString()
   @IsNotEmpty()
