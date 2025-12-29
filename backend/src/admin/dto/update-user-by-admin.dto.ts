@@ -28,11 +28,6 @@ export class UpdateUserByAdminDto {
   })
   phone?: string;
 
-  @Transform(({ value }) => value?.trim())
-  @IsString()
-  @IsOptional()
-  banco?: string;
-
   @IsOptional()
   @IsEnum(['user', 'admin'])
   role?: string;
