@@ -119,15 +119,6 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBackToLogin }) => {
                 value={role}
                 label="Tipo de cuenta"
                 onChange={(e) => setRole(e.target.value as "user" | "admin")}
-                startAdornment={
-                  <InputAdornment position="start">
-                    {role === "admin" ? (
-                      <AdminPanelSettings color="warning" />
-                    ) : (
-                      <Person color="primary" />
-                    )}
-                  </InputAdornment>
-                }
               >
                 <MenuItem value="user">
                   <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
