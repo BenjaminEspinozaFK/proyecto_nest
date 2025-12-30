@@ -1245,85 +1245,123 @@ const UserProfile: React.FC<UserProfileProps> = ({ toggleTheme, isDark }) => {
                   <Box
                     component="form"
                     sx={{
-                      display: "grid",
-                      gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
-                      gap: 3,
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 2.5,
                     }}
                   >
-                    <TextField
-                      label="Nombre completo"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      disabled={!editing}
-                      fullWidth
-                      required
-                      sx={{
-                        "& .MuiOutlinedInput-root": {
-                          borderRadius: "12px",
-                        },
-                      }}
-                    />
-                    <TextField
-                      label="Email"
-                      name="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      disabled={!editing}
-                      fullWidth
-                      required
-                      sx={{
-                        "& .MuiOutlinedInput-root": {
-                          borderRadius: "12px",
-                        },
-                      }}
-                    />
+                    {/* Fila 1: Nombre y Email */}
                     <Box
                       sx={{
-                        p: 2,
-                        borderRadius: "12px",
-                        bgcolor: isDark
-                          ? "rgba(102, 126, 234, 0.1)"
-                          : "rgba(102, 126, 234, 0.05)",
-                        border: `1px solid ${
-                          isDark
-                            ? "rgba(102, 126, 234, 0.3)"
-                            : "rgba(102, 126, 234, 0.2)"
-                        }`,
+                        display: "grid",
+                        gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+                        gap: 2,
                       }}
                     >
-                      <Typography
-                        variant="caption"
+                      <TextField
+                        label="Nombre completo"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleChange}
+                        disabled={!editing}
+                        fullWidth
+                        required
                         sx={{
-                          color: "text.secondary",
-                          fontWeight: 600,
-                          display: "block",
-                          mb: 0.5,
+                          "& .MuiOutlinedInput-root": {
+                            borderRadius: "12px",
+                          },
                         }}
-                      >
-                        RUT
-                      </Typography>
-                      <Typography
-                        variant="body1"
+                      />
+                      <TextField
+                        label="Email"
+                        name="email"
+                        type="email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        disabled={!editing}
+                        fullWidth
+                        required
                         sx={{
-                          fontWeight: 500,
-                          color: isDark ? "#e0e0e0" : "#1a1a1a",
+                          "& .MuiOutlinedInput-root": {
+                            borderRadius: "12px",
+                          },
                         }}
-                      >
-                        {formData.rut || "No especificado"}
-                      </Typography>
-                      <Typography
-                        variant="caption"
-                        sx={{
-                          color: "text.secondary",
-                          display: "block",
-                          mt: 0.5,
-                        }}
-                      >
-                        El RUT no puede ser modificado
-                      </Typography>
+                      />
                     </Box>
+
+                    {/* Fila 2: RUT y Teléfono */}
+                    <Box
+                      sx={{
+                        display: "grid",
+                        gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+                        gap: 2,
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          p: 2,
+                          borderRadius: "12px",
+                          bgcolor: isDark
+                            ? "rgba(102, 126, 234, 0.1)"
+                            : "rgba(102, 126, 234, 0.05)",
+                          border: `1px solid ${
+                            isDark
+                              ? "rgba(102, 126, 234, 0.3)"
+                              : "rgba(102, 126, 234, 0.2)"
+                          }`,
+                          display: "flex",
+                          flexDirection: "column",
+                        }}
+                      >
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            color: "text.secondary",
+                            fontWeight: 600,
+                            display: "block",
+                            mb: 0.5,
+                          }}
+                        >
+                          RUT
+                        </Typography>
+                        <Typography
+                          variant="body1"
+                          sx={{
+                            fontWeight: 500,
+                            color: isDark ? "#e0e0e0" : "#1a1a1a",
+                          }}
+                        >
+                          {formData.rut || "No especificado"}
+                        </Typography>
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            color: "text.secondary",
+                            display: "block",
+                            mt: 0.5,
+                          }}
+                        >
+                          🔒 Campo inmutable
+                        </Typography>
+                      </Box>
+                      <TextField
+                        label="Teléfono"
+                        name="phone"
+                        value={formData.phone}
+                        onChange={handleChange}
+                        disabled={!editing}
+                        fullWidth
+                        placeholder="98765432"
+                        helperText="8 dígitos sin +569"
+                        sx={{
+                          "& .MuiOutlinedInput-root": {
+                            borderRadius: "12px",
+                          },
+                        }}
+                      />
+                    </Box>
+
+                    {/* Fila 3: Dirección (span completo) */}
                     <TextField
                       label="Dirección"
                       name="address"
@@ -1331,25 +1369,15 @@ const UserProfile: React.FC<UserProfileProps> = ({ toggleTheme, isDark }) => {
                       onChange={handleChange}
                       disabled={!editing}
                       fullWidth
+                      placeholder="Av. Principal 1234, Depto 101"
                       sx={{
                         "& .MuiOutlinedInput-root": {
                           borderRadius: "12px",
                         },
                       }}
                     />
-                    <TextField
-                      label="Teléfono"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleChange}
-                      disabled={!editing}
-                      fullWidth
-                      sx={{
-                        "& .MuiOutlinedInput-root": {
-                          borderRadius: "12px",
-                        },
-                      }}
-                    />
+
+                    {/* Fila 4: Comuna (span completo o medio según necesites) */}
                     <TextField
                       label="Comuna"
                       name="comuna"
@@ -1357,6 +1385,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ toggleTheme, isDark }) => {
                       onChange={handleChange}
                       disabled={!editing}
                       fullWidth
+                      placeholder="Santiago, Providencia, etc."
                       sx={{
                         "& .MuiOutlinedInput-root": {
                           borderRadius: "12px",
