@@ -148,15 +148,6 @@ const Login: React.FC<LoginProps> = ({
                 value={role}
                 label="Tipo de cuenta"
                 onChange={(e) => setRole(e.target.value)}
-                startAdornment={
-                  <InputAdornment position="start">
-                    {role === "admin" ? (
-                      <AdminPanelSettings color="warning" />
-                    ) : (
-                      <Person color="primary" />
-                    )}
-                  </InputAdornment>
-                }
                 MenuProps={{
                   PaperProps: {
                     sx: {
