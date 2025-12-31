@@ -1801,16 +1801,18 @@ const UserProfile: React.FC<UserProfileProps> = ({ toggleTheme, isDark }) => {
                   sx={{ borderRadius: "12px" }}
                 >
                   <MenuItem value="">Sin especificar</MenuItem>
-                  <MenuItem value="Banco Estado">Banco Estado</MenuItem>
-                  <MenuItem value="Banco de Chile">Banco de Chile</MenuItem>
-                  <MenuItem value="Santander">Santander</MenuItem>
+                  <MenuItem value="ESTADO">ESTADO</MenuItem>
+                  <MenuItem value="FALABELLA">FALABELLA</MenuItem>
+                  <MenuItem value="ITAU">ITAU</MenuItem>
                   <MenuItem value="BCI">BCI</MenuItem>
-                  <MenuItem value="Scotiabank">Scotiabank</MenuItem>
-                  <MenuItem value="Itaú">Itaú</MenuItem>
-                  <MenuItem value="Security">Security</MenuItem>
-                  <MenuItem value="Falabella">Falabella</MenuItem>
-                  <MenuItem value="Ripley">Ripley</MenuItem>
-                  <MenuItem value="Coopeuch">Coopeuch</MenuItem>
+                  <MenuItem value="COOPEUCH">COOPEUCH</MenuItem>
+                  <MenuItem value="TENPO">TENPO</MenuItem>
+                  <MenuItem value="SANTANDER">SANTANDER</MenuItem>
+                  <MenuItem value="BANCO CHILE">BANCO CHILE</MenuItem>
+                  <MenuItem value="SCOTIABANK">SCOTIABANK</MenuItem>
+                  <MenuItem value="BICE">BICE</MenuItem>
+                  <MenuItem value="OTROS">OTROS</MenuItem>
+                  <MenuItem value="EFECTIVO">EFECTIVO</MenuItem>
                 </Select>
               </FormControl>
 
