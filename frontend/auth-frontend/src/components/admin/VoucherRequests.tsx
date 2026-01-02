@@ -40,9 +40,6 @@ const VoucherRequests: React.FC = () => {
   const [amount, setAmount] = useState("");
   const [notes, setNotes] = useState("");
 
-  // Estado para exportar Excel
-  const [exporting, setExporting] = useState(false);
-
   // Socket.IO para actualizaciones en tiempo real (admin)
   const socket = useSocket(undefined, true);
 
@@ -162,44 +159,6 @@ const VoucherRequests: React.FC = () => {
     setApproveDialog(true);
   };
 
-  const handleExportExcel = async () => {
-    setExporting(true);
-    try {
-      const token = localStorage.getItem("authToken");
-      const response = await fetch("http://localhost:3001/vouchers/export/excel", {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Error al generar el Excel");
-      }
-
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      
-      const fecha = new Date().toISOString().split("T")[0];
-      a.download = `Vales_Aprobados_${fecha}.xlsx`;
-      
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-
-      setSuccess("Excel generado exitosamente");
-      setTimeout(() => setSuccess(null), 3000);
-    } catch (error) {
-      setError("Error al exportar Excel");
-      console.error(error);
-    } finally {
-      setExporting(false);
-    }
-  };
-
   if (loading) {
     return (
       <Box
@@ -226,23 +185,12 @@ const VoucherRequests: React.FC = () => {
         <Typography variant="h5" fontWeight="bold">
           Gestión de Vales de Gas
         </Typography>
-        <Box display="flex" gap={2}>
-          <Button
-            variant="contained"
-            color="success"
-            onClick={handleExportExcel}
-            disabled={exporting}
-            sx={{ textTransform: "none" }}
-          >
-            {exporting ? "Generando..." : "📥 Exportar a Excel"}
-          </Button>
-          <Button
-            variant={showAll ? "contained" : "outlined"}
-            onClick={() => setShowAll(!showAll)}
-          >
-            {showAll ? "Ver Solo Pendientes" : "Ver Todos"}
-          </Button>
-        </Box>
+        <Button
+          variant={showAll ? "contained" : "outlined"}
+          onClick={() => setShowAll(!showAll)}
+        >
+          {showAll ? "Ver Solo Pendientes" : "Ver Todos"}
+        </Button>
       </Box>
 
       {error && (
