@@ -7,9 +7,7 @@ import {
   UseGuards,
   Req,
   Patch,
-  Res,
 } from '@nestjs/common';
-import { Response } from 'express';
 import { VouchersService } from './vouchers.service';
 import { CreateVoucherDto } from './dto/create-voucher.dto';
 import { ApproveVoucherDto } from './dto/approve-voucher.dto';
@@ -140,23 +138,5 @@ export class VouchersController {
   @Roles('admin')
   async getGeneralStats() {
     return this.vouchersService.getGeneralStats();
-  }
-
-  // Admin: Generar Excel con vales aprobados/entregados
-  @Get('export/excel')
-  @UseGuards(RolesGuard)
-  @Roles('admin')
-  async exportVouchersToExcel(@Res() res: Response) {
-    const buffer = await this.vouchersService.generateVouchersExcel();
-
-    const fecha = new Date().toISOString().split('T')[0];
-    const filename = `Vales_Aprobados_${fecha}.xlsx`;
-
-    res.setHeader(
-      'Content-Type',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    );
-    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-    res.send(buffer);
   }
 }
