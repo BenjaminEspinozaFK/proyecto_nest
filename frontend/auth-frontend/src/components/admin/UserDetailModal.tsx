@@ -219,9 +219,8 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
       });
       fetchPayments();
       setTimeout(() => setSuccess(null), 3000);
-    } catch (error) {
-      setError("Error al registrar el pago");
-      console.error(error);
+    } catch (error: any) {
+      setError(error.message || "Error al registrar el pago");
     }
   };
 
@@ -991,16 +990,18 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
                           label="Monto"
                           type="number"
                           fullWidth
-                          value={newPayment.amount}
-                          onChange={(e) =>
+                          value={newPayment.amount || ""}
+                          onChange={(e) => {
+                            const value = parseFloat(e.target.value) || 0;
                             setNewPayment({
                               ...newPayment,
-                              amount: Number(e.target.value),
-                            })
-                          }
+                              amount: value,
+                            });
+                          }}
                           InputProps={{
                             startAdornment: <Typography>$</Typography>,
                           }}
+                          helperText="Ingresa el monto del pago"
                         />
                         <TextField
                           label="Descripción (opcional)"

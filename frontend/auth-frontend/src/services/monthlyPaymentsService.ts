@@ -52,7 +52,9 @@ class MonthlyPaymentsService {
     });
 
     if (!response.ok) {
-      throw new Error("Error al crear el pago");
+      const errorData = await response.json().catch(() => ({}));
+      const errorMessage = errorData.message || `Error ${response.status}: ${response.statusText}`;
+      throw new Error(errorMessage);
     }
 
     return response.json();
