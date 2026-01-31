@@ -12,11 +12,12 @@ import {
 import { MonthlyPaymentsService } from './monthly-payments.service';
 import { CreateMonthlyPaymentDto } from './dto/create-monthly-payment.dto';
 import { UpdateMonthlyPaymentDto } from './dto/update-monthly-payment.dto';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 
 @Controller('monthly-payments')
-@UseGuards(RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class MonthlyPaymentsController {
   constructor(
     private readonly monthlyPaymentsService: MonthlyPaymentsService,
