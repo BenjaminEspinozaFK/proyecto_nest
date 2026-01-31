@@ -8,21 +8,22 @@ datasource db {
 }
 
 model User {
-  id                    String       @id @default(cuid())
-  email                 String       @unique
+  id                    String           @id @default(cuid())
+  email                 String           @unique
   name                  String?
   password              String
-  createdAt             DateTime     @default(now())
-  updatedAt             DateTime     @updatedAt
-  role                  String       @default("user")
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+  role                  String           @default("user")
   avatar                String?
   lastLogin             DateTime?
   resetPasswordExpires  DateTime?
-  resetPasswordToken    String?      @unique
-  requirePasswordChange Boolean      @default(false)
-  rut                   String       @unique
+  resetPasswordToken    String?          @unique
+  requirePasswordChange Boolean          @default(false)
+  rut                   String           @unique
   phone                 String?
   gasVouchers           GasVoucher[]
+  monthlyPayments       MonthlyPayment[]
 }
 
 model Admin {
@@ -59,4 +60,22 @@ model GasVoucher {
 
   @@index([userId])
   @@index([status])
+}
+
+model MonthlyPayment {
+  id          String   @id @default(cuid())
+  userId      String
+  year        Int      // Año del pago (ej: 2026)
+  month       Int      // Mes del pago (1-12)
+  amount      Float    // Monto pagado
+  description String?  // Descripción del pago
+  paymentDate DateTime @default(now()) // Fecha en que se registró el pago
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdBy   String?  // ID del admin que registró el pago
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, year, month]) // Un solo registro por usuario por mes
+  @@index([userId])
+  @@index([year, month])
 }
