@@ -42,11 +42,18 @@ import {
   Notifications,
   Lock,
   Palette,
+  AttachMoney,
+  CalendarToday,
 } from "@mui/icons-material";
 import { useAuth } from "./AuthContext";
 import { voucherService } from "../services/voucherService";
 import { GasVoucher, VoucherStats } from "../types/voucher";
 import { useSocket } from "../hooks/useSocket";
+import {
+  monthlyPaymentsService,
+  MonthlyPayment,
+  PaymentSummary,
+} from "../services/monthlyPaymentsService";
 
 interface UserProfileProps {
   toggleTheme?: () => void;
@@ -81,6 +88,11 @@ const UserProfile: React.FC<UserProfileProps> = ({ toggleTheme, isDark }) => {
   const [requestKilos, setRequestKilos] = useState(15);
   const [requestBank, setRequestBank] = useState("");
 
+  // Estados para pagos mensuales
+  const [payments, setPayments] = useState<MonthlyPayment[]>([]);
+  const [paymentSummary, setPaymentSummary] = useState<PaymentSummary[]>([]);
+  const [loadingPayments, setLoadingPayments] = useState(false);
+
   // Estados para menú de usuario
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [showProfileModal, setShowProfileModal] = useState(false);
@@ -105,6 +117,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ toggleTheme, isDark }) => {
   useEffect(() => {
     fetchProfile();
     fetchMyVouchers();
+    fetchMyPayments();
   }, []);
 
   // Escuchar eventos de Socket.IO
@@ -180,6 +193,22 @@ const UserProfile: React.FC<UserProfileProps> = ({ toggleTheme, isDark }) => {
     }
   };
 
+  const fetchMyPayments = async () => {
+    setLoadingPayments(true);
+    try {
+      const [paymentsData, summaryData] = await Promise.all([
+        monthlyPaymentsService.getMyPayments(),
+        monthlyPaymentsService.getMyPaymentSummary(),
+      ]);
+      setPayments(paymentsData);
+      setPaymentSummary(summaryData);
+    } catch (error) {
+      console.error("Error al cargar pagos:", error);
+    } finally {
+      setLoadingPayments(false);
+    }
+  };
+
   const handleRequestVoucher = async () => {
     try {
       await voucherService.requestVoucher({
@@ -187,7 +216,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ toggleTheme, isDark }) => {
         bank: requestBank || undefined,
       });
       setSuccess(
-        "Vale solicitado correctamente. Espera la aprobación del administrador."
+        "Vale solicitado correctamente. Espera la aprobación del administrador.",
       );
       setOpenRequestDialog(false);
       setRequestBank(""); // Limpiar el banco seleccionado
@@ -350,7 +379,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ toggleTheme, isDark }) => {
             oldPassword,
             newPassword,
           }),
-        }
+        },
       );
 
       if (!response.ok) {
@@ -966,7 +995,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ toggleTheme, isDark }) => {
                         >
                           <TableCell>
                             {new Date(voucher.requestDate).toLocaleDateString(
-                              "es-ES"
+                              "es-ES",
                             )}
                           </TableCell>
                           <TableCell align="center">
@@ -1029,6 +1058,238 @@ const UserProfile: React.FC<UserProfileProps> = ({ toggleTheme, isDark }) => {
                               }}
                             >
                               {voucher.notes || "-"}
+                            </Typography>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              )}
+            </>
+          )}
+        </Paper>
+
+        {/* Sección: Mis Pagos Mensuales */}
+        <Paper
+          sx={{
+            p: 4,
+            borderRadius: "20px",
+            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.08)",
+            mb: 4,
+          }}
+        >
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              mb: 4,
+            }}
+          >
+            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+              <AttachMoney sx={{ fontSize: 32, color: "#10b981" }} />
+              <Box>
+                <Typography variant="h5" fontWeight="bold">
+                  Mis Pagos Mensuales
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Historial de pagos registrados por administradores
+                </Typography>
+              </Box>
+            </Box>
+          </Box>
+
+          {loadingPayments ? (
+            <Box display="flex" justifyContent="center" py={4}>
+              <CircularProgress />
+            </Box>
+          ) : (
+            <>
+              {/* Resumen por año */}
+              {paymentSummary.length > 0 && (
+                <Box sx={{ mb: 4 }}>
+                  <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
+                    Resumen por Año
+                  </Typography>
+                  <Box
+                    sx={{
+                      display: "grid",
+                      gridTemplateColumns: {
+                        xs: "1fr",
+                        sm: "repeat(auto-fill, minmax(200px, 1fr))",
+                      },
+                      gap: 2,
+                    }}
+                  >
+                    {paymentSummary.map((summary) => (
+                      <Paper
+                        key={summary.year}
+                        sx={{
+                          p: 3,
+                          borderRadius: "16px",
+                          borderTop: "4px solid",
+                          borderColor: "#10b981",
+                          transition:
+                            "transform 0.3s ease, box-shadow 0.3s ease",
+                          "&:hover": {
+                            transform: "translateY(-8px)",
+                            boxShadow: "0 12px 24px rgba(0, 0, 0, 0.15)",
+                          },
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 2,
+                            mb: 2,
+                          }}
+                        >
+                          <Box
+                            sx={{
+                              width: 48,
+                              height: 48,
+                              borderRadius: "12px",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              bgcolor: "rgba(16, 185, 129, 0.1)",
+                              color: "#10b981",
+                            }}
+                          >
+                            <CalendarToday />
+                          </Box>
+                        </Box>
+                        <Typography
+                          variant="h4"
+                          fontWeight="bold"
+                          sx={{
+                            background:
+                              "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+                            WebkitBackgroundClip: "text",
+                            WebkitTextFillColor: "transparent",
+                            backgroundClip: "text",
+                            mb: 0.5,
+                          }}
+                        >
+                          ${summary.total.toLocaleString()}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          Año {summary.year}
+                        </Typography>
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                          sx={{ display: "block", mt: 1 }}
+                        >
+                          {summary.months.length}{" "}
+                          {summary.months.length === 1 ? "mes" : "meses"}
+                        </Typography>
+                      </Paper>
+                    ))}
+                  </Box>
+                </Box>
+              )}
+
+              {/* Tabla de Pagos */}
+              {payments.length === 0 ? (
+                <Box
+                  sx={{
+                    textAlign: "center",
+                    py: 8,
+                    px: 3,
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: 120,
+                      height: 120,
+                      borderRadius: "50%",
+                      bgcolor: "rgba(16, 185, 129, 0.1)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      margin: "0 auto",
+                      mb: 3,
+                    }}
+                  >
+                    <AttachMoney sx={{ fontSize: 64, color: "#10b981" }} />
+                  </Box>
+                  <Typography variant="h6" fontWeight="bold" gutterBottom>
+                    No hay pagos registrados
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Los administradores registrarán tus pagos mensuales aquí
+                  </Typography>
+                </Box>
+              ) : (
+                <TableContainer
+                  component={Paper}
+                  sx={{
+                    borderRadius: "16px",
+                    overflow: "hidden",
+                    boxShadow: "0 2px 8px rgba(0, 0, 0, 0.05)",
+                  }}
+                >
+                  <Table>
+                    <TableHead>
+                      <TableRow sx={{ bgcolor: "rgba(16, 185, 129, 0.05)" }}>
+                        <TableCell sx={{ fontWeight: 600 }}>Fecha</TableCell>
+                        <TableCell align="center" sx={{ fontWeight: 600 }}>
+                          Período
+                        </TableCell>
+                        <TableCell align="center" sx={{ fontWeight: 600 }}>
+                          Monto
+                        </TableCell>
+                        <TableCell sx={{ fontWeight: 600 }}>
+                          Descripción
+                        </TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {payments.map((payment) => (
+                        <TableRow
+                          key={payment.id}
+                          sx={{
+                            "&:hover": {
+                              bgcolor: "rgba(16, 185, 129, 0.02)",
+                            },
+                          }}
+                        >
+                          <TableCell>
+                            {new Date(payment.paymentDate).toLocaleDateString(
+                              "es-ES",
+                            )}
+                          </TableCell>
+                          <TableCell align="center">
+                            <Typography fontWeight={600}>
+                              {new Date(
+                                payment.year,
+                                payment.month - 1,
+                              ).toLocaleDateString("es-ES", {
+                                month: "long",
+                                year: "numeric",
+                              })}
+                            </Typography>
+                          </TableCell>
+                          <TableCell align="center">
+                            <Typography fontWeight={600} color="success.main">
+                              ${payment.amount.toLocaleString()}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Typography
+                              variant="body2"
+                              color="text.secondary"
+                              sx={{
+                                maxWidth: "300px",
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                whiteSpace: "nowrap",
+                              }}
+                            >
+                              {payment.description || "Sin descripción"}
                             </Typography>
                           </TableCell>
                         </TableRow>
