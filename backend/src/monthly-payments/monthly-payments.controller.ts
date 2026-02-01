@@ -93,4 +93,31 @@ export class MonthlyPaymentsController {
   async deletePayment(@Param('id') id: string) {
     return this.monthlyPaymentsService.deletePayment(id);
   }
+
+  // Usuario: Obtener mis propios pagos
+  @Get('my-payments')
+  @Roles('user', 'admin')
+  async getMyPayments(@Req() req: any) {
+    const userId = req.user?.id || req.user?.userId;
+    return this.monthlyPaymentsService.getUserPayments(userId);
+  }
+
+  // Usuario: Obtener resumen de mis pagos
+  @Get('my-payments/summary')
+  @Roles('user', 'admin')
+  async getMyPaymentSummary(@Req() req: any) {
+    const userId = req.user?.id || req.user?.userId;
+    return this.monthlyPaymentsService.getPaymentSummary(userId);
+  }
+
+  // Usuario: Obtener mis pagos por año
+  @Get('my-payments/year/:year')
+  @Roles('user', 'admin')
+  async getMyPaymentsByYear(@Req() req: any, @Param('year') year: string) {
+    const userId = req.user?.id || req.user?.userId;
+    return this.monthlyPaymentsService.getUserPaymentsByYear(
+      userId,
+      parseInt(year),
+    );
+  }
 }

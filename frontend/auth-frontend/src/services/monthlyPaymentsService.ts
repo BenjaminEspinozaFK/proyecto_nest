@@ -43,7 +43,7 @@ class MonthlyPaymentsService {
     year: number,
     month: number,
     amount: number,
-    description?: string
+    description?: string,
   ): Promise<MonthlyPayment> {
     const response = await fetch(`${API_URL}/monthly-payments`, {
       method: "POST",
@@ -53,7 +53,8 @@ class MonthlyPaymentsService {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      const errorMessage = errorData.message || `Error ${response.status}: ${response.statusText}`;
+      const errorMessage =
+        errorData.message || `Error ${response.status}: ${response.statusText}`;
       throw new Error(errorMessage);
     }
 
@@ -61,12 +62,9 @@ class MonthlyPaymentsService {
   }
 
   async getUserPayments(userId: string): Promise<MonthlyPayment[]> {
-    const response = await fetch(
-      `${API_URL}/monthly-payments/user/${userId}`,
-      {
-        headers: this.getAuthHeader(),
-      }
-    );
+    const response = await fetch(`${API_URL}/monthly-payments/user/${userId}`, {
+      headers: this.getAuthHeader(),
+    });
 
     if (!response.ok) {
       throw new Error("Error al obtener los pagos");
@@ -80,7 +78,7 @@ class MonthlyPaymentsService {
       `${API_URL}/monthly-payments/user/${userId}/summary`,
       {
         headers: this.getAuthHeader(),
-      }
+      },
     );
 
     if (!response.ok) {
@@ -92,13 +90,13 @@ class MonthlyPaymentsService {
 
   async getUserPaymentsByYear(
     userId: string,
-    year: number
+    year: number,
   ): Promise<MonthlyPayment[]> {
     const response = await fetch(
       `${API_URL}/monthly-payments/user/${userId}/year/${year}`,
       {
         headers: this.getAuthHeader(),
-      }
+      },
     );
 
     if (!response.ok) {
@@ -111,7 +109,7 @@ class MonthlyPaymentsService {
   async updatePayment(
     id: string,
     amount?: number,
-    description?: string
+    description?: string,
   ): Promise<MonthlyPayment> {
     const response = await fetch(`${API_URL}/monthly-payments/${id}`, {
       method: "PATCH",
@@ -135,6 +133,49 @@ class MonthlyPaymentsService {
     if (!response.ok) {
       throw new Error("Error al eliminar el pago");
     }
+  }
+
+  // Nuevos métodos para usuarios (obtienen sus propios datos)
+  async getMyPayments(): Promise<MonthlyPayment[]> {
+    const response = await fetch(`${API_URL}/monthly-payments/my-payments`, {
+      headers: this.getAuthHeader(),
+    });
+
+    if (!response.ok) {
+      throw new Error("Error al obtener mis pagos");
+    }
+
+    return response.json();
+  }
+
+  async getMyPaymentSummary(): Promise<PaymentSummary[]> {
+    const response = await fetch(
+      `${API_URL}/monthly-payments/my-payments/summary`,
+      {
+        headers: this.getAuthHeader(),
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error("Error al obtener el resumen de mis pagos");
+    }
+
+    return response.json();
+  }
+
+  async getMyPaymentsByYear(year: number): Promise<MonthlyPayment[]> {
+    const response = await fetch(
+      `${API_URL}/monthly-payments/my-payments/year/${year}`,
+      {
+        headers: this.getAuthHeader(),
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error("Error al obtener mis pagos del año");
+    }
+
+    return response.json();
   }
 }
 
