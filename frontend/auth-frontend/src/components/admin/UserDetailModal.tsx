@@ -41,7 +41,10 @@ import {
   AttachMoney,
   Add,
   Delete,
+  PictureAsPdf,
 } from "@mui/icons-material";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 import { User } from "../../types/auth";
 import { GasVoucher, VoucherStats } from "../../types/voucher";
 import { voucherService } from "../../services/voucherService";
@@ -207,7 +210,7 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
         newPayment.year,
         newPayment.month,
         newPayment.amount,
-        newPayment.description || undefined
+        newPayment.description || undefined,
       );
       setSuccess("Pago registrado correctamente");
       setShowAddPayment(false);
@@ -238,6 +241,204 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
       setError("Error al eliminar el pago");
       console.error(error);
     }
+  };
+
+  const generatePaymentPDF = () => {
+    if (!user) return;
+
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+
+    // Configurar colores
+    const primaryColor: [number, number, number] = [16, 185, 129]; // Verde
+    const darkGray: [number, number, number] = [51, 51, 51];
+    const lightGray: [number, number, number] = [245, 245, 245];
+
+    // Encabezado con fondo
+    doc.setFillColor(...primaryColor);
+    doc.rect(0, 0, pageWidth, 40, "F");
+
+    // Logo o título principal
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(24);
+    doc.setFont("helvetica", "bold");
+    doc.text("CARTOLA DE PAGOS", pageWidth / 2, 18, { align: "center" });
+
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "normal");
+    doc.text("Sistema de Gestión de Pagos", pageWidth / 2, 28, {
+      align: "center",
+    });
+
+    // Información del usuario
+    doc.setTextColor(...darkGray);
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "bold");
+    doc.text("INFORMACIÓN DEL EMPLEADO", 15, 52);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    const userInfo = [
+      `Nombre: ${user.name}`,
+      `RUT: ${user.rut}`,
+      `Email: ${user.email}`,
+      `Teléfono: ${user.phone || "No registrado"}`,
+    ];
+
+    let yPos = 60;
+    userInfo.forEach((info) => {
+      doc.text(info, 15, yPos);
+      yPos += 6;
+    });
+
+    // Fecha de emisión
+    doc.setFontSize(9);
+    doc.setTextColor(100, 100, 100);
+    doc.text(
+      `Fecha de emisión: ${new Date().toLocaleDateString("es-ES", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+      })}`,
+      pageWidth - 15,
+      52,
+      { align: "right" },
+    );
+
+    // Resumen por año
+    if (paymentSummary.length > 0) {
+      yPos += 8;
+      doc.setTextColor(...darkGray);
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "bold");
+      doc.text("RESUMEN POR AÑO", 15, yPos);
+
+      yPos += 5;
+      paymentSummary.forEach((summary) => {
+        yPos += 8;
+        doc.setFillColor(...lightGray);
+        doc.roundedRect(15, yPos - 5, pageWidth - 30, 12, 2, 2, "F");
+
+        doc.setTextColor(...primaryColor);
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "bold");
+        doc.text(`Año ${summary.year}`, 20, yPos);
+
+        doc.setTextColor(...darkGray);
+        doc.text(`${summary.months.length} meses`, 80, yPos);
+
+        doc.setTextColor(...primaryColor);
+        doc.setFont("helvetica", "bold");
+        doc.text(
+          `$${summary.total.toLocaleString("es-CL")}`,
+          pageWidth - 20,
+          yPos,
+          { align: "right" },
+        );
+      });
+      yPos += 10;
+    }
+
+    // Tabla de pagos detallados
+    if (payments.length > 0) {
+      yPos += 8;
+      doc.setTextColor(...darkGray);
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "bold");
+      doc.text("DETALLE DE PAGOS", 15, yPos);
+      yPos += 2;
+
+      const tableData = payments.map((payment) => [
+        new Date(payment.paymentDate).toLocaleDateString("es-ES"),
+        `${getMonthName(payment.month)} ${payment.year}`,
+        `$${payment.amount.toLocaleString("es-CL")}`,
+        payment.description || "Sin descripción",
+      ]);
+
+      autoTable(doc, {
+        startY: yPos,
+        head: [["Fecha de Pago", "Período", "Monto", "Descripción"]],
+        body: tableData,
+        theme: "striped",
+        headStyles: {
+          fillColor: primaryColor,
+          textColor: [255, 255, 255],
+          fontSize: 10,
+          fontStyle: "bold",
+          halign: "center",
+        },
+        bodyStyles: {
+          fontSize: 9,
+          textColor: darkGray,
+        },
+        alternateRowStyles: {
+          fillColor: [250, 250, 250],
+        },
+        columnStyles: {
+          0: { cellWidth: 30, halign: "center" },
+          1: { cellWidth: 35, halign: "center" },
+          2: { cellWidth: 30, halign: "right", fontStyle: "bold" },
+          3: { cellWidth: "auto", halign: "left" },
+        },
+        margin: { left: 15, right: 15 },
+      });
+
+      // Calcular total general
+      const totalAmount = payments.reduce(
+        (sum, payment) => sum + payment.amount,
+        0,
+      );
+
+      const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
+
+      // Cuadro de total
+      doc.setFillColor(...primaryColor);
+      doc.roundedRect(pageWidth - 80, finalY + 10, 65, 15, 3, 3, "F");
+
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "bold");
+      doc.text("TOTAL GENERAL", pageWidth - 77, finalY + 17);
+      doc.setFontSize(12);
+      doc.text(
+        `$${totalAmount.toLocaleString("es-CL")}`,
+        pageWidth - 77,
+        finalY + 23,
+      );
+    } else {
+      yPos += 15;
+      doc.setTextColor(150, 150, 150);
+      doc.setFont("helvetica", "italic");
+      doc.setFontSize(10);
+      doc.text("No hay pagos registrados", pageWidth / 2, yPos, {
+        align: "center",
+      });
+    }
+
+    // Pie de página
+    doc.setDrawColor(200, 200, 200);
+    doc.line(15, pageHeight - 20, pageWidth - 15, pageHeight - 20);
+
+    doc.setTextColor(100, 100, 100);
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "italic");
+    doc.text(
+      "Este documento es una cartola informativa de los pagos registrados en el sistema.",
+      pageWidth / 2,
+      pageHeight - 13,
+      { align: "center" },
+    );
+    doc.text(
+      `Generado el ${new Date().toLocaleDateString("es-ES")} a las ${new Date().toLocaleTimeString("es-ES")}`,
+      pageWidth / 2,
+      pageHeight - 8,
+      { align: "center" },
+    );
+
+    // Guardar PDF
+    const fileName = `Cartola_Pagos_${user.rut}_${new Date().getFullYear()}.pdf`;
+    doc.save(fileName);
   };
 
   const getMonthName = (month: number) => {
@@ -281,7 +482,7 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify(userDataToUpdate),
-        }
+        },
       );
 
       if (!response.ok) {
@@ -319,7 +520,7 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
           {
             method: "DELETE",
             headers: { Authorization: `Bearer ${token}` },
-          }
+          },
         );
 
         if (response.ok) {
@@ -817,7 +1018,7 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
                             <TableRow key={voucher.id}>
                               <TableCell>
                                 {new Date(
-                                  voucher.requestDate
+                                  voucher.requestDate,
                                 ).toLocaleDateString()}
                               </TableCell>
                               <TableCell align="center">
@@ -907,222 +1108,232 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
               <Box
                 display="flex"
                 justifyContent="space-between"
-                    alignItems="center"
-                    mb={3}
+                alignItems="center"
+                mb={3}
+              >
+                <Typography variant="h6" fontWeight="bold">
+                  Registro de Pagos Mensuales
+                </Typography>
+                <Box display="flex" gap={2}>
+                  <Button
+                    variant="outlined"
+                    color="success"
+                    startIcon={<PictureAsPdf />}
+                    onClick={generatePaymentPDF}
+                    disabled={payments.length === 0}
                   >
-                    <Typography variant="h6" fontWeight="bold">
-                      Registro de Pagos Mensuales
-                    </Typography>
-                    <Button
-                      variant="contained"
-                      color="primary"
-                      startIcon={<Add />}
-                      onClick={() => setShowAddPayment(!showAddPayment)}
-                    >
-                      {showAddPayment ? "Cancelar" : "Agregar Pago"}
-                    </Button>
-                  </Box>
+                    Generar PDF
+                  </Button>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    startIcon={<Add />}
+                    onClick={() => setShowAddPayment(!showAddPayment)}
+                  >
+                    {showAddPayment ? "Cancelar" : "Agregar Pago"}
+                  </Button>
+                </Box>
+              </Box>
 
-                  {/* Formulario para agregar pago */}
-                  {showAddPayment && (
-                    <Paper sx={{ p: 3, mb: 3, bgcolor: "background.default" }}>
-                      <Typography variant="subtitle1" fontWeight="bold" mb={2}>
-                        Nuevo Registro de Pago
-                      </Typography>
-                      <Box display="flex" flexDirection="column" gap={2}>
-                        <Box display="flex" gap={2}>
-                          <FormControl fullWidth>
-                            <InputLabel>Año</InputLabel>
-                            <Select
-                              value={newPayment.year}
-                              label="Año"
-                              onChange={(e) =>
-                                setNewPayment({
-                                  ...newPayment,
-                                  year: Number(e.target.value),
-                                })
-                              }
-                            >
-                              {Array.from({ length: 5 }, (_, i) => {
-                                const year = new Date().getFullYear() - i;
-                                return (
-                                  <MenuItem key={year} value={year}>
-                                    {year}
-                                  </MenuItem>
-                                );
-                              })}
-                            </Select>
-                          </FormControl>
-                          <FormControl fullWidth>
-                            <InputLabel>Mes</InputLabel>
-                            <Select
-                              value={newPayment.month}
-                              label="Mes"
-                              onChange={(e) =>
-                                setNewPayment({
-                                  ...newPayment,
-                                  month: Number(e.target.value),
-                                })
-                              }
-                            >
-                              {[
-                                "Enero",
-                                "Febrero",
-                                "Marzo",
-                                "Abril",
-                                "Mayo",
-                                "Junio",
-                                "Julio",
-                                "Agosto",
-                                "Septiembre",
-                                "Octubre",
-                                "Noviembre",
-                                "Diciembre",
-                              ].map((month, index) => (
-                                <MenuItem key={index + 1} value={index + 1}>
-                                  {month}
-                                </MenuItem>
-                              ))}
-                            </Select>
-                          </FormControl>
-                        </Box>
-                        <TextField
-                          label="Monto"
-                          type="number"
-                          fullWidth
-                          value={newPayment.amount || ""}
-                          onChange={(e) => {
-                            const value = parseFloat(e.target.value) || 0;
-                            setNewPayment({
-                              ...newPayment,
-                              amount: value,
-                            });
-                          }}
-                          InputProps={{
-                            startAdornment: <Typography>$</Typography>,
-                          }}
-                          helperText="Ingresa el monto del pago"
-                        />
-                        <TextField
-                          label="Descripción (opcional)"
-                          fullWidth
-                          multiline
-                          rows={2}
-                          value={newPayment.description}
+              {/* Formulario para agregar pago */}
+              {showAddPayment && (
+                <Paper sx={{ p: 3, mb: 3, bgcolor: "background.default" }}>
+                  <Typography variant="subtitle1" fontWeight="bold" mb={2}>
+                    Nuevo Registro de Pago
+                  </Typography>
+                  <Box display="flex" flexDirection="column" gap={2}>
+                    <Box display="flex" gap={2}>
+                      <FormControl fullWidth>
+                        <InputLabel>Año</InputLabel>
+                        <Select
+                          value={newPayment.year}
+                          label="Año"
                           onChange={(e) =>
                             setNewPayment({
                               ...newPayment,
-                              description: e.target.value,
+                              year: Number(e.target.value),
                             })
                           }
-                        />
-                        <Button
-                          variant="contained"
-                          color="success"
-                          onClick={handleAddPayment}
                         >
-                          Guardar Pago
-                        </Button>
-                      </Box>
-                    </Paper>
-                  )}
-
-                  {/* Resumen de pagos */}
-                  {loadingPayments ? (
-                    <Box display="flex" justifyContent="center" p={3}>
-                      <CircularProgress />
+                          {Array.from({ length: 5 }, (_, i) => {
+                            const year = new Date().getFullYear() - i;
+                            return (
+                              <MenuItem key={year} value={year}>
+                                {year}
+                              </MenuItem>
+                            );
+                          })}
+                        </Select>
+                      </FormControl>
+                      <FormControl fullWidth>
+                        <InputLabel>Mes</InputLabel>
+                        <Select
+                          value={newPayment.month}
+                          label="Mes"
+                          onChange={(e) =>
+                            setNewPayment({
+                              ...newPayment,
+                              month: Number(e.target.value),
+                            })
+                          }
+                        >
+                          {[
+                            "Enero",
+                            "Febrero",
+                            "Marzo",
+                            "Abril",
+                            "Mayo",
+                            "Junio",
+                            "Julio",
+                            "Agosto",
+                            "Septiembre",
+                            "Octubre",
+                            "Noviembre",
+                            "Diciembre",
+                          ].map((month, index) => (
+                            <MenuItem key={index + 1} value={index + 1}>
+                              {month}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
                     </Box>
-                  ) : paymentSummary.length === 0 ? (
-                    <Box
-                      sx={{
-                        p: 3,
-                        bgcolor: "background.default",
-                        borderRadius: 2,
-                        textAlign: "center",
+                    <TextField
+                      label="Monto"
+                      type="number"
+                      fullWidth
+                      value={newPayment.amount || ""}
+                      onChange={(e) => {
+                        const value = parseFloat(e.target.value) || 0;
+                        setNewPayment({
+                          ...newPayment,
+                          amount: value,
+                        });
                       }}
+                      InputProps={{
+                        startAdornment: <Typography>$</Typography>,
+                      }}
+                      helperText="Ingresa el monto del pago"
+                    />
+                    <TextField
+                      label="Descripción (opcional)"
+                      fullWidth
+                      multiline
+                      rows={2}
+                      value={newPayment.description}
+                      onChange={(e) =>
+                        setNewPayment({
+                          ...newPayment,
+                          description: e.target.value,
+                        })
+                      }
+                    />
+                    <Button
+                      variant="contained"
+                      color="success"
+                      onClick={handleAddPayment}
                     >
-                      <Typography color="text.secondary">
-                        No hay registros de pagos para este usuario
-                      </Typography>
-                    </Box>
-                  ) : (
-                    <>
-                      {paymentSummary.map((yearSummary) => (
-                        <Paper key={yearSummary.year} sx={{ p: 3, mb: 3 }}>
-                          <Box
-                            display="flex"
-                            justifyContent="space-between"
-                            alignItems="center"
-                            mb={2}
-                          >
-                            <Typography variant="h6" fontWeight="bold">
-                              Año {yearSummary.year}
-                            </Typography>
-                            <Chip
-                              label={`Total: $${yearSummary.total.toLocaleString()}`}
-                              color="primary"
-                              sx={{ fontWeight: "bold", fontSize: "1rem" }}
-                            />
-                          </Box>
+                      Guardar Pago
+                    </Button>
+                  </Box>
+                </Paper>
+              )}
 
-                          <TableContainer>
-                            <Table size="small">
-                              <TableHead>
-                                <TableRow>
-                                  <TableCell>Mes</TableCell>
-                                  <TableCell align="right">Monto</TableCell>
-                                  <TableCell>Descripción</TableCell>
-                                  <TableCell align="center">Acciones</TableCell>
+              {/* Resumen de pagos */}
+              {loadingPayments ? (
+                <Box display="flex" justifyContent="center" p={3}>
+                  <CircularProgress />
+                </Box>
+              ) : paymentSummary.length === 0 ? (
+                <Box
+                  sx={{
+                    p: 3,
+                    bgcolor: "background.default",
+                    borderRadius: 2,
+                    textAlign: "center",
+                  }}
+                >
+                  <Typography color="text.secondary">
+                    No hay registros de pagos para este usuario
+                  </Typography>
+                </Box>
+              ) : (
+                <>
+                  {paymentSummary.map((yearSummary) => (
+                    <Paper key={yearSummary.year} sx={{ p: 3, mb: 3 }}>
+                      <Box
+                        display="flex"
+                        justifyContent="space-between"
+                        alignItems="center"
+                        mb={2}
+                      >
+                        <Typography variant="h6" fontWeight="bold">
+                          Año {yearSummary.year}
+                        </Typography>
+                        <Chip
+                          label={`Total: $${yearSummary.total.toLocaleString()}`}
+                          color="primary"
+                          sx={{ fontWeight: "bold", fontSize: "1rem" }}
+                        />
+                      </Box>
+
+                      <TableContainer>
+                        <Table size="small">
+                          <TableHead>
+                            <TableRow>
+                              <TableCell>Mes</TableCell>
+                              <TableCell align="right">Monto</TableCell>
+                              <TableCell>Descripción</TableCell>
+                              <TableCell align="center">Acciones</TableCell>
+                            </TableRow>
+                          </TableHead>
+                          <TableBody>
+                            {yearSummary.months.map((monthData) => {
+                              const payment = payments.find(
+                                (p) =>
+                                  p.year === yearSummary.year &&
+                                  p.month === monthData.month,
+                              );
+                              return (
+                                <TableRow key={monthData.month}>
+                                  <TableCell>
+                                    {getMonthName(monthData.month)}
+                                  </TableCell>
+                                  <TableCell align="right">
+                                    <Typography
+                                      fontWeight="bold"
+                                      color="success.main"
+                                    >
+                                      ${monthData.amount.toLocaleString()}
+                                    </Typography>
+                                  </TableCell>
+                                  <TableCell>
+                                    {monthData.description || "-"}
+                                  </TableCell>
+                                  <TableCell align="center">
+                                    <IconButton
+                                      size="small"
+                                      color="error"
+                                      onClick={() =>
+                                        payment &&
+                                        handleDeletePayment(payment.id)
+                                      }
+                                    >
+                                      <Delete />
+                                    </IconButton>
+                                  </TableCell>
                                 </TableRow>
-                              </TableHead>
-                              <TableBody>
-                                {yearSummary.months.map((monthData) => {
-                                  const payment = payments.find(
-                                    (p) =>
-                                      p.year === yearSummary.year &&
-                                      p.month === monthData.month
-                                  );
-                                  return (
-                                    <TableRow key={monthData.month}>
-                                      <TableCell>
-                                        {getMonthName(monthData.month)}
-                                      </TableCell>
-                                      <TableCell align="right">
-                                        <Typography
-                                          fontWeight="bold"
-                                          color="success.main"
-                                        >
-                                          $
-                                          {monthData.amount.toLocaleString()}
-                                        </Typography>
-                                      </TableCell>
-                                      <TableCell>
-                                        {monthData.description || "-"}
-                                      </TableCell>
-                                      <TableCell align="center">
-                                        <IconButton
-                                          size="small"
-                                          color="error"
-                                          onClick={() =>
-                                            payment &&
-                                            handleDeletePayment(payment.id)
-                                          }
-                                        >
-                                          <Delete />
-                                        </IconButton>
-                                      </TableCell>
-                                    </TableRow>
-                                  );
-                                })}
-                              </TableBody>
-                            </Table>
-                          </TableContainer>
-                        </Paper>
-                      ))}
-                    </>
-                  )}
-              </Box>
-            )}
+                              );
+                            })}
+                          </TableBody>
+                        </Table>
+                      </TableContainer>
+                    </Paper>
+                  ))}
+                </>
+              )}
+            </Box>
+          )}
         </Box>
 
         {/* Footer Actions */}
