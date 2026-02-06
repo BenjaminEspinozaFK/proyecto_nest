@@ -210,7 +210,7 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
         newPayment.year,
         newPayment.month,
         newPayment.amount,
-        newPayment.description || undefined
+        newPayment.description || undefined,
       );
       setSuccess("Pago registrado correctamente");
       setShowAddPayment(false);
@@ -303,7 +303,7 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
       })}`,
       pageWidth - 15,
       52,
-      { align: "right" }
+      { align: "right" },
     );
 
     // Resumen por año
@@ -334,7 +334,7 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
           `$${summary.total.toLocaleString("es-CL")}`,
           pageWidth - 20,
           yPos,
-          { align: "right" }
+          { align: "right" },
         );
       });
       yPos += 10;
@@ -387,7 +387,7 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
       // Calcular total general
       const totalAmount = payments.reduce(
         (sum, payment) => sum + payment.amount,
-        0
+        0,
       );
 
       const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
@@ -404,7 +404,7 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
       doc.text(
         `$${totalAmount.toLocaleString("es-CL")}`,
         pageWidth - 77,
-        finalY + 23
+        finalY + 23,
       );
     } else {
       yPos += 15;
@@ -427,13 +427,13 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
       "Este documento es una cartola informativa de los pagos registrados en el sistema.",
       pageWidth / 2,
       pageHeight - 13,
-      { align: "center" }
+      { align: "center" },
     );
     doc.text(
       `Generado el ${new Date().toLocaleDateString("es-ES")} a las ${new Date().toLocaleTimeString("es-ES")}`,
       pageWidth / 2,
       pageHeight - 8,
-      { align: "center" }
+      { align: "center" },
     );
 
     // Guardar PDF
@@ -482,7 +482,7 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify(userDataToUpdate),
-        }
+        },
       );
 
       if (!response.ok) {
@@ -520,7 +520,7 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
           {
             method: "DELETE",
             headers: { Authorization: `Bearer ${token}` },
-          }
+          },
         );
 
         if (response.ok) {
@@ -1018,7 +1018,7 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
                             <TableRow key={voucher.id}>
                               <TableCell>
                                 {new Date(
-                                  voucher.requestDate
+                                  voucher.requestDate,
                                 ).toLocaleDateString()}
                               </TableCell>
                               <TableCell align="center">
@@ -1108,233 +1108,232 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
               <Box
                 display="flex"
                 justifyContent="space-between"
-                    alignItems="center"
-                    mb={3}
+                alignItems="center"
+                mb={3}
+              >
+                <Typography variant="h6" fontWeight="bold">
+                  Registro de Pagos Mensuales
+                </Typography>
+                <Box display="flex" gap={2}>
+                  <Button
+                    variant="outlined"
+                    color="success"
+                    startIcon={<PictureAsPdf />}
+                    onClick={generatePaymentPDF}
+                    disabled={payments.length === 0}
                   >
-                    <Typography variant="h6" fontWeight="bold">
-                      Registro de Pagos Mensuales
-                    </Typography>
-                    <Box display="flex" gap={2}>
-                      <Button
-                        variant="outlined"
-                        color="success"
-                        startIcon={<PictureAsPdf />}
-                        onClick={generatePaymentPDF}
-                        disabled={payments.length === 0}
-                      >
-                        Generar PDF
-                      </Button>
-                      <Button
-                        variant="contained"
-                        color="primary"
-                        startIcon={<Add />}
-                        onClick={() => setShowAddPayment(!showAddPayment)}
-                      >
-                        {showAddPayment ? "Cancelar" : "Agregar Pago"}
-                      </Button>
-                    </Box>
-                  </Box>
+                    Generar PDF
+                  </Button>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    startIcon={<Add />}
+                    onClick={() => setShowAddPayment(!showAddPayment)}
+                  >
+                    {showAddPayment ? "Cancelar" : "Agregar Pago"}
+                  </Button>
+                </Box>
+              </Box>
 
-                  {/* Formulario para agregar pago */}
-                  {showAddPayment && (
-                    <Paper sx={{ p: 3, mb: 3, bgcolor: "background.default" }}>
-                      <Typography variant="subtitle1" fontWeight="bold" mb={2}>
-                        Nuevo Registro de Pago
-                      </Typography>
-                      <Box display="flex" flexDirection="column" gap={2}>
-                        <Box display="flex" gap={2}>
-                          <FormControl fullWidth>
-                            <InputLabel>Año</InputLabel>
-                            <Select
-                              value={newPayment.year}
-                              label="Año"
-                              onChange={(e) =>
-                                setNewPayment({
-                                  ...newPayment,
-                                  year: Number(e.target.value),
-                                })
-                              }
-                            >
-                              {Array.from({ length: 5 }, (_, i) => {
-                                const year = new Date().getFullYear() - i;
-                                return (
-                                  <MenuItem key={year} value={year}>
-                                    {year}
-                                  </MenuItem>
-                                );
-                              })}
-                            </Select>
-                          </FormControl>
-                          <FormControl fullWidth>
-                            <InputLabel>Mes</InputLabel>
-                            <Select
-                              value={newPayment.month}
-                              label="Mes"
-                              onChange={(e) =>
-                                setNewPayment({
-                                  ...newPayment,
-                                  month: Number(e.target.value),
-                                })
-                              }
-                            >
-                              {[
-                                "Enero",
-                                "Febrero",
-                                "Marzo",
-                                "Abril",
-                                "Mayo",
-                                "Junio",
-                                "Julio",
-                                "Agosto",
-                                "Septiembre",
-                                "Octubre",
-                                "Noviembre",
-                                "Diciembre",
-                              ].map((month, index) => (
-                                <MenuItem key={index + 1} value={index + 1}>
-                                  {month}
-                                </MenuItem>
-                              ))}
-                            </Select>
-                          </FormControl>
-                        </Box>
-                        <TextField
-                          label="Monto"
-                          type="number"
-                          fullWidth
-                          value={newPayment.amount || ""}
-                          onChange={(e) => {
-                            const value = parseFloat(e.target.value) || 0;
-                            setNewPayment({
-                              ...newPayment,
-                              amount: value,
-                            });
-                          }}
-                          InputProps={{
-                            startAdornment: <Typography>$</Typography>,
-                          }}
-                          helperText="Ingresa el monto del pago"
-                        />
-                        <TextField
-                          label="Descripción (opcional)"
-                          fullWidth
-                          multiline
-                          rows={2}
-                          value={newPayment.description}
+              {/* Formulario para agregar pago */}
+              {showAddPayment && (
+                <Paper sx={{ p: 3, mb: 3, bgcolor: "background.default" }}>
+                  <Typography variant="subtitle1" fontWeight="bold" mb={2}>
+                    Nuevo Registro de Pago
+                  </Typography>
+                  <Box display="flex" flexDirection="column" gap={2}>
+                    <Box display="flex" gap={2}>
+                      <FormControl fullWidth>
+                        <InputLabel>Año</InputLabel>
+                        <Select
+                          value={newPayment.year}
+                          label="Año"
                           onChange={(e) =>
                             setNewPayment({
                               ...newPayment,
-                              description: e.target.value,
+                              year: Number(e.target.value),
                             })
                           }
-                        />
-                        <Button
-                          variant="contained"
-                          color="success"
-                          onClick={handleAddPayment}
                         >
-                          Guardar Pago
-                        </Button>
-                      </Box>
-                    </Paper>
-                  )}
-
-                  {/* Resumen de pagos */}
-                  {loadingPayments ? (
-                    <Box display="flex" justifyContent="center" p={3}>
-                      <CircularProgress />
+                          {Array.from({ length: 5 }, (_, i) => {
+                            const year = new Date().getFullYear() - i;
+                            return (
+                              <MenuItem key={year} value={year}>
+                                {year}
+                              </MenuItem>
+                            );
+                          })}
+                        </Select>
+                      </FormControl>
+                      <FormControl fullWidth>
+                        <InputLabel>Mes</InputLabel>
+                        <Select
+                          value={newPayment.month}
+                          label="Mes"
+                          onChange={(e) =>
+                            setNewPayment({
+                              ...newPayment,
+                              month: Number(e.target.value),
+                            })
+                          }
+                        >
+                          {[
+                            "Enero",
+                            "Febrero",
+                            "Marzo",
+                            "Abril",
+                            "Mayo",
+                            "Junio",
+                            "Julio",
+                            "Agosto",
+                            "Septiembre",
+                            "Octubre",
+                            "Noviembre",
+                            "Diciembre",
+                          ].map((month, index) => (
+                            <MenuItem key={index + 1} value={index + 1}>
+                              {month}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
                     </Box>
-                  ) : paymentSummary.length === 0 ? (
-                    <Box
-                      sx={{
-                        p: 3,
-                        bgcolor: "background.default",
-                        borderRadius: 2,
-                        textAlign: "center",
+                    <TextField
+                      label="Monto"
+                      type="number"
+                      fullWidth
+                      value={newPayment.amount || ""}
+                      onChange={(e) => {
+                        const value = parseFloat(e.target.value) || 0;
+                        setNewPayment({
+                          ...newPayment,
+                          amount: value,
+                        });
                       }}
+                      InputProps={{
+                        startAdornment: <Typography>$</Typography>,
+                      }}
+                      helperText="Ingresa el monto del pago"
+                    />
+                    <TextField
+                      label="Descripción (opcional)"
+                      fullWidth
+                      multiline
+                      rows={2}
+                      value={newPayment.description}
+                      onChange={(e) =>
+                        setNewPayment({
+                          ...newPayment,
+                          description: e.target.value,
+                        })
+                      }
+                    />
+                    <Button
+                      variant="contained"
+                      color="success"
+                      onClick={handleAddPayment}
                     >
-                      <Typography color="text.secondary">
-                        No hay registros de pagos para este usuario
-                      </Typography>
-                    </Box>
-                  ) : (
-                    <>
-                      {paymentSummary.map((yearSummary) => (
-                        <Paper key={yearSummary.year} sx={{ p: 3, mb: 3 }}>
-                          <Box
-                            display="flex"
-                            justifyContent="space-between"
-                            alignItems="center"
-                            mb={2}
-                          >
-                            <Typography variant="h6" fontWeight="bold">
-                              Año {yearSummary.year}
-                            </Typography>
-                            <Chip
-                              label={`Total: $${yearSummary.total.toLocaleString()}`}
-                              color="primary"
-                              sx={{ fontWeight: "bold", fontSize: "1rem" }}
-                            />
-                          </Box>
+                      Guardar Pago
+                    </Button>
+                  </Box>
+                </Paper>
+              )}
 
-                          <TableContainer>
-                            <Table size="small">
-                              <TableHead>
-                                <TableRow>
-                                  <TableCell>Mes</TableCell>
-                                  <TableCell align="right">Monto</TableCell>
-                                  <TableCell>Descripción</TableCell>
-                                  <TableCell align="center">Acciones</TableCell>
+              {/* Resumen de pagos */}
+              {loadingPayments ? (
+                <Box display="flex" justifyContent="center" p={3}>
+                  <CircularProgress />
+                </Box>
+              ) : paymentSummary.length === 0 ? (
+                <Box
+                  sx={{
+                    p: 3,
+                    bgcolor: "background.default",
+                    borderRadius: 2,
+                    textAlign: "center",
+                  }}
+                >
+                  <Typography color="text.secondary">
+                    No hay registros de pagos para este usuario
+                  </Typography>
+                </Box>
+              ) : (
+                <>
+                  {paymentSummary.map((yearSummary) => (
+                    <Paper key={yearSummary.year} sx={{ p: 3, mb: 3 }}>
+                      <Box
+                        display="flex"
+                        justifyContent="space-between"
+                        alignItems="center"
+                        mb={2}
+                      >
+                        <Typography variant="h6" fontWeight="bold">
+                          Año {yearSummary.year}
+                        </Typography>
+                        <Chip
+                          label={`Total: $${yearSummary.total.toLocaleString()}`}
+                          color="primary"
+                          sx={{ fontWeight: "bold", fontSize: "1rem" }}
+                        />
+                      </Box>
+
+                      <TableContainer>
+                        <Table size="small">
+                          <TableHead>
+                            <TableRow>
+                              <TableCell>Mes</TableCell>
+                              <TableCell align="right">Monto</TableCell>
+                              <TableCell>Descripción</TableCell>
+                              <TableCell align="center">Acciones</TableCell>
+                            </TableRow>
+                          </TableHead>
+                          <TableBody>
+                            {yearSummary.months.map((monthData) => {
+                              const payment = payments.find(
+                                (p) =>
+                                  p.year === yearSummary.year &&
+                                  p.month === monthData.month,
+                              );
+                              return (
+                                <TableRow key={monthData.month}>
+                                  <TableCell>
+                                    {getMonthName(monthData.month)}
+                                  </TableCell>
+                                  <TableCell align="right">
+                                    <Typography
+                                      fontWeight="bold"
+                                      color="success.main"
+                                    >
+                                      ${monthData.amount.toLocaleString()}
+                                    </Typography>
+                                  </TableCell>
+                                  <TableCell>
+                                    {monthData.description || "-"}
+                                  </TableCell>
+                                  <TableCell align="center">
+                                    <IconButton
+                                      size="small"
+                                      color="error"
+                                      onClick={() =>
+                                        payment &&
+                                        handleDeletePayment(payment.id)
+                                      }
+                                    >
+                                      <Delete />
+                                    </IconButton>
+                                  </TableCell>
                                 </TableRow>
-                              </TableHead>
-                              <TableBody>
-                                {yearSummary.months.map((monthData) => {
-                                  const payment = payments.find(
-                                    (p) =>
-                                      p.year === yearSummary.year &&
-                                      p.month === monthData.month
-                                  );
-                                  return (
-                                    <TableRow key={monthData.month}>
-                                      <TableCell>
-                                        {getMonthName(monthData.month)}
-                                      </TableCell>
-                                      <TableCell align="right">
-                                        <Typography
-                                          fontWeight="bold"
-                                          color="success.main"
-                                        >
-                                          $
-                                          {monthData.amount.toLocaleString()}
-                                        </Typography>
-                                      </TableCell>
-                                      <TableCell>
-                                        {monthData.description || "-"}
-                                      </TableCell>
-                                      <TableCell align="center">
-                                        <IconButton
-                                          size="small"
-                                          color="error"
-                                          onClick={() =>
-                                            payment &&
-                                            handleDeletePayment(payment.id)
-                                          }
-                                        >
-                                          <Delete />
-                                        </IconButton>
-                                      </TableCell>
-                                    </TableRow>
-                                  );
-                                })}
-                              </TableBody>
-                            </Table>
-                          </TableContainer>
-                        </Paper>
-                      ))}
-                    </>
-                  )}
-              </Box>
-            )}
+                              );
+                            })}
+                          </TableBody>
+                        </Table>
+                      </TableContainer>
+                    </Paper>
+                  ))}
+                </>
+              )}
+            </Box>
+          )}
         </Box>
 
         {/* Footer Actions */}
