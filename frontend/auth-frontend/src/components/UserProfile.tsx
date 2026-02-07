@@ -44,6 +44,7 @@ import {
   Palette,
   AttachMoney,
   CalendarToday,
+  PictureAsPdf,
 } from "@mui/icons-material";
 import { useAuth } from "./AuthContext";
 import { voucherService } from "../services/voucherService";
@@ -54,6 +55,8 @@ import {
   MonthlyPayment,
   PaymentSummary,
 } from "../services/monthlyPaymentsService";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 interface UserProfileProps {
   toggleTheme?: () => void;
@@ -207,6 +210,223 @@ const UserProfile: React.FC<UserProfileProps> = ({ toggleTheme, isDark }) => {
     } finally {
       setLoadingPayments(false);
     }
+  };
+
+  const generatePaymentPDF = () => {
+    if (!user) return;
+
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+
+    // Configurar colores
+    const primaryColor: [number, number, number] = [16, 185, 129]; // Verde
+    const darkGray: [number, number, number] = [51, 51, 51];
+    const lightGray: [number, number, number] = [245, 245, 245];
+
+    // Encabezado con fondo
+    doc.setFillColor(...primaryColor);
+    doc.rect(0, 0, pageWidth, 40, "F");
+
+    // Logo o título principal
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(24);
+    doc.setFont("helvetica", "bold");
+    doc.text("CARTOLA DE PAGOS", pageWidth / 2, 18, { align: "center" });
+
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "normal");
+    doc.text("Sistema de Gestión de Pagos", pageWidth / 2, 28, {
+      align: "center",
+    });
+
+    // Información del usuario
+    doc.setTextColor(...darkGray);
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "bold");
+    doc.text("INFORMACIÓN DEL EMPLEADO", 15, 52);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    const userInfo = [
+      `Nombre: ${user.name}`,
+      `RUT: ${user.rut}`,
+      `Email: ${user.email}`,
+      `Teléfono: ${user.phone || "No registrado"}`,
+    ];
+
+    let yPos = 60;
+    userInfo.forEach((info) => {
+      doc.text(info, 15, yPos);
+      yPos += 6;
+    });
+
+    // Fecha de emisión
+    doc.setFontSize(9);
+    doc.setTextColor(100, 100, 100);
+    doc.text(
+      `Fecha de emisión: ${new Date().toLocaleDateString("es-ES", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+      })}`,
+      pageWidth - 15,
+      52,
+      { align: "right" },
+    );
+
+    // Resumen por año
+    if (paymentSummary.length > 0) {
+      yPos += 8;
+      doc.setTextColor(...darkGray);
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "bold");
+      doc.text("RESUMEN POR AÑO", 15, yPos);
+
+      yPos += 5;
+      paymentSummary.forEach((summary) => {
+        yPos += 8;
+        doc.setFillColor(...lightGray);
+        doc.roundedRect(15, yPos - 5, pageWidth - 30, 12, 2, 2, "F");
+
+        doc.setTextColor(...primaryColor);
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "bold");
+        doc.text(`Año ${summary.year}`, 20, yPos);
+
+        doc.setTextColor(...darkGray);
+        doc.text(`${summary.months.length} meses`, 80, yPos);
+
+        doc.setTextColor(...primaryColor);
+        doc.setFont("helvetica", "bold");
+        doc.text(
+          `$${summary.total.toLocaleString("es-CL")}`,
+          pageWidth - 20,
+          yPos,
+          { align: "right" },
+        );
+      });
+      yPos += 10;
+    }
+
+    // Función auxiliar para obtener nombre del mes
+    const getMonthName = (month: number) => {
+      const months = [
+        "Enero",
+        "Febrero",
+        "Marzo",
+        "Abril",
+        "Mayo",
+        "Junio",
+        "Julio",
+        "Agosto",
+        "Septiembre",
+        "Octubre",
+        "Noviembre",
+        "Diciembre",
+      ];
+      return months[month - 1];
+    };
+
+    // Tabla de pagos detallados
+    if (payments.length > 0) {
+      yPos += 8;
+      doc.setTextColor(...darkGray);
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "bold");
+      doc.text("DETALLE DE PAGOS", 15, yPos);
+      yPos += 2;
+
+      const tableData = payments.map((payment) => [
+        new Date(payment.paymentDate).toLocaleDateString("es-ES"),
+        `${getMonthName(payment.month)} ${payment.year}`,
+        `$${payment.amount.toLocaleString("es-CL")}`,
+        payment.description || "Sin descripción",
+      ]);
+
+      autoTable(doc, {
+        startY: yPos,
+        head: [["Fecha de Pago", "Período", "Monto", "Descripción"]],
+        body: tableData,
+        theme: "striped",
+        headStyles: {
+          fillColor: primaryColor,
+          textColor: [255, 255, 255],
+          fontSize: 10,
+          fontStyle: "bold",
+          halign: "center",
+        },
+        bodyStyles: {
+          fontSize: 9,
+          textColor: darkGray,
+        },
+        alternateRowStyles: {
+          fillColor: [250, 250, 250],
+        },
+        columnStyles: {
+          0: { cellWidth: 30, halign: "center" },
+          1: { cellWidth: 35, halign: "center" },
+          2: { cellWidth: 30, halign: "right", fontStyle: "bold" },
+          3: { cellWidth: "auto", halign: "left" },
+        },
+        margin: { left: 15, right: 15 },
+      });
+
+      // Calcular total general
+      const totalAmount = payments.reduce(
+        (sum, payment) => sum + payment.amount,
+        0,
+      );
+
+      const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
+
+      // Cuadro de total
+      doc.setFillColor(...primaryColor);
+      doc.roundedRect(pageWidth - 80, finalY + 10, 65, 15, 3, 3, "F");
+
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "bold");
+      doc.text("TOTAL GENERAL", pageWidth - 77, finalY + 17);
+      doc.setFontSize(12);
+      doc.text(
+        `$${totalAmount.toLocaleString("es-CL")}`,
+        pageWidth - 77,
+        finalY + 23,
+      );
+    } else {
+      yPos += 15;
+      doc.setTextColor(150, 150, 150);
+      doc.setFont("helvetica", "italic");
+      doc.setFontSize(10);
+      doc.text("No hay pagos registrados", pageWidth / 2, yPos, {
+        align: "center",
+      });
+    }
+
+    // Pie de página
+    doc.setDrawColor(200, 200, 200);
+    doc.line(15, pageHeight - 20, pageWidth - 15, pageHeight - 20);
+
+    doc.setTextColor(100, 100, 100);
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "italic");
+    doc.text(
+      "Este documento es una cartola informativa de los pagos registrados en el sistema.",
+      pageWidth / 2,
+      pageHeight - 13,
+      { align: "center" },
+    );
+    doc.text(
+      `Generado el ${new Date().toLocaleDateString("es-ES")} a las ${new Date().toLocaleTimeString("es-ES")}`,
+      pageWidth / 2,
+      pageHeight - 8,
+      { align: "center" },
+    );
+
+    // Guardar PDF
+    const fileName = `Cartola_Pagos_${user.rut}_${new Date().getFullYear()}.pdf`;
+    doc.save(fileName);
   };
 
   const handleRequestVoucher = async () => {
@@ -1098,6 +1318,26 @@ const UserProfile: React.FC<UserProfileProps> = ({ toggleTheme, isDark }) => {
                 </Typography>
               </Box>
             </Box>
+            <Button
+              variant="contained"
+              color="success"
+              startIcon={<PictureAsPdf />}
+              onClick={generatePaymentPDF}
+              disabled={payments.length === 0}
+              sx={{
+                borderRadius: "12px",
+                textTransform: "none",
+                px: 3,
+                py: 1.5,
+                fontWeight: 600,
+                boxShadow: "0 4px 12px rgba(16, 185, 129, 0.3)",
+                "&:hover": {
+                  boxShadow: "0 6px 16px rgba(16, 185, 129, 0.4)",
+                },
+              }}
+            >
+              Generar Cartola PDF
+            </Button>
           </Box>
 
           {loadingPayments ? (
