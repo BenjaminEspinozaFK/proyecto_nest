@@ -29,6 +29,15 @@ export class AuthService {
         const { password: adminPassword, ...result } = admin;
         return { ...result, role: 'admin' };
       }
+      // Verificar si el email existe como usuario
+      const userExists = await this.prisma.user.findUnique({
+        where: { email },
+      });
+      if (userExists) {
+        throw new UnauthorizedException(
+          'Este correo está registrado como usuario, no como administrador',
+        );
+      }
     } else if (role === 'user') {
       const user = await this.prisma.user.findUnique({
         where: { email },
@@ -36,6 +45,15 @@ export class AuthService {
       if (user && (await bcrypt.compare(password, user.password))) {
         const { password: userPassword, ...result } = user;
         return { ...result, role: 'user' };
+      }
+      // Verificar si el email existe como admin
+      const adminExists = await this.prisma.admin.findUnique({
+        where: { email },
+      });
+      if (adminExists) {
+        throw new UnauthorizedException(
+          'Este correo está registrado como administrador, no como usuario',
+        );
       }
     }
     return null;
