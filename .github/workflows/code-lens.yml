@@ -1,0 +1,15 @@
+name: Code Lens
+
+on:
+  push:
+    branches: [main]
+    paths: ["apps/cli/**"]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: INF-UCT/code-lens/.github/actions/doc-generator@main
+        with:
+          token: ${{ secrets.CODE_LENS_PROJECT_TOKEN }}
