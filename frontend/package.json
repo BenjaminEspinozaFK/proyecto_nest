@@ -1,6 +1,7 @@
 {
   "name": "frontend",
   "version": "1.0.0",
+  "packageManager": "pnpm@9.7.1",
   "scripts": {
     "start": "cd auth-frontend && pnpm start",
     "build": "cd auth-frontend && pnpm run build",
