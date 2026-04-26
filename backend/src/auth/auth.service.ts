@@ -311,4 +311,38 @@ export class AuthService {
       });
     }
   }
+  async getProfile(userId: string, role: string) {
+    if (role === 'admin') {
+      return this.prisma.admin.findUnique({
+        where: { id: userId },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          rut: true,
+          role: true,
+          avatar: true,
+          lastLogin: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      });
+    } else {
+      return this.prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          rut: true,
+          role: true,
+          avatar: true,
+          lastLogin: true,
+          requirePasswordChange: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      });
+    }
+  }
 }
