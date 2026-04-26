@@ -7,6 +7,7 @@ import {
   UseGuards,
   Req,
 } from '@nestjs/common';
+import { RequestWithUser } from './interfaces/request-with-user.interface';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
@@ -125,9 +126,9 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Obtener perfil del usuario autenticado' })
-  async getProfile(@Req() req: any) {
-    const userId = req.user?.sub;
-    const role = req.user?.role;
+  async getProfile(@Req() req: RequestWithUser) {
+    const userId = req.user.userId;
+    const role = req.user.role;
     return this.authService.getProfile(userId, role);
   }
 }
