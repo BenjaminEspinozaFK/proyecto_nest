@@ -19,15 +19,11 @@ import {
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
-import { PrismaService } from '../prisma.service';
 
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
-  constructor(
-    private authService: AuthService,
-    private prisma: PrismaService,
-  ) {}
+  constructor(private authService: AuthService) {}
 
   @Post('login')
   @ApiOperation({ summary: 'Iniciar sesión' })
@@ -129,61 +125,9 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Obtener perfil del usuario autenticado' })
-  @ApiResponse({
-    status: 200,
-    description: 'Perfil del usuario',
-    schema: {
-      example: {
-        id: 'cmd123',
-        email: 'usuario@test.com',
-        name: 'Usuario Test',
-        rut: '12345678-9',
-        role: 'user',
-        avatar: '/uploads/avatars/1234567890.jpg',
-        lastLogin: '2025-10-31T00:00:00.000Z',
-      },
-    },
-  })
-  @ApiResponse({
-    status: 401,
-    description: 'No autenticado',
-  })
   async getProfile(@Req() req: any) {
     const userId = req.user?.sub;
     const role = req.user?.role;
-
-    if (role === 'admin') {
-      const admin = await this.prisma.admin.findUnique({
-        where: { id: userId },
-        select: {
-          id: true,
-          email: true,
-          name: true,
-          rut: true,
-          role: true,
-          avatar: true,
-          lastLogin: true,
-          createdAt: true,
-          updatedAt: true,
-        },
-      });
-      return admin;
-    } else {
-      const user = await this.prisma.user.findUnique({
-        where: { id: userId },
-        select: {
-          id: true,
-          email: true,
-          name: true,
-          rut: true,
-          role: true,
-          avatar: true,
-          lastLogin: true,
-          createdAt: true,
-          updatedAt: true,
-        },
-      });
-      return user;
-    }
+    return this.authService.getProfile(userId, role);
   }
 }
