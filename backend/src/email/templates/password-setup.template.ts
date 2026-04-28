@@ -1,7 +1,8 @@
 /**
  * Template para email de configuración de contraseña inicial
  */
-export const passwordSetupSubject = '🔐 Configura tu contraseña - Sistema de Vales';
+export const passwordSetupSubject =
+  '🔐 Configura tu contraseña - Sistema de Vales';
 
 interface PasswordSetupTemplateParams {
   userName: string;
