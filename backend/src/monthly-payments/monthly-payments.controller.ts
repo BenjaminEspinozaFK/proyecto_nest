@@ -9,6 +9,7 @@ import {
   UseGuards,
   Req,
 } from '@nestjs/common';
+import { RequestWithUser } from '../auth/interfaces/request-with-user.interface';
 import { MonthlyPaymentsService } from './monthly-payments.service';
 import { CreateMonthlyPaymentDto } from './dto/create-monthly-payment.dto';
 import { UpdateMonthlyPaymentDto } from './dto/update-monthly-payment.dto';
@@ -28,9 +29,9 @@ export class MonthlyPaymentsController {
   @Roles('admin')
   async createPayment(
     @Body() createDto: CreateMonthlyPaymentDto,
-    @Req() req: any,
+    @Req() req: RequestWithUser,
   ) {
-    const adminId = req.user?.id || req.user?.userId;
+    const adminId = req.user.userId;
     return this.monthlyPaymentsService.createPayment(createDto, adminId);
   }
 
@@ -97,24 +98,27 @@ export class MonthlyPaymentsController {
   // Usuario: Obtener mis propios pagos
   @Get('my-payments')
   @Roles('user', 'admin')
-  async getMyPayments(@Req() req: any) {
-    const userId = req.user?.id || req.user?.userId;
+  async getMyPayments(@Req() req: RequestWithUser) {
+    const userId = req.user.userId;
     return this.monthlyPaymentsService.getUserPayments(userId);
   }
 
   // Usuario: Obtener resumen de mis pagos
   @Get('my-payments/summary')
   @Roles('user', 'admin')
-  async getMyPaymentSummary(@Req() req: any) {
-    const userId = req.user?.id || req.user?.userId;
+  async getMyPaymentSummary(@Req() req: RequestWithUser) {
+    const userId = req.user.userId;
     return this.monthlyPaymentsService.getPaymentSummary(userId);
   }
 
   // Usuario: Obtener mis pagos por año
   @Get('my-payments/year/:year')
   @Roles('user', 'admin')
-  async getMyPaymentsByYear(@Req() req: any, @Param('year') year: string) {
-    const userId = req.user?.id || req.user?.userId;
+  async getMyPaymentsByYear(
+    @Req() req: RequestWithUser,
+    @Param('year') year: string,
+  ) {
+    const userId = req.user.userId;
     return this.monthlyPaymentsService.getUserPaymentsByYear(
       userId,
       parseInt(year),

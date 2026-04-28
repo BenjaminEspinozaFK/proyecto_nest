@@ -8,10 +8,7 @@ export class MonthlyPaymentsService {
   constructor(private prisma: PrismaService) {}
 
   // Crear un registro de pago mensual
-  async createPayment(
-    createDto: CreateMonthlyPaymentDto,
-    createdBy: string,
-  ) {
+  async createPayment(createDto: CreateMonthlyPaymentDto, createdBy: string) {
     return this.prisma.monthlyPayment.create({
       data: {
         userId: createDto.userId,
@@ -155,10 +152,7 @@ export class MonthlyPaymentsService {
         });
         return acc;
       },
-      {} as Record<
-        number,
-        { year: number; total: number; months: any[] }
-      >,
+      {} as Record<number, { year: number; total: number; months: any[] }>,
     );
 
     return Object.values(summary);
