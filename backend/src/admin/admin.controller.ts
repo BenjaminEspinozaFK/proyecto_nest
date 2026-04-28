@@ -90,10 +90,7 @@ export class AdminController {
   @Roles('admin')
   async getMyProfile(@Req() req: any) {
     const adminId = req.user?.userId as string;
-    const admin = await this.adminsService.getAdminById(adminId);
-    // No devolver la contraseña
-    const { password, ...adminWithoutPassword } = admin;
-    return adminWithoutPassword;
+    return this.adminsService.getAdminById(adminId);
   }
 
   @Put('me')
