@@ -8,7 +8,6 @@ import { UpdateAdminDto } from './dto/update-admin.dto';
 import { UpdateUserByAdminDto } from './dto/update-user-by-admin.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { PrismaService } from 'src/prisma.service';
-import { Admin } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 import * as XLSX from 'xlsx';
 import { BadRequestException } from '@nestjs/common';
@@ -52,22 +51,46 @@ export class AdminService {
   }
 
   async getAdmins() {
-    return await this.prisma.admin.findMany();
+    return await this.prisma.admin.findMany({
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        rut: true,
+        phone: true,
+        role: true,
+        avatar: true,
+        lastLogin: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
   }
 
   async getAdminById(id: string) {
     const adminFound = await this.prisma.admin.findUnique({
       where: { id },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        rut: true,
+        phone: true,
+        role: true,
+        avatar: true,
+        lastLogin: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
 
-    //Si admin es null, lanza un error
     if (!adminFound) {
       throw new NotFoundException(`Administrador con ID ${id} no encontrado`);
     }
     return adminFound;
   }
 
-  async createAdmin(admin: CreateAdminDto): Promise<Admin> {
+  async createAdmin(admin: CreateAdminDto) {
     // Busca si ya existe un administrador con el mismo email
     const adminExists = await this.prisma.admin.findUnique({
       where: { email: admin.email },
@@ -88,12 +111,24 @@ export class AdminService {
         ...admin,
         password: hashedPassword,
       },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        rut: true,
+        phone: true,
+        role: true,
+        avatar: true,
+        lastLogin: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
 
     return newAdmin;
   }
 
-  async updateAdmin(id: string, adminData: UpdateAdminDto): Promise<Admin> {
+  async updateAdmin(id: string, adminData: UpdateAdminDto) {
     const adminExists = await this.prisma.admin.findUnique({
       where: { id },
     });
@@ -110,6 +145,18 @@ export class AdminService {
     const updatedAdmin = await this.prisma.admin.update({
       where: { id },
       data: updateData,
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        rut: true,
+        phone: true,
+        role: true,
+        avatar: true,
+        lastLogin: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
     return updatedAdmin;
   }
@@ -272,9 +319,8 @@ export class AdminService {
       throw new NotFoundException(`Usuario con ID ${id} no encontrado`);
     }
 
-    return await this.prisma.user.delete({
-      where: { id },
-    });
+    await this.prisma.user.delete({ where: { id } });
+    return { message: `Usuario con ID ${id} eliminado` };
   }
 
   async updateAvatar(adminId: string, filename: string) {
@@ -283,10 +329,21 @@ export class AdminService {
     const updatedAdmin = await this.prisma.admin.update({
       where: { id: adminId },
       data: { avatar: avatarUrl },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        rut: true,
+        phone: true,
+        role: true,
+        avatar: true,
+        lastLogin: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
 
-    const { password: _, ...adminWithoutPassword } = updatedAdmin;
-    return { admin: adminWithoutPassword, avatar: avatarUrl };
+    return { admin: updatedAdmin, avatar: avatarUrl };
   }
 
   async createUser(user: CreateUserDto) {

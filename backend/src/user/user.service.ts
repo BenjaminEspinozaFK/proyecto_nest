@@ -9,7 +9,6 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { PrismaService } from 'src/prisma.service';
-import { User } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 
 @Injectable()
@@ -17,12 +16,39 @@ export class UsersService {
   constructor(private prisma: PrismaService) {}
 
   async getUsers() {
-    return await this.prisma.user.findMany();
+    return await this.prisma.user.findMany({
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        rut: true,
+        phone: true,
+        role: true,
+        avatar: true,
+        lastLogin: true,
+        requirePasswordChange: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
   }
 
   async getUserById(id: string) {
     const userFound = await this.prisma.user.findUnique({
       where: { id },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        rut: true,
+        phone: true,
+        role: true,
+        avatar: true,
+        lastLogin: true,
+        requirePasswordChange: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
 
     if (!userFound) {
@@ -32,7 +58,7 @@ export class UsersService {
     return userFound;
   }
 
-  async createUser(user: CreateUserDto): Promise<User> {
+  async createUser(user: CreateUserDto) {
     // Verificar si ya existe un usuario con el mismo email
     const userExists = await this.prisma.user.findUnique({
       where: { email: user.email },
@@ -50,12 +76,24 @@ export class UsersService {
         ...user,
         password: hashedPassword,
       },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        rut: true,
+        phone: true,
+        role: true,
+        avatar: true,
+        requirePasswordChange: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
 
     return newUser;
   }
 
-  async updateUser(id: string, userData: UpdateUserDto): Promise<User> {
+  async updateUser(id: string, userData: UpdateUserDto) {
     const userExists = await this.prisma.user.findUnique({
       where: { id },
     });
@@ -73,6 +111,18 @@ export class UsersService {
     const updatedUser = await this.prisma.user.update({
       where: { id },
       data: updateData,
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        rut: true,
+        phone: true,
+        role: true,
+        avatar: true,
+        requirePasswordChange: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
 
     return updatedUser;
@@ -100,10 +150,21 @@ export class UsersService {
     const updatedUser = await this.prisma.user.update({
       where: { id: userId },
       data: { avatar: avatarUrl },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        rut: true,
+        phone: true,
+        role: true,
+        avatar: true,
+        requirePasswordChange: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
 
-    const { password: _, ...userWithoutPassword } = updatedUser;
-    return { user: userWithoutPassword, avatar: avatarUrl };
+    return { user: updatedUser, avatar: avatarUrl };
   }
 
   async changePassword(userId: string, changePasswordDto: ChangePasswordDto) {
