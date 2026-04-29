@@ -9,6 +9,7 @@ import {
   Patch,
 } from '@nestjs/common';
 import { VouchersService } from './vouchers.service';
+import { RequestWithUser } from '../auth/interfaces/request-with-user.interface';
 import { CreateVoucherDto } from './dto/create-voucher.dto';
 import { ApproveVoucherDto } from './dto/approve-voucher.dto';
 import { RejectVoucherDto } from './dto/reject-voucher.dto';
@@ -23,21 +24,24 @@ export class VouchersController {
 
   // Funcionario: Solicitar vale
   @Post('request')
-  async requestVoucher(@Req() req, @Body() createVoucherDto: CreateVoucherDto) {
+  async requestVoucher(
+    @Req() req: RequestWithUser,
+    @Body() createVoucherDto: CreateVoucherDto,
+  ) {
     const userId = req.user.userId;
     return this.vouchersService.requestVoucher(userId, createVoucherDto);
   }
 
   // Funcionario: Ver mis vales
   @Get('my-vouchers')
-  async getMyVouchers(@Req() req) {
+  async getMyVouchers(@Req() req: RequestWithUser) {
     const userId = req.user.userId;
     return this.vouchersService.getUserVouchers(userId);
   }
 
   // Funcionario: Ver mis estadísticas
   @Get('my-stats')
-  async getMyStats(@Req() req) {
+  async getMyStats(@Req() req: RequestWithUser) {
     const userId = req.user.userId;
     return this.vouchersService.getUserVoucherStats(userId);
   }
@@ -81,7 +85,7 @@ export class VouchersController {
   async approveVoucher(
     @Param('id') id: string,
     @Body() approveVoucherDto: ApproveVoucherDto,
-    @Req() req,
+    @Req() req: RequestWithUser,
   ) {
     const adminId = req.user.userId;
     return this.vouchersService.approveVoucher(id, approveVoucherDto, adminId);
@@ -94,7 +98,7 @@ export class VouchersController {
   async rejectVoucher(
     @Param('id') id: string,
     @Body() rejectVoucherDto: RejectVoucherDto,
-    @Req() req,
+    @Req() req: RequestWithUser,
   ) {
     const adminId = req.user.userId;
     return this.vouchersService.rejectVoucher(id, rejectVoucherDto, adminId);
@@ -120,7 +124,7 @@ export class VouchersController {
       amount: number;
       notes?: string;
     },
-    @Req() req,
+    @Req() req: RequestWithUser,
   ) {
     const adminId = req.user.userId;
     return this.vouchersService.createManualVoucher(
