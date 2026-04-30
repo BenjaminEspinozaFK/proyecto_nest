@@ -24,6 +24,7 @@ import { extname } from 'path';
 
 @Controller('users')
 @ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 export class UsersController {
   constructor(private usersService: UsersService) {}
 

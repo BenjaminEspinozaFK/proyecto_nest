@@ -81,6 +81,7 @@ export class AdminController {
   }
 
   @Get()
+  @Roles('admin')
   async getAllAdmins() {
     return this.adminsService.getAdmins();
   }
@@ -129,21 +130,25 @@ export class AdminController {
   }
 
   @Get(':id')
+  @Roles('admin')
   async getAdminById(@Param('id') id: string) {
     return this.adminsService.getAdminById(id);
   }
 
   @Post()
+  @Roles('admin')
   async createAdmin(@Body() admin: CreateAdminDto) {
     return this.adminsService.createAdmin(admin);
   }
 
   @Put(':id')
+  @Roles('admin')
   async updateAdmin(@Param('id') id: string, @Body() admin: UpdateAdminDto) {
     return this.adminsService.updateAdmin(id, admin);
   }
 
   @Delete(':id')
+  @Roles('admin')
   async deleteAdmin(@Param('id') id: string) {
     return this.adminsService.deleteAdmin(id);
   }
