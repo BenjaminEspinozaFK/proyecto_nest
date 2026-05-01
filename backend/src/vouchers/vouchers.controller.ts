@@ -13,6 +13,7 @@ import { RequestWithUser } from '../auth/interfaces/request-with-user.interface'
 import { CreateVoucherDto } from './dto/create-voucher.dto';
 import { ApproveVoucherDto } from './dto/approve-voucher.dto';
 import { RejectVoucherDto } from './dto/reject-voucher.dto';
+import { CreateManualVoucherDto } from './dto/create-manual-voucher.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
@@ -118,12 +119,7 @@ export class VouchersController {
   @Roles('admin')
   async createManualVoucher(
     @Body()
-    body: {
-      userId: string;
-      kilos: number;
-      amount: number;
-      notes?: string;
-    },
+    body: CreateManualVoucherDto,
     @Req() req: RequestWithUser,
   ) {
     const adminId = req.user.userId;
