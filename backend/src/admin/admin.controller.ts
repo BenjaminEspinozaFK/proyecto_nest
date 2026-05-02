@@ -12,6 +12,7 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
+import { avatarMulterConfig } from 'src/common/multer-avatar.config';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { AdminService } from './admin.service';
 import { CreateAdminDto } from './dto/create-admin.dto';
@@ -22,8 +23,6 @@ import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorator';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import { extname } from 'path';
 
 @Controller('/admins')
 @ApiBearerAuth()
@@ -67,7 +66,7 @@ export class AdminController {
         }
         cb(null, true);
       },
-      limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+      limits: { fileSize: 5 * 1024 * 1024 },
     }),
   )
   async bulkCreateUsersFromExcel(@UploadedFile() file: Express.Multer.File) {
@@ -103,24 +102,7 @@ export class AdminController {
 
   @Post('me/avatar')
   @UseGuards(JwtAuthGuard)
-  @UseInterceptors(
-    FileInterceptor('file', {
-      storage: diskStorage({
-        destination: './uploads/avatars',
-        filename: (req, file, cb) => {
-          const uniqueName = `${Date.now()}-${Math.round(Math.random() * 1e9)}${extname(file.originalname)}`;
-          cb(null, uniqueName);
-        },
-      }),
-      fileFilter: (req, file, cb) => {
-        if (!file.mimetype.startsWith('image/')) {
-          return cb(new Error('Solo se permiten imágenes'), false);
-        }
-        cb(null, true);
-      },
-      limits: { fileSize: 2 * 1024 * 1024 }, // 2MB
-    }),
-  )
+  @UseInterceptors(FileInterceptor('file', avatarMulterConfig))
   async uploadAvatar(
     @UploadedFile() file: Express.Multer.File,
     @Req() req: any,
