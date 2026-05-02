@@ -1,4 +1,8 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  ConflictException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma.service';
 import { LoginDto } from './dto/login.dto';
@@ -130,7 +134,7 @@ export class AuthService {
     });
 
     if (existingUser) {
-      throw new UnauthorizedException('El usuario ya existe');
+      throw new ConflictException('El usuario ya existe');
     }
 
     const hashedPassword = await bcrypt.hash(registerDto.password, 10);
