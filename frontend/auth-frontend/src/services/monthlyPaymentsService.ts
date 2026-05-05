@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:3001";
+import api from "./authService";
 
 export interface MonthlyPayment {
   id: string;
@@ -11,33 +11,16 @@ export interface MonthlyPayment {
   createdAt: string;
   updatedAt: string;
   createdBy?: string;
-  user?: {
-    id: string;
-    name: string;
-    email: string;
-    rut: string;
-  };
+  user?: { id: string; name: string; email: string; rut: string };
 }
 
 export interface PaymentSummary {
   year: number;
   total: number;
-  months: Array<{
-    month: number;
-    amount: number;
-    description?: string;
-  }>;
+  months: Array<{ month: number; amount: number; description?: string }>;
 }
 
 class MonthlyPaymentsService {
-  private getAuthHeader() {
-    const token = localStorage.getItem("authToken");
-    return {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    };
-  }
-
   async createPayment(
     userId: string,
     year: number,
@@ -45,65 +28,38 @@ class MonthlyPaymentsService {
     amount: number,
     description?: string,
   ): Promise<MonthlyPayment> {
-    const response = await fetch(`${API_URL}/monthly-payments`, {
-      method: "POST",
-      headers: this.getAuthHeader(),
-      body: JSON.stringify({ userId, year, month, amount, description }),
+    const response = await api.post<MonthlyPayment>("/monthly-payments", {
+      userId,
+      year,
+      month,
+      amount,
+      description,
     });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      const errorMessage =
-        errorData.message || `Error ${response.status}: ${response.statusText}`;
-      throw new Error(errorMessage);
-    }
-
-    return response.json();
+    return response.data;
   }
 
   async getUserPayments(userId: string): Promise<MonthlyPayment[]> {
-    const response = await fetch(`${API_URL}/monthly-payments/user/${userId}`, {
-      headers: this.getAuthHeader(),
-    });
-
-    if (!response.ok) {
-      throw new Error("Error al obtener los pagos");
-    }
-
-    return response.json();
+    const response = await api.get<MonthlyPayment[]>(
+      `/monthly-payments/user/${userId}`,
+    );
+    return response.data;
   }
 
   async getPaymentSummary(userId: string): Promise<PaymentSummary[]> {
-    const response = await fetch(
-      `${API_URL}/monthly-payments/user/${userId}/summary`,
-      {
-        headers: this.getAuthHeader(),
-      },
+    const response = await api.get<PaymentSummary[]>(
+      `/monthly-payments/user/${userId}/summary`,
     );
-
-    if (!response.ok) {
-      throw new Error("Error al obtener el resumen");
-    }
-
-    return response.json();
+    return response.data;
   }
 
   async getUserPaymentsByYear(
     userId: string,
     year: number,
   ): Promise<MonthlyPayment[]> {
-    const response = await fetch(
-      `${API_URL}/monthly-payments/user/${userId}/year/${year}`,
-      {
-        headers: this.getAuthHeader(),
-      },
+    const response = await api.get<MonthlyPayment[]>(
+      `/monthly-payments/user/${userId}/year/${year}`,
     );
-
-    if (!response.ok) {
-      throw new Error("Error al obtener los pagos del año");
-    }
-
-    return response.json();
+    return response.data;
   }
 
   async updatePayment(
@@ -111,71 +67,36 @@ class MonthlyPaymentsService {
     amount?: number,
     description?: string,
   ): Promise<MonthlyPayment> {
-    const response = await fetch(`${API_URL}/monthly-payments/${id}`, {
-      method: "PATCH",
-      headers: this.getAuthHeader(),
-      body: JSON.stringify({ amount, description }),
-    });
-
-    if (!response.ok) {
-      throw new Error("Error al actualizar el pago");
-    }
-
-    return response.json();
+    const response = await api.patch<MonthlyPayment>(
+      `/monthly-payments/${id}`,
+      { amount, description },
+    );
+    return response.data;
   }
 
   async deletePayment(id: string): Promise<void> {
-    const response = await fetch(`${API_URL}/monthly-payments/${id}`, {
-      method: "DELETE",
-      headers: this.getAuthHeader(),
-    });
-
-    if (!response.ok) {
-      throw new Error("Error al eliminar el pago");
-    }
+    await api.delete(`/monthly-payments/${id}`);
   }
 
-  // Nuevos métodos para usuarios (obtienen sus propios datos)
   async getMyPayments(): Promise<MonthlyPayment[]> {
-    const response = await fetch(`${API_URL}/monthly-payments/my-payments`, {
-      headers: this.getAuthHeader(),
-    });
-
-    if (!response.ok) {
-      throw new Error("Error al obtener mis pagos");
-    }
-
-    return response.json();
+    const response = await api.get<MonthlyPayment[]>(
+      "/monthly-payments/my-payments",
+    );
+    return response.data;
   }
 
   async getMyPaymentSummary(): Promise<PaymentSummary[]> {
-    const response = await fetch(
-      `${API_URL}/monthly-payments/my-payments/summary`,
-      {
-        headers: this.getAuthHeader(),
-      },
+    const response = await api.get<PaymentSummary[]>(
+      "/monthly-payments/my-payments/summary",
     );
-
-    if (!response.ok) {
-      throw new Error("Error al obtener el resumen de mis pagos");
-    }
-
-    return response.json();
+    return response.data;
   }
 
   async getMyPaymentsByYear(year: number): Promise<MonthlyPayment[]> {
-    const response = await fetch(
-      `${API_URL}/monthly-payments/my-payments/year/${year}`,
-      {
-        headers: this.getAuthHeader(),
-      },
+    const response = await api.get<MonthlyPayment[]>(
+      `/monthly-payments/my-payments/year/${year}`,
     );
-
-    if (!response.ok) {
-      throw new Error("Error al obtener mis pagos del año");
-    }
-
-    return response.json();
+    return response.data;
   }
 }
 
