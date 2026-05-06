@@ -50,11 +50,8 @@ import { useAuth } from "./AuthContext";
 import { voucherService } from "../services/voucherService";
 import { GasVoucher, VoucherStats } from "../types/voucher";
 import { useSocket } from "../hooks/useSocket";
-import {
-  monthlyPaymentsService,
-  MonthlyPayment,
-  PaymentSummary,
-} from "../services/monthlyPaymentsService";
+import { monthlyPaymentsService } from "../services/monthlyPaymentsService";
+import type { MonthlyPayment, PaymentSummary } from "../types/payment";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
