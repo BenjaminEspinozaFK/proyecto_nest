@@ -48,11 +48,8 @@ import autoTable from "jspdf-autotable";
 import { User } from "../../types/auth";
 import { GasVoucher, VoucherStats } from "../../types/voucher";
 import { voucherService } from "../../services/voucherService";
-import {
-  monthlyPaymentsService,
-  MonthlyPayment,
-  PaymentSummary,
-} from "../../services/monthlyPaymentsService";
+import { monthlyPaymentsService } from "../../services/monthlyPaymentsService";
+import type { MonthlyPayment, PaymentSummary } from "../../types/payment";
 
 interface UserDetailModalProps {
   open: boolean;
