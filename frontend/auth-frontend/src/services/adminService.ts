@@ -1,24 +1,6 @@
 import api from "./authService";
 
-export interface ChatMessage {
-  message: string;
-}
-
-export interface ChatResponse {
-  // Depending on the action, it could be user data or message
-  [key: string]: any;
-}
-
 export const adminService = {
-  async sendChatMessage(message: string): Promise<ChatResponse> {
-    try {
-      const response = await api.post<ChatResponse>("/admins/chat", { message });
-      return response.data;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || "Error sending chat message");
-    }
-  },
-
   async getStats() {
     try {
       const response = await api.get("/admins/stats");
