@@ -12,6 +12,8 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
+import { Patch } from '@nestjs/common';
+import { ChangePasswordDto } from 'src/user/dto/change-password.dto';
 import { avatarMulterConfig } from 'src/common/multer-avatar.config';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { AdminService } from './admin.service';
@@ -148,5 +150,12 @@ export class AdminController {
   @Roles('admin')
   async deleteUser(@Param('id') id: string) {
     return await this.adminsService.deleteUser(id);
+  }
+
+  @Patch('me/change-password')
+  @Roles('admin')
+  async changePassword(@Req() req: any, @Body() dto: ChangePasswordDto) {
+    const adminId = req.user?.userId as string;
+    return this.adminsService.changePassword(adminId, dto);
   }
 }

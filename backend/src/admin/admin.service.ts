@@ -2,6 +2,8 @@ import {
   Injectable,
   ConflictException,
   NotFoundException,
+  BadRequestException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateAdminDto } from './dto/update-admin.dto';
@@ -10,8 +12,8 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { PrismaService } from 'src/prisma.service';
 import * as bcrypt from 'bcryptjs';
 import * as XLSX from 'xlsx';
-import { BadRequestException } from '@nestjs/common';
 import { EmailService } from '../email/email.service';
+import { ChangePasswordDto } from 'src/user/dto/change-password.dto';
 
 @Injectable()
 export class AdminService {
@@ -425,6 +427,34 @@ export class AdminService {
     }
 
     return user;
+  }
+  async changePassword(adminId: string, dto: ChangePasswordDto) {
+    const admin = await this.prisma.admin.findUnique({
+      where: { id: adminId },
+    });
+    if (!admin) {
+      throw new NotFoundException('Administrador no encontrado');
+    }
+
+    const isValid = await bcrypt.compare(dto.currentPassword, admin.password);
+    if (!isValid) {
+      throw new UnauthorizedException('La contraseña actual es incorrecta');
+    }
+
+    const isSame = await bcrypt.compare(dto.newPassword, admin.password);
+    if (isSame) {
+      throw new BadRequestException(
+        'La nueva contraseña debe ser diferente a la actual',
+      );
+    }
+
+    const hashedPassword = await bcrypt.hash(dto.newPassword, 10);
+    await this.prisma.admin.update({
+      where: { id: adminId },
+      data: { password: hashedPassword },
+    });
+
+    return { message: 'Contraseña actualizada exitosamente' };
   }
 
   async bulkCreateUsersFromExcel(buffer: Buffer) {

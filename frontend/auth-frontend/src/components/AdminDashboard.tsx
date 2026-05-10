@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { User } from "../types/auth"; // Ajusta la ruta si es necesario
+import { adminService } from "../services/adminService";
 import {
   Box,
   Table,
@@ -171,35 +172,14 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setChangingPassword(true);
 
     try {
-      const token = localStorage.getItem("authToken");
-      const response = await fetch(
-        "http://localhost:3001/auth/change-password",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            oldPassword,
-            newPassword,
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        setPasswordError(errorData.message || "Error al cambiar la contraseña");
-        return;
-      }
-
+      await adminService.changePassword(oldPassword, newPassword);
       setPasswordSuccess("Contraseña cambiada correctamente");
       setOldPassword("");
       setNewPassword("");
       setConfirmPassword("");
       setTimeout(() => setPasswordSuccess(""), 3000);
-    } catch (err) {
-      setPasswordError("Error al cambiar la contraseña");
+    } catch (err: any) {
+      setPasswordError(err.message || "Error al cambiar la contraseña");
     } finally {
       setChangingPassword(false);
     }
@@ -511,7 +491,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           .normalize("NFD")
                           .replace(/[\u0300-\u036f]/g, "");
                       return normalizeText(user.name).includes(
-                        normalizeText(searchTerm)
+                        normalizeText(searchTerm),
                       );
                     })
                     .map((user) => (
