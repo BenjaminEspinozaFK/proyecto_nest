@@ -15,7 +15,9 @@ export const adminService = {
       const response = await api.get("/admins/me");
       return response.data;
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || "Error fetching profile");
+      throw new Error(
+        error.response?.data?.message || "Error fetching profile",
+      );
     }
   },
 
@@ -24,7 +26,9 @@ export const adminService = {
       const response = await api.put("/admins/me", data);
       return response.data;
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || "Error updating profile");
+      throw new Error(
+        error.response?.data?.message || "Error updating profile",
+      );
     }
   },
 
@@ -53,5 +57,13 @@ export const adminService = {
     } catch (error: any) {
       throw new Error(error.response?.data?.message || "Error deleting user");
     }
+  },
+
+  async changePassword(currentPassword: string, newPassword: string) {
+    const response = await api.patch("/admins/me/change-password", {
+      currentPassword,
+      newPassword,
+    });
+    return response.data;
   },
 };
