@@ -6,8 +6,11 @@ import {
   User,
 } from "../types/auth";
 
+export const API_BASE_URL =
+  process.env.REACT_APP_API_URL || "http://localhost:3001";
+
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL,
+  baseURL: API_BASE_URL,
   headers: { "Content-Type": "application/json" },
 });
 
@@ -60,6 +63,32 @@ export const authService = {
       return response.data;
     } catch (error: any) {
       throw new Error(error.response?.data?.message || "Error en el registro");
+    }
+  },
+
+  async forgotPassword(email: string, role: "user" | "admin") {
+    try {
+      const response = await api.post("/auth/forgot-password", { email, role });
+      return response.data;
+    } catch (error: any) {
+      throw new Error(
+        error.response?.data?.message ||
+          "Error al solicitar recuperación de contraseña",
+      );
+    }
+  },
+
+  async resetPassword(token: string, newPassword: string) {
+    try {
+      const response = await api.post("/auth/reset-password", {
+        token,
+        newPassword,
+      });
+      return response.data;
+    } catch (error: any) {
+      throw new Error(
+        error.response?.data?.message || "Error al restablecer la contraseña",
+      );
     }
   },
 

@@ -1,7 +1,8 @@
 import { useEffect, useRef } from "react";
 import { io, Socket } from "socket.io-client";
+import { API_BASE_URL } from "../services/authService";
 
-const SOCKET_URL = "http://localhost:3001"; // URL del backend
+const SOCKET_URL = API_BASE_URL; // URL del backend
 
 export const useSocket = (userId?: string, isAdmin: boolean = false) => {
   const socketRef = useRef<Socket | null>(null);

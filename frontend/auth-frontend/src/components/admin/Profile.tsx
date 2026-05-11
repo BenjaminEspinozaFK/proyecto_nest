@@ -12,6 +12,7 @@ import {
 } from "@mui/material";
 import { Edit, Save, Cancel, PhotoCamera } from "@mui/icons-material";
 import { adminService } from "../../services/adminService";
+import api, { API_BASE_URL } from "../../services/authService";
 
 interface AdminProfileData {
   id: string;
@@ -114,7 +115,7 @@ const AdminProfile: React.FC = () => {
   };
 
   const handleImageUpload = async (
-    event: React.ChangeEvent<HTMLInputElement>
+    event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -138,16 +139,9 @@ const AdminProfile: React.FC = () => {
     formData.append("file", file);
 
     try {
-      const token = localStorage.getItem("authToken");
-      const response = await fetch("http://localhost:3001/admins/me/avatar", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
+      await api.post("/admins/me/avatar", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
-
-      if (!response.ok) throw new Error("Error al subir imagen");
-
-      await response.json();
       setSuccess("Foto actualizada correctamente");
       fetchProfile();
     } catch (err) {
@@ -196,9 +190,7 @@ const AdminProfile: React.FC = () => {
           <Box sx={{ position: "relative", display: "inline-block" }}>
             <Avatar
               src={
-                profile.avatar
-                  ? `http://localhost:3001${profile.avatar}`
-                  : undefined
+                profile.avatar ? `${API_BASE_URL}${profile.avatar}` : undefined
               }
               sx={{
                 width: 150,
