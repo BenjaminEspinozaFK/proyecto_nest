@@ -12,7 +12,7 @@ import {
   InputAdornment,
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
-import axios from "axios";
+import { authService } from "../services/authService";
 
 interface ResetPasswordProps {
   onBackToLogin: () => void;
@@ -56,19 +56,15 @@ const ResetPassword: React.FC<ResetPasswordProps> = ({ onBackToLogin }) => {
     setError(null);
 
     try {
-      const response = await axios.post(
-        "http://localhost:3001/auth/reset-password",
-        { token, newPassword }
-      );
-
-      setMessage(response.data.message);
+      const response = await authService.resetPassword(token, newPassword);
+      setMessage(response.message);
 
       setTimeout(() => {
         onBackToLogin();
       }, 3000);
     } catch (err: any) {
       setError(
-        err.response?.data?.message || "Error al restablecer la contraseña"
+        err.response?.data?.message || "Error al restablecer la contraseña",
       );
     } finally {
       setLoading(false);

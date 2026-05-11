@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { User } from "../types/auth"; // Ajusta la ruta si es necesario
 import { adminService } from "../services/adminService";
+import { API_BASE_URL } from "../services/authService";
 import {
   Box,
   Table,
@@ -86,14 +87,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   const fetchAdminProfile = async () => {
     try {
-      const token = localStorage.getItem("authToken");
-      const response = await fetch("http://localhost:3001/admins/me", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setAdminProfile(data);
-      }
+      const data = await adminService.getMyProfile();
+      setAdminProfile(data);
     } catch (error) {
       console.error("Error fetching admin profile:", error);
     }
@@ -101,15 +96,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   const fetchUsers = async () => {
     try {
-      const token = localStorage.getItem("authToken");
-
-      const response = await fetch("http://localhost:3001/admins/users", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!response.ok) {
-        throw new Error(`Error: ${response.status} ${response.statusText}`);
-      }
-      const data = await response.json();
+      const data = await adminService.getUsers();
       console.log("Fetched users:", data); // Para debug
       setUsers(Array.isArray(data) ? data : []);
     } catch (error) {
@@ -266,7 +253,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
               <Avatar
                 src={
                   adminProfile?.avatar
-                    ? `http://localhost:3001${adminProfile.avatar}`
+                    ? `${API_BASE_URL}${adminProfile.avatar}`
                     : undefined
                 }
                 sx={{

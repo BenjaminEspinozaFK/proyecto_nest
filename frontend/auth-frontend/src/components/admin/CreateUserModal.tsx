@@ -18,6 +18,7 @@ import {
   Divider,
 } from "@mui/material";
 import { CloudUpload } from "@mui/icons-material";
+import api from "../../services/authService";
 
 interface CreateUserModalProps {
   open: boolean;
@@ -52,7 +53,6 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({
 
     setLoading(true);
     try {
-      const token = localStorage.getItem("authToken");
       const body: any = { email, name, rut, role };
 
       // Solo incluir password si se proporcionó
@@ -65,22 +65,7 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({
         body.phone = phone;
       }
 
-      const response = await fetch("http://localhost:3001/admins/users", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(body),
-      });
-
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        const msg = data?.message || `Error ${response.status}`;
-        setError(typeof msg === "string" ? msg : JSON.stringify(msg));
-        setLoading(false);
-        return;
-      }
+      await api.post("/admins/users", body);
 
       // éxito
       onCreated();
@@ -93,7 +78,7 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({
       setPhone("");
       setRole("user");
     } catch (err: any) {
-      setError(err.message || "Error creando usuario");
+      setError(err.response?.data?.message || "Error creando usuario");
     } finally {
       setLoading(false);
     }
@@ -121,34 +106,17 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({
       const formData = new FormData();
       formData.append("file", file);
 
-      const token = localStorage.getItem("authToken");
-      const response = await fetch(
-        "http://localhost:3001/admins/users/bulk-excel",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          body: formData,
-        }
-      );
-
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        const msg = data?.message || `Error ${response.status}`;
-        setError(typeof msg === "string" ? msg : JSON.stringify(msg));
-        setLoading(false);
-        return;
-      }
-
-      const result = await response.json();
+      const response = await api.post("/admins/users/bulk-excel", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      const result = response.data;
       setBulkResult(result);
 
       if (result.success && result.success.length > 0) {
         onCreated(); // Refrescar lista
       }
     } catch (err: any) {
-      setError(err.message || "Error cargando archivo");
+      setError(err.response?.data?.message || "Error cargando archivo");
     } finally {
       setLoading(false);
     }

@@ -52,6 +52,7 @@ import { GasVoucher, VoucherStats } from "../types/voucher";
 import { useSocket } from "../hooks/useSocket";
 import { monthlyPaymentsService } from "../services/monthlyPaymentsService";
 import type { MonthlyPayment, PaymentSummary } from "../types/payment";
+import api, { API_BASE_URL } from "../services/authService";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
@@ -152,23 +153,17 @@ const UserProfile: React.FC<UserProfileProps> = ({ toggleTheme, isDark }) => {
 
   const fetchProfile = async () => {
     try {
-      const token = localStorage.getItem("authToken");
-      const response = await fetch("http://localhost:3001/users/me", {
-        headers: { Authorization: `Bearer ${token}` },
+      const response = await api.get("/users/me");
+      const data = response.data;
+      setProfile(data);
+      setFormData({
+        name: data.name || "",
+        email: data.email || "",
+        rut: data.rut || "",
+        address: data.address || "",
+        phone: data.phone || "",
+        comuna: data.comuna || "",
       });
-
-      if (response.ok) {
-        const data = await response.json();
-        setProfile(data);
-        setFormData({
-          name: data.name || "",
-          email: data.email || "",
-          rut: data.rut || "",
-          address: data.address || "",
-          phone: data.phone || "",
-          comuna: data.comuna || "",
-        });
-      }
     } catch (error) {
       console.error("Error fetching profile:", error);
       setError("Error al cargar el perfil");
@@ -450,37 +445,18 @@ const UserProfile: React.FC<UserProfileProps> = ({ toggleTheme, isDark }) => {
     setError(null);
 
     try {
-      const token = localStorage.getItem("authToken");
-
       // No enviar el campo rut ya que no es modificable
       const { rut, ...updateData } = formData;
 
-      const response = await fetch("http://localhost:3001/users/me", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(updateData),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        const errorMessage = Array.isArray(errorData.message)
-          ? errorData.message.join("\n")
-          : errorData.message || "Error al actualizar el perfil";
-        setError(errorMessage);
-        return;
-      }
-
-      const updatedData = await response.json();
+      const response = await api.put("/users/me", updateData);
+      const updatedData = response.data;
       setProfile(updatedData);
       setSuccess("Perfil actualizado correctamente");
       setEditing(false);
 
       // Actualizar el contexto de autenticación
       const updatedUser = { ...user, ...updatedData };
-      localStorage.setItem("user", JSON.stringify(updatedUser));
+      localStorage.setItem("authUser", JSON.stringify(updatedUser));
     } catch (err) {
       setError("Error al guardar los cambios");
     } finally {
@@ -507,16 +483,10 @@ const UserProfile: React.FC<UserProfileProps> = ({ toggleTheme, isDark }) => {
     formData.append("file", file);
 
     try {
-      const token = localStorage.getItem("authToken");
-      const response = await fetch("http://localhost:3001/users/me/avatar", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
+      const response = await api.post("/users/me/avatar", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
-
-      if (!response.ok) throw new Error("Error al subir imagen");
-
-      const data = await response.json();
+      const data = response.data;
       updateUserAvatar(data.avatar);
       setProfile({ ...profile, avatar: data.avatar });
       setSuccess("Avatar actualizado correctamente");
@@ -583,35 +553,20 @@ const UserProfile: React.FC<UserProfileProps> = ({ toggleTheme, isDark }) => {
     setChangingPassword(true);
 
     try {
-      const token = localStorage.getItem("authToken");
-      const response = await fetch(
-        "http://localhost:3001/auth/change-password",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            oldPassword,
-            newPassword,
-          }),
-        },
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        setPasswordError(errorData.message || "Error al cambiar la contraseña");
-        return;
-      }
+      await api.patch("/users/me/change-password", {
+        currentPassword: oldPassword,
+        newPassword,
+      });
 
       setPasswordSuccess("Contraseña cambiada correctamente");
       setOldPassword("");
       setNewPassword("");
       setConfirmPassword("");
       setTimeout(() => setPasswordSuccess(""), 3000);
-    } catch (err) {
-      setPasswordError("Error al cambiar la contraseña");
+    } catch (err: any) {
+      setPasswordError(
+        err.response?.data?.message || "Error al cambiar la contraseña",
+      );
     } finally {
       setChangingPassword(false);
     }
@@ -641,7 +596,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ toggleTheme, isDark }) => {
   }
 
   const avatarSrc = profile?.avatar
-    ? `http://localhost:3001${profile.avatar}`
+    ? `${API_BASE_URL}${profile.avatar}`
     : undefined;
 
   return (

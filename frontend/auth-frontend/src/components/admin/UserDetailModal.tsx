@@ -50,6 +50,7 @@ import { GasVoucher, VoucherStats } from "../../types/voucher";
 import { voucherService } from "../../services/voucherService";
 import { monthlyPaymentsService } from "../../services/monthlyPaymentsService";
 import type { MonthlyPayment, PaymentSummary } from "../../types/payment";
+import api, { API_BASE_URL } from "../../services/authService";
 
 interface UserDetailModalProps {
   open: boolean;
@@ -460,8 +461,6 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
     if (!editedUser) return;
 
     try {
-      const token = localStorage.getItem("authToken");
-
       // No enviar rut ya que no es modificable
       const userDataToUpdate = {
         email: editedUser.email,
@@ -470,26 +469,7 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
         role: editedUser.role,
       };
 
-      const response = await fetch(
-        `http://localhost:3001/admins/users/${editedUser.id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(userDataToUpdate),
-        },
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        const errorMessage = Array.isArray(errorData.message)
-          ? errorData.message.join("\n")
-          : errorData.message || "No se pudo actualizar el usuario";
-        setError(errorMessage);
-        return;
-      }
+      await api.put(`/admins/users/${editedUser.id}`, userDataToUpdate);
 
       setSuccess("Usuario actualizado correctamente");
       setIsEditing(false);
@@ -500,7 +480,12 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
       setTimeout(() => setSuccess(null), 3000);
     } catch (error) {
       console.error("Error al guardar:", error);
-      setError("Error al guardar los cambios");
+      const message = (error as any)?.response?.data?.message;
+      setError(
+        Array.isArray(message)
+          ? message.join("\n")
+          : message || "Error al guardar los cambios",
+      );
     }
   };
 
@@ -511,27 +496,18 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
       window.confirm(`¿Estás seguro de eliminar al usuario ${editedUser.name}?`)
     ) {
       try {
-        const token = localStorage.getItem("authToken");
-        const response = await fetch(
-          `http://localhost:3001/admins/users/${editedUser.id}`,
-          {
-            method: "DELETE",
-            headers: { Authorization: `Bearer ${token}` },
-          },
-        );
-
-        if (response.ok) {
-          setSuccess("Usuario eliminado correctamente");
-          onUpdate();
-          setTimeout(() => {
-            onClose();
-          }, 1500);
-        } else {
-          setError("Error al eliminar el usuario");
-        }
+        await api.delete(`/admins/users/${editedUser.id}`);
+        setSuccess("Usuario eliminado correctamente");
+        onUpdate();
+        setTimeout(() => {
+          onClose();
+        }, 1500);
       } catch (error) {
         console.error("Error al eliminar:", error);
-        setError("Error al eliminar el usuario");
+        setError(
+          (error as any)?.response?.data?.message ||
+            "Error al eliminar el usuario",
+        );
       }
     }
   };
@@ -604,7 +580,7 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
             <Avatar
               src={
                 editedUser.avatar
-                  ? `http://localhost:3001${editedUser.avatar}`
+                  ? `${API_BASE_URL}${editedUser.avatar}`
                   : undefined
               }
               sx={{
