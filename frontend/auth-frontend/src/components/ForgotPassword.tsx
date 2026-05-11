@@ -16,7 +16,7 @@ import {
   Chip,
 } from "@mui/material";
 import { AdminPanelSettings, Person } from "@mui/icons-material";
-import axios from "axios";
+import { authService } from "../services/authService";
 
 interface ForgotPasswordProps {
   onBackToLogin: () => void;
@@ -36,17 +36,13 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBackToLogin }) => {
     setError(null);
 
     try {
-      const response = await axios.post(
-        "http://localhost:3001/auth/forgot-password",
-        { email, role }
-      );
-
-      setMessage(response.data.message);
+      const response = await authService.forgotPassword(email, role);
+      setMessage(response.message);
       setEmail("");
     } catch (err: any) {
       setError(
         err.response?.data?.message ||
-          "Error al solicitar recuperación de contraseña"
+          "Error al solicitar recuperación de contraseña",
       );
     } finally {
       setLoading(false);

@@ -23,27 +23,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const validateAndRestoreSession = async () => {
       const savedToken = localStorage.getItem("authToken");
-      const savedUser = localStorage.getItem("authUser");
-
-      if (savedToken && savedUser) {
+      if (savedToken) {
         try {
           // Validar que el token siga siendo válido haciendo una petición al backend
           authService.setAuthToken(savedToken);
-          const response = await fetch("http://localhost:3001/users/me", {
-            headers: { Authorization: `Bearer ${savedToken}` },
-          });
+          const profile = await authService.getProfile();
 
-          if (response.ok) {
-            // Token válido, restaurar sesión
-            setToken(savedToken);
-            setUser(JSON.parse(savedUser));
-          } else {
-            // Token expirado o inválido, limpiar todo
-            console.warn("Token expirado o inválido, limpiando sesión");
-            localStorage.removeItem("authToken");
-            localStorage.removeItem("authUser");
-            authService.removeAuthToken();
-          }
+          // Token válido, restaurar sesión
+          setToken(savedToken);
+          setUser(profile);
+          localStorage.setItem("authUser", JSON.stringify(profile));
         } catch (error) {
           // Error de red o backend, limpiar sesión por seguridad
           console.error("Error validando token, limpiando sesión:", error);

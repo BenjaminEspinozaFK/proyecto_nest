@@ -13,6 +13,7 @@ import {
   IconButton,
 } from "@mui/material";
 import { Visibility, VisibilityOff, Lock } from "@mui/icons-material";
+import api from "../services/authService";
 
 interface ChangePasswordModalProps {
   open: boolean;
@@ -54,39 +55,16 @@ const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({
     setLoading(true);
 
     try {
-      const token = localStorage.getItem("authToken");
-      const response = await fetch(
-        "http://localhost:3001/users/me/change-password",
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            currentPassword,
-            newPassword,
-          }),
-        }
-      );
+      await api.patch("/users/me/change-password", {
+        currentPassword,
+        newPassword,
+      });
 
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        const msg = data?.message || `Error ${response.status}`;
-        setError(typeof msg === "string" ? msg : JSON.stringify(msg));
-        setLoading(false);
-        return;
-      }
-
-      // Éxito - actualizar el usuario en localStorage
-      const result = await response.json();
-      if (result.user) {
-        const savedUser = localStorage.getItem("authUser");
-        if (savedUser) {
-          const user = JSON.parse(savedUser);
-          user.requirePasswordChange = false;
-          localStorage.setItem("authUser", JSON.stringify(user));
-        }
+      const savedUser = localStorage.getItem("authUser");
+      if (savedUser) {
+        const user = JSON.parse(savedUser);
+        user.requirePasswordChange = false;
+        localStorage.setItem("authUser", JSON.stringify(user));
       }
 
       // Limpiar campos
@@ -97,7 +75,7 @@ const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({
       // Notificar que se cambió la contraseña
       onPasswordChanged();
     } catch (err: any) {
-      setError(err.message || "Error cambiando contraseña");
+      setError(err.response?.data?.message || "Error cambiando contraseña");
     } finally {
       setLoading(false);
     }
