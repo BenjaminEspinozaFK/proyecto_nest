@@ -18,7 +18,7 @@ import { EmailModule } from '../email/email.module';
     EmailModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, PrismaService, RolesGuard],
+  providers: [AuthService, JwtStrategy, RolesGuard],
   exports: [AuthService, JwtStrategy, RolesGuard, PassportModule, JwtModule],
 })
 export class AuthModule {}
