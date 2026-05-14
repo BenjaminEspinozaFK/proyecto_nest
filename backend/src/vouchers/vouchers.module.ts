@@ -6,7 +6,7 @@ import { PrismaService } from '../prisma.service';
 
 @Module({
   controllers: [VouchersController],
-  providers: [VouchersService, VouchersGateway, PrismaService],
+  providers: [VouchersService, VouchersGateway],
   exports: [VouchersService],
 })
 export class VouchersModule {}

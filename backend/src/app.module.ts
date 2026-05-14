@@ -4,9 +4,11 @@ import { UsersModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { VouchersModule } from './vouchers/vouchers.module';
 import { MonthlyPaymentsModule } from './monthly-payments/monthly-payments.module';
+import { PrismaModule } from './prisma.service';
 
 @Module({
   imports: [
+    PrismaModule,
     AdminModule,
     UsersModule,
     AuthModule,
