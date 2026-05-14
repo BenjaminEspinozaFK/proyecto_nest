@@ -14,7 +14,7 @@ import { PassportModule } from '@nestjs/passport';
 @Module({
   imports: [PassportModule],
   controllers: [UsersController],
-  providers: [UsersService, PrismaService, JwtStrategy],
+  providers: [UsersService, JwtStrategy],
 })
 export class UsersModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
