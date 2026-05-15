@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { User } from "../types/auth"; // Ajusta la ruta si es necesario
 import { adminService } from "../services/adminService";
 import { API_BASE_URL } from "../services/authService";
+import { useAuth } from "./AuthContext";
 import {
   Box,
   Table,
@@ -56,6 +57,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   toggleTheme,
   isDark,
 }) => {
+  const { logout } = useAuth();
   const [tabValue, setTabValue] = useState(0);
   const [users, setUsers] = useState<User[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -106,8 +108,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("authToken");
-    window.location.href = "/login";
+    logout();
   };
 
   const handleOpenCreate = () => {
