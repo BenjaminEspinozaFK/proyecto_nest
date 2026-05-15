@@ -62,7 +62,7 @@ interface UserProfileProps {
 }
 
 const UserProfile: React.FC<UserProfileProps> = ({ toggleTheme, isDark }) => {
-  const { user, updateUserAvatar } = useAuth();
+  const { user, updateUserAvatar, logout } = useAuth();
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
@@ -573,8 +573,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ toggleTheme, isDark }) => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("authToken");
-    window.location.href = "/login";
+    logout();
   };
 
   if (loading) {
