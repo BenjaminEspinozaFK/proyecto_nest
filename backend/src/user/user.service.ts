@@ -8,48 +8,36 @@ import {
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
-import { PrismaService } from 'src/prisma.service';
+import { UserRepository } from './repositories/user.repository';
 import * as bcrypt from 'bcryptjs';
 
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService) {}
+  private userSelect = {
+    id: true,
+    email: true,
+    name: true,
+    rut: true,
+    phone: true,
+    role: true,
+    avatar: true,
+    lastLogin: true,
+    requirePasswordChange: true,
+    createdAt: true,
+    updatedAt: true,
+  };
+
+  constructor(private userRepository: UserRepository) {}
 
   async getUsers() {
-    return await this.prisma.user.findMany({
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        rut: true,
-        phone: true,
-        role: true,
-        avatar: true,
-        lastLogin: true,
-        requirePasswordChange: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
+    return await this.userRepository.findAllWithSelect(this.userSelect);
   }
 
   async getUserById(id: string) {
-    const userFound = await this.prisma.user.findUnique({
-      where: { id },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        rut: true,
-        phone: true,
-        role: true,
-        avatar: true,
-        lastLogin: true,
-        requirePasswordChange: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
+    const userFound = await this.userRepository.findByIdWithSelect(
+      id,
+      this.userSelect,
+    );
 
     if (!userFound) {
       throw new NotFoundException(`Usuario con ID ${id} no encontrado`);
@@ -60,9 +48,7 @@ export class UsersService {
 
   async createUser(user: CreateUserDto) {
     // Verificar si ya existe un usuario con el mismo email
-    const userExists = await this.prisma.user.findUnique({
-      where: { email: user.email },
-    });
+    const userExists = await this.userRepository.findByEmail(user.email);
 
     if (userExists) {
       throw new ConflictException(`Usuario con email ${user.email} ya existe`);
@@ -71,32 +57,19 @@ export class UsersService {
     // Encriptar la contraseña
     const hashedPassword = await bcrypt.hash(user.password, 10);
 
-    const newUser = await this.prisma.user.create({
-      data: {
+    const newUser = await this.userRepository.createWithSelect(
+      {
         ...user,
         password: hashedPassword,
       },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        rut: true,
-        phone: true,
-        role: true,
-        avatar: true,
-        requirePasswordChange: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
+      this.userSelect,
+    );
 
     return newUser;
   }
 
   async updateUser(id: string, userData: UpdateUserDto) {
-    const userExists = await this.prisma.user.findUnique({
-      where: { id },
-    });
+    const userExists = await this.userRepository.findById(id);
 
     if (!userExists) {
       throw new NotFoundException(`Usuario con ID ${id} no encontrado`);
@@ -108,38 +81,23 @@ export class UsersService {
       updateData.password = await bcrypt.hash(userData.password, 10);
     }
 
-    const updatedUser = await this.prisma.user.update({
-      where: { id },
-      data: updateData,
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        rut: true,
-        phone: true,
-        role: true,
-        avatar: true,
-        requirePasswordChange: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
+    const updatedUser = await this.userRepository.updateWithSelect(
+      id,
+      updateData,
+      this.userSelect,
+    );
 
     return updatedUser;
   }
 
   async deleteUser(id: string): Promise<{ message: string }> {
-    const userExists = await this.prisma.user.findUnique({
-      where: { id },
-    });
+    const userExists = await this.userRepository.findById(id);
 
     if (!userExists) {
       throw new NotFoundException(`Usuario con ID ${id} no encontrado`);
     }
 
-    await this.prisma.user.delete({
-      where: { id },
-    });
+    await this.userRepository.delete(id);
 
     return { message: `Usuario con ID ${id} eliminado` };
   }
@@ -147,31 +105,18 @@ export class UsersService {
   async updateAvatar(userId: string, filename: string) {
     const avatarUrl = `/uploads/avatars/${filename}`;
 
-    const updatedUser = await this.prisma.user.update({
-      where: { id: userId },
-      data: { avatar: avatarUrl },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        rut: true,
-        phone: true,
-        role: true,
-        avatar: true,
-        requirePasswordChange: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
+    const updatedUser = await this.userRepository.updateWithSelect(
+      userId,
+      { avatar: avatarUrl },
+      this.userSelect,
+    );
 
     return { user: updatedUser, avatar: avatarUrl };
   }
 
   async changePassword(userId: string, changePasswordDto: ChangePasswordDto) {
     // Buscar el usuario
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-    });
+    const user = await this.userRepository.findById(userId);
 
     if (!user) {
       throw new NotFoundException('Usuario no encontrado');
@@ -203,13 +148,13 @@ export class UsersService {
     const hashedPassword = await bcrypt.hash(changePasswordDto.newPassword, 10);
 
     // Actualizar la contraseña y marcar que ya no requiere cambio
-    const updatedUser = await this.prisma.user.update({
-      where: { id: userId },
-      data: {
+    const updatedUser = await this.userRepository.updateWithSelect(
+      userId,
+      {
         password: hashedPassword,
         requirePasswordChange: false,
       },
-      select: {
+      {
         id: true,
         email: true,
         name: true,
@@ -218,7 +163,7 @@ export class UsersService {
         role: true,
         requirePasswordChange: true,
       },
-    });
+    );
 
     return {
       message: 'Contraseña actualizada exitosamente',
