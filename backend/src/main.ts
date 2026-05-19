@@ -5,6 +5,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
 import * as dotenv from 'dotenv';
+import { GlobalExceptionFilter } from './common/filters/http-exception.filter';
 
 // Cargar variables de entorno
 dotenv.config();
@@ -20,6 +21,8 @@ async function bootstrap() {
       transform: true, // Transforma los tipos automáticamente
     }),
   );
+
+  app.useGlobalFilters(new GlobalExceptionFilter());
 
   app.useStaticAssets(join(__dirname, '..', '..', 'uploads'), {
     prefix: '/uploads/',
