@@ -43,14 +43,20 @@ export class UserRepository extends BaseRepository<User> {
     });
   }
 
-  async findByIdWithSelect(id: string, select: any): Promise<any | null> {
+  async findByIdWithSelect(
+    id: string,
+    select: any,
+  ): Promise<Record<string, unknown> | null> {
     return this.prisma.user.findUnique({
       where: { id },
       select,
     });
   }
 
-  async findByEmailWithSelect(email: string, select: any): Promise<any | null> {
+  async findByEmailWithSelect(
+    email: string,
+    select: any,
+  ): Promise<Record<string, unknown> | null> {
     return this.prisma.user.findUnique({
       where: { email },
       select,
