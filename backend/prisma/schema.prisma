@@ -41,6 +41,7 @@ model Admin {
   resetPasswordToken   String?   @unique
   rut                  String    @unique
   phone                String?
+  deletedAt            DateTime?
 }
 
 model GasVoucher {
