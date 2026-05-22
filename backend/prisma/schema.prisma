@@ -22,6 +22,7 @@ model User {
   requirePasswordChange Boolean          @default(false)
   rut                   String           @unique
   phone                 String?
+  deletedAt             DateTime?
   gasVouchers           GasVoucher[]
   monthlyPayments       MonthlyPayment[]
 }
