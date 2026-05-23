@@ -4,40 +4,27 @@ import {
   NotFoundException,
   UnauthorizedException,
   BadRequestException,
+  Inject,
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
-import { UserRepository } from './repositories/user.repository';
+import { UserRepositoryPort } from './domain/user.repository';
+import { USER_REPOSITORY } from './user.tokens';
 import * as bcrypt from 'bcryptjs';
 
 @Injectable()
 export class UsersService {
-  private userSelect = {
-    id: true,
-    email: true,
-    name: true,
-    rut: true,
-    phone: true,
-    role: true,
-    avatar: true,
-    lastLogin: true,
-    requirePasswordChange: true,
-    createdAt: true,
-    updatedAt: true,
-  };
-
-  constructor(private userRepository: UserRepository) {}
+  constructor(
+    @Inject(USER_REPOSITORY) private userRepository: UserRepositoryPort,
+  ) {}
 
   async getUsers() {
-    return await this.userRepository.findAllWithSelect(this.userSelect);
+    return this.userRepository.findAll();
   }
 
   async getUserById(id: string) {
-    const userFound = await this.userRepository.findByIdWithSelect(
-      id,
-      this.userSelect,
-    );
+    const userFound = await this.userRepository.findByIdPublic(id);
 
     if (!userFound) {
       throw new NotFoundException(`Usuario con ID ${id} no encontrado`);
@@ -47,25 +34,18 @@ export class UsersService {
   }
 
   async createUser(user: CreateUserDto) {
-    // Verificar si ya existe un usuario con el mismo email
     const userExists = await this.userRepository.findByEmail(user.email);
 
     if (userExists) {
       throw new ConflictException(`Usuario con email ${user.email} ya existe`);
     }
 
-    // Encriptar la contraseña
     const hashedPassword = await bcrypt.hash(user.password, 10);
 
-    const newUser = await this.userRepository.createWithSelect(
-      {
-        ...user,
-        password: hashedPassword,
-      },
-      this.userSelect,
-    );
-
-    return newUser;
+    return this.userRepository.create({
+      ...user,
+      password: hashedPassword,
+    });
   }
 
   async updateUser(id: string, userData: UpdateUserDto) {
@@ -75,19 +55,12 @@ export class UsersService {
       throw new NotFoundException(`Usuario con ID ${id} no encontrado`);
     }
 
-    // Si se proporciona una nueva contraseña, encriptarla
     const updateData = { ...userData };
     if (userData.password) {
       updateData.password = await bcrypt.hash(userData.password, 10);
     }
 
-    const updatedUser = await this.userRepository.updateWithSelect(
-      id,
-      updateData,
-      this.userSelect,
-    );
-
-    return updatedUser;
+    return this.userRepository.update(id, updateData);
   }
 
   async deleteUser(id: string): Promise<{ message: string }> {
@@ -105,24 +78,21 @@ export class UsersService {
   async updateAvatar(userId: string, filename: string) {
     const avatarUrl = `/uploads/avatars/${filename}`;
 
-    const updatedUser = await this.userRepository.updateWithSelect(
+    const updatedUser = await this.userRepository.updateAvatar(
       userId,
-      { avatar: avatarUrl },
-      this.userSelect,
+      avatarUrl,
     );
 
     return { user: updatedUser, avatar: avatarUrl };
   }
 
   async changePassword(userId: string, changePasswordDto: ChangePasswordDto) {
-    // Buscar el usuario
     const user = await this.userRepository.findById(userId);
 
     if (!user) {
       throw new NotFoundException('Usuario no encontrado');
     }
 
-    // Verificar que la contraseña actual sea correcta
     const isPasswordValid = await bcrypt.compare(
       changePasswordDto.currentPassword,
       user.password,
@@ -132,7 +102,6 @@ export class UsersService {
       throw new UnauthorizedException('La contraseña actual es incorrecta');
     }
 
-    // Verificar que la nueva contraseña sea diferente a la actual
     const isSamePassword = await bcrypt.compare(
       changePasswordDto.newPassword,
       user.password,
@@ -144,25 +113,12 @@ export class UsersService {
       );
     }
 
-    // Hashear la nueva contraseña
     const hashedPassword = await bcrypt.hash(changePasswordDto.newPassword, 10);
 
-    // Actualizar la contraseña y marcar que ya no requiere cambio
-    const updatedUser = await this.userRepository.updateWithSelect(
+    const updatedUser = await this.userRepository.updatePassword(
       userId,
-      {
-        password: hashedPassword,
-        requirePasswordChange: false,
-      },
-      {
-        id: true,
-        email: true,
-        name: true,
-        rut: true,
-        phone: true,
-        role: true,
-        requirePasswordChange: true,
-      },
+      hashedPassword,
+      false,
     );
 
     return {
