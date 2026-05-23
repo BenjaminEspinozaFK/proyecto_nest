@@ -1,4 +1,9 @@
-import { CreateUserInput, UpdateUserInput, User, UserPublic } from './user.types';
+import {
+  CreateUserInput,
+  UpdateUserInput,
+  User,
+  UserPublic,
+} from './user.types';
 
 export interface UserRepositoryPort {
   findAll(): Promise<UserPublic[]>;
