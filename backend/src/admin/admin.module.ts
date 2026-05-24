@@ -7,16 +7,22 @@ import {
 import { AdminController } from './admin.controller';
 import { AdminService } from './admin.service';
 import { LoggerMiddleware } from 'src/user/logger/logger.middleware';
-import { PrismaService } from 'src/prisma.service';
 import { JwtStrategy } from '../auth/jwt.strategy';
 import { PassportModule } from '@nestjs/passport';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { EmailModule } from '../email/email.module';
+import { ADMIN_REPOSITORY } from './admin.tokens';
+import { PrismaAdminRepository } from './infrastructure/prisma-admin.repository';
 
 @Module({
   imports: [PassportModule, EmailModule],
   controllers: [AdminController],
-  providers: [AdminService, PrismaService, JwtStrategy, RolesGuard],
+  providers: [
+    AdminService,
+    { provide: ADMIN_REPOSITORY, useClass: PrismaAdminRepository },
+    JwtStrategy,
+    RolesGuard,
+  ],
 })
 export class AdminModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

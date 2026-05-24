@@ -4,12 +4,14 @@ import {
   NotFoundException,
   BadRequestException,
   UnauthorizedException,
+  Inject,
 } from '@nestjs/common';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateAdminDto } from './dto/update-admin.dto';
 import { UpdateUserByAdminDto } from './dto/update-user-by-admin.dto';
 import { CreateUserDto } from './dto/create-user.dto';
-import { PrismaService } from 'src/prisma.service';
+import { AdminRepositoryPort } from './domain/admin.repository';
+import { ADMIN_REPOSITORY } from './admin.tokens';
 import * as bcrypt from 'bcryptjs';
 import * as XLSX from 'xlsx';
 import { EmailService } from '../email/email.service';
@@ -18,7 +20,7 @@ import { ChangePasswordDto } from 'src/user/dto/change-password.dto';
 @Injectable()
 export class AdminService {
   constructor(
-    private prisma: PrismaService,
+    @Inject(ADMIN_REPOSITORY) private adminRepository: AdminRepositoryPort,
     private emailService: EmailService,
   ) {}
 
@@ -53,38 +55,11 @@ export class AdminService {
   }
 
   async getAdmins() {
-    return await this.prisma.admin.findMany({
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        rut: true,
-        phone: true,
-        role: true,
-        avatar: true,
-        lastLogin: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
+    return await this.adminRepository.findAdmins();
   }
 
   async getAdminById(id: string) {
-    const adminFound = await this.prisma.admin.findUnique({
-      where: { id },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        rut: true,
-        phone: true,
-        role: true,
-        avatar: true,
-        lastLogin: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
+    const adminFound = await this.adminRepository.findAdminById(id);
 
     if (!adminFound) {
       throw new NotFoundException(`Administrador con ID ${id} no encontrado`);
@@ -94,9 +69,9 @@ export class AdminService {
 
   async createAdmin(admin: CreateAdminDto) {
     // Busca si ya existe un administrador con el mismo email
-    const adminExists = await this.prisma.admin.findUnique({
-      where: { email: admin.email },
-    });
+    const adminExists = await this.adminRepository.findAdminByEmail(
+      admin.email,
+    );
 
     // Si se encuentra un admin, lanza una excepción
     if (adminExists) {
@@ -108,32 +83,16 @@ export class AdminService {
     // Encriptar la contraseña
     const hashedPassword = await bcrypt.hash(admin.password, 10);
 
-    const newAdmin = await this.prisma.admin.create({
-      data: {
-        ...admin,
-        password: hashedPassword,
-      },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        rut: true,
-        phone: true,
-        role: true,
-        avatar: true,
-        lastLogin: true,
-        createdAt: true,
-        updatedAt: true,
-      },
+    const newAdmin = await this.adminRepository.createAdmin({
+      ...admin,
+      password: hashedPassword,
     });
 
     return newAdmin;
   }
 
   async updateAdmin(id: string, adminData: UpdateAdminDto) {
-    const adminExists = await this.prisma.admin.findUnique({
-      where: { id },
-    });
+    const adminExists = await this.adminRepository.findAdminById(id);
     if (!adminExists) {
       throw new NotFoundException(`Administrador con ID ${id} no encontrado`);
     }
@@ -144,99 +103,51 @@ export class AdminService {
       updateData.password = await bcrypt.hash(adminData.password, 10);
     }
 
-    const updatedAdmin = await this.prisma.admin.update({
-      where: { id },
-      data: updateData,
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        rut: true,
-        phone: true,
-        role: true,
-        avatar: true,
-        lastLogin: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
+    const updatedAdmin = await this.adminRepository.updateAdmin(id, updateData);
     return updatedAdmin;
   }
 
   async deleteAdmin(id: string): Promise<{ message: string }> {
-    const adminExists = await this.prisma.admin.findUnique({
-      where: { id },
-    });
+    const adminExists = await this.adminRepository.findAdminById(id);
 
     if (!adminExists) {
       throw new NotFoundException(`Admin con ID ${id} no encontrado`);
     }
 
-    await this.prisma.admin.delete({
-      where: { id },
-    });
+    await this.adminRepository.deleteAdmin(id);
 
     return { message: `Admin con ID ${id} eliminado` };
   }
 
   async getStats() {
-    const totalUsers = await this.prisma.user.count();
-    const totalAdmins = await this.prisma.admin.count();
+    const totalUsers = await this.adminRepository.countUsers();
+    const totalAdmins = await this.adminRepository.countAdmins();
 
     // Usuarios registrados hoy
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const usersToday = await this.prisma.user.count({
-      where: { createdAt: { gte: today } },
-    });
+    const usersToday = await this.adminRepository.countUsersCreatedAfter(today);
 
     // Usuarios esta semana
     const weekAgo = new Date();
     weekAgo.setDate(weekAgo.getDate() - 7);
-    const usersThisWeek = await this.prisma.user.count({
-      where: { createdAt: { gte: weekAgo } },
-    });
+    const usersThisWeek =
+      await this.adminRepository.countUsersCreatedAfter(weekAgo);
 
     // Usuarios este mes
     const monthAgo = new Date();
     monthAgo.setMonth(monthAgo.getMonth() - 1);
-    const usersThisMonth = await this.prisma.user.count({
-      where: { createdAt: { gte: monthAgo } },
-    });
+    const usersThisMonth =
+      await this.adminRepository.countUsersCreatedAfter(monthAgo);
 
     // Últimos 5 usuarios registrados
-    const recentUsers = await this.prisma.user.findMany({
-      take: 5,
-      orderBy: { createdAt: 'desc' },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        phone: true,
-        createdAt: true,
-        role: true,
-      },
-    });
+    const recentUsers = await this.adminRepository.findRecentUsers(5);
 
     // Últimos logins
-    const recentLogins = await this.prisma.user.findMany({
-      where: { lastLogin: { not: null } },
-      take: 5,
-      orderBy: { lastLogin: 'desc' },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        phone: true,
-        lastLogin: true,
-      },
-    });
+    const recentLogins = await this.adminRepository.findRecentLogins(5);
 
     // Usuarios por rol
-    const usersByRole = await this.prisma.user.groupBy({
-      by: ['role'],
-      _count: { role: true },
-    });
+    const usersByRole = await this.adminRepository.groupUsersByRole();
 
     return {
       totalUsers,
@@ -246,32 +157,16 @@ export class AdminService {
       usersThisMonth,
       recentUsers,
       recentLogins,
-      usersByRole: usersByRole.map((r) => ({
-        role: r.role,
-        count: r._count.role,
-      })),
+      usersByRole,
     };
   }
 
   async getAllUsers() {
-    return await this.prisma.user.findMany({
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        rut: true,
-        phone: true,
-        role: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
+    return await this.adminRepository.findAllUsers();
   }
 
   async updateUser(id: string, userData: UpdateUserByAdminDto) {
-    const userFound = await this.prisma.user.findUnique({
-      where: { id },
-    });
+    const userFound = await this.adminRepository.findUserById(id);
 
     if (!userFound) {
       throw new NotFoundException(`Usuario con ID ${id} no encontrado`);
@@ -293,66 +188,39 @@ export class AdminService {
       dataToUpdate.role = userData.role;
     }
 
-    const updatedUser = await this.prisma.user.update({
-      where: { id },
-      data: dataToUpdate,
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        rut: true,
-        phone: true,
-        role: true,
-        createdAt: true,
-        updatedAt: true,
-        // No devolver password
-      },
-    });
+    const updatedUser = await this.adminRepository.updateUserByAdmin(
+      id,
+      dataToUpdate,
+    );
 
     return updatedUser;
   }
 
   async deleteUser(id: string) {
-    const userFound = await this.prisma.user.findUnique({
-      where: { id },
-    });
+    const userFound = await this.adminRepository.findUserById(id);
 
     if (!userFound) {
       throw new NotFoundException(`Usuario con ID ${id} no encontrado`);
     }
 
-    await this.prisma.user.delete({ where: { id } });
+    await this.adminRepository.deleteUser(id);
     return { message: `Usuario con ID ${id} eliminado` };
   }
 
   async updateAvatar(adminId: string, filename: string) {
     const avatarUrl = `/uploads/avatars/${filename}`;
 
-    const updatedAdmin = await this.prisma.admin.update({
-      where: { id: adminId },
-      data: { avatar: avatarUrl },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        rut: true,
-        phone: true,
-        role: true,
-        avatar: true,
-        lastLogin: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
+    const updatedAdmin = await this.adminRepository.updateAdminAvatar(
+      adminId,
+      avatarUrl,
+    );
 
     return { admin: updatedAdmin, avatar: avatarUrl };
   }
 
   async createUser(user: CreateUserDto) {
     // Busca si ya existe un usuario con el mismo email
-    const userExists = await this.prisma.user.findUnique({
-      where: { email: user.email },
-    });
+    const userExists = await this.adminRepository.findUserByEmail(user.email);
 
     // Si se encuentra un user, lanza una excepción
     if (userExists) {
@@ -364,27 +232,14 @@ export class AdminService {
     const hashedPassword = await bcrypt.hash(temporaryPassword, 10);
     const requirePasswordChange = !user.password; // true si se generó automáticamente
 
-    const newUser = await this.prisma.user.create({
-      data: {
-        email: user.email,
-        name: user.name,
-        rut: user.rut,
-        phone: user.phone,
-        role: user.role || 'user',
-        password: hashedPassword,
-        requirePasswordChange,
-      },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        rut: true,
-        phone: true,
-        role: true,
-        requirePasswordChange: true,
-        createdAt: true,
-        updatedAt: true,
-      },
+    const newUser = await this.adminRepository.createUserByAdmin({
+      email: user.email,
+      name: user.name,
+      rut: user.rut,
+      phone: user.phone,
+      role: user.role || 'user',
+      password: hashedPassword,
+      requirePasswordChange,
     });
 
     // Si se generó una contraseña temporal, enviar email
@@ -408,19 +263,7 @@ export class AdminService {
   }
 
   async searchUserByEmail(email: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { email },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        rut: true,
-        phone: true,
-        role: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
+    const user = await this.adminRepository.findUserByEmail(email);
 
     if (!user) {
       throw new NotFoundException(`Usuario con email ${email} no encontrado`);
@@ -429,9 +272,7 @@ export class AdminService {
     return user;
   }
   async changePassword(adminId: string, dto: ChangePasswordDto) {
-    const admin = await this.prisma.admin.findUnique({
-      where: { id: adminId },
-    });
+    const admin = await this.adminRepository.findAdminAuthById(adminId);
     if (!admin) {
       throw new NotFoundException('Administrador no encontrado');
     }
@@ -449,10 +290,7 @@ export class AdminService {
     }
 
     const hashedPassword = await bcrypt.hash(dto.newPassword, 10);
-    await this.prisma.admin.update({
-      where: { id: adminId },
-      data: { password: hashedPassword },
-    });
+    await this.adminRepository.updateAdminPassword(adminId, hashedPassword);
 
     return { message: 'Contraseña actualizada exitosamente' };
   }
@@ -524,9 +362,8 @@ export class AdminService {
             : this.generateTemporaryPassword();
 
           // Validar que el email no exista
-          const existingUser = await this.prisma.user.findUnique({
-            where: { email },
-          });
+          const existingUser =
+            await this.adminRepository.findUserByEmail(email);
 
           if (existingUser) {
             results.errors.push({
@@ -541,25 +378,14 @@ export class AdminService {
           const hashedPassword = await bcrypt.hash(temporaryPassword, 10);
           const requirePasswordChange = !row.password; // true si se generó automáticamente
 
-          const newUser = await this.prisma.user.create({
-            data: {
-              email,
-              password: hashedPassword,
-              name: name || null,
-              rut,
-              phone,
-              role,
-              requirePasswordChange,
-            },
-            select: {
-              id: true,
-              email: true,
-              name: true,
-              rut: true,
-              phone: true,
-              role: true,
-              requirePasswordChange: true,
-            },
+          const newUser = await this.adminRepository.createUserByAdmin({
+            email,
+            password: hashedPassword,
+            name: name || null,
+            rut,
+            phone,
+            role,
+            requirePasswordChange,
           });
 
           // Si se generó contraseña temporal, enviar email
