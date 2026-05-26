@@ -11,6 +11,7 @@ import { UpdateAdminDto } from './dto/update-admin.dto';
 import { UpdateUserByAdminDto } from './dto/update-user-by-admin.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { AdminRepositoryPort } from './domain/admin.repository';
+import { UpdateUserByAdminInput } from './domain/admin.types';
 import { ADMIN_REPOSITORY } from './admin.tokens';
 import * as bcrypt from 'bcryptjs';
 import * as XLSX from 'xlsx';
@@ -173,7 +174,7 @@ export class AdminService {
     }
 
     // Construir objeto de actualización solo con campos definidos
-    const dataToUpdate: any = {};
+    const dataToUpdate: UpdateUserByAdminInput = {};
 
     if (userData.email !== undefined) {
       dataToUpdate.email = userData.email;
@@ -410,9 +411,12 @@ export class AdminService {
             user: newUser,
           });
         } catch (error) {
+          const errorMessage =
+            error instanceof Error ? error.message : 'Error desconocido';
+
           results.errors.push({
             row: i + 2,
-            error: error.message || 'Error desconocido',
+            error: errorMessage,
             data: row,
           });
         }
@@ -423,8 +427,11 @@ export class AdminService {
         ...results,
       };
     } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Error desconocido';
+
       throw new BadRequestException(
-        `Error procesando archivo Excel: ${error.message}`,
+        `Error procesando archivo Excel: ${errorMessage}`,
       );
     }
   }
