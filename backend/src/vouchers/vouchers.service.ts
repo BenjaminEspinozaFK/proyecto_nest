@@ -1,36 +1,26 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../prisma.service';
+import { Inject, Injectable } from '@nestjs/common';
 import { CreateVoucherDto } from './dto/create-voucher.dto';
 import { ApproveVoucherDto } from './dto/approve-voucher.dto';
 import { RejectVoucherDto } from './dto/reject-voucher.dto';
 import { VouchersGateway } from './vouchers.gateway';
+import { VouchersRepositoryPort } from './domain/voucher.repository';
+import { VOUCHERS_REPOSITORY } from './vouchers.tokens';
 
 @Injectable()
 export class VouchersService {
   constructor(
-    private prisma: PrismaService,
+    @Inject(VOUCHERS_REPOSITORY)
+    private vouchersRepository: VouchersRepositoryPort,
     private vouchersGateway: VouchersGateway,
   ) {}
 
   // Funcionario solicita un vale
   async requestVoucher(userId: string, createVoucherDto: CreateVoucherDto) {
-    const voucher = await this.prisma.gasVoucher.create({
-      data: {
-        userId,
-        kilos: createVoucherDto.kilos,
-        bank: createVoucherDto.bank,
-        status: 'pending',
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-      },
-    });
+    const voucher = await this.vouchersRepository.createVoucher(
+      userId,
+      createVoucherDto.kilos,
+      createVoucherDto.bank,
+    );
 
     // Emitir evento de nuevo vale creado a los admins
     this.vouchersGateway.notifyVoucherCreated(voucher);
@@ -40,52 +30,17 @@ export class VouchersService {
 
   // Obtener vales de un usuario específico
   async getUserVouchers(userId: string) {
-    return this.prisma.gasVoucher.findMany({
-      where: { userId },
-      orderBy: { requestDate: 'desc' },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-      },
-    });
+    return this.vouchersRepository.findUserVouchers(userId);
   }
 
   // Admin: Obtener todos los vales pendientes
   async getPendingVouchers() {
-    return this.prisma.gasVoucher.findMany({
-      where: { status: 'pending' },
-      orderBy: { requestDate: 'asc' },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-      },
-    });
+    return this.vouchersRepository.findPendingVouchers();
   }
 
   // Admin: Obtener todos los vales
   async getAllVouchers() {
-    return this.prisma.gasVoucher.findMany({
-      orderBy: { requestDate: 'desc' },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-      },
-    });
+    return this.vouchersRepository.findAllVouchers();
   }
 
   // Admin: Aprobar vale
@@ -94,25 +49,12 @@ export class VouchersService {
     approveVoucherDto: ApproveVoucherDto,
     adminId: string,
   ) {
-    const voucher = await this.prisma.gasVoucher.update({
-      where: { id: voucherId },
-      data: {
-        status: 'approved',
-        amount: approveVoucherDto.amount,
-        approvalDate: new Date(),
-        approvedBy: adminId,
-        notes: approveVoucherDto.notes,
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-      },
-    });
+    const voucher = await this.vouchersRepository.approveVoucher(
+      voucherId,
+      approveVoucherDto.amount,
+      adminId,
+      approveVoucherDto.notes,
+    );
 
     // Emitir evento de vale aprobado
     this.vouchersGateway.notifyVoucherApproved(voucher);
@@ -126,23 +68,11 @@ export class VouchersService {
     rejectVoucherDto: RejectVoucherDto,
     adminId: string,
   ) {
-    const voucher = await this.prisma.gasVoucher.update({
-      where: { id: voucherId },
-      data: {
-        status: 'rejected',
-        approvedBy: adminId,
-        notes: rejectVoucherDto.notes,
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-      },
-    });
+    const voucher = await this.vouchersRepository.rejectVoucher(
+      voucherId,
+      adminId,
+      rejectVoucherDto.notes,
+    );
 
     // Emitir evento de vale rechazado
     this.vouchersGateway.notifyVoucherRejected(voucher);
@@ -152,22 +82,7 @@ export class VouchersService {
 
   // Admin: Marcar como entregado
   async markAsDelivered(voucherId: string) {
-    const voucher = await this.prisma.gasVoucher.update({
-      where: { id: voucherId },
-      data: {
-        status: 'delivered',
-        deliveredDate: new Date(),
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-      },
-    });
+    const voucher = await this.vouchersRepository.markAsDelivered(voucherId);
 
     // Emitir evento de vale entregado
     this.vouchersGateway.notifyVoucherDelivered(voucher);
@@ -183,33 +98,18 @@ export class VouchersService {
     adminId: string,
     notes?: string,
   ) {
-    return this.prisma.gasVoucher.create({
-      data: {
-        userId,
-        kilos,
-        amount,
-        status: 'approved',
-        approvalDate: new Date(),
-        approvedBy: adminId,
-        notes,
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-      },
-    });
+    return this.vouchersRepository.createManualVoucher(
+      userId,
+      kilos,
+      amount,
+      adminId,
+      notes,
+    );
   }
 
   // Estadísticas de un usuario
   async getUserVoucherStats(userId: string) {
-    const vouchers = await this.prisma.gasVoucher.findMany({
-      where: { userId },
-    });
+    const vouchers = await this.vouchersRepository.findUserVouchers(userId);
 
     const total = vouchers.length;
     const pending = vouchers.filter((v) => v.status === 'pending').length;
@@ -232,7 +132,7 @@ export class VouchersService {
 
   // Estadísticas generales (para admin)
   async getGeneralStats() {
-    const vouchers = await this.prisma.gasVoucher.findMany();
+    const vouchers = await this.vouchersRepository.findAllVouchers();
 
     const total = vouchers.length;
     const pending = vouchers.filter((v) => v.status === 'pending').length;

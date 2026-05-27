@@ -1,0 +1,1 @@
+export const VOUCHERS_REPOSITORY = Symbol('VOUCHERS_REPOSITORY');
