@@ -1,4 +1,4 @@
-export type VoucherStatus = 'pending' | 'approved' | 'rejected' | 'delivered';
+export type VoucherStatus = string;
 
 export interface VoucherUserSummary {
   id: string;
