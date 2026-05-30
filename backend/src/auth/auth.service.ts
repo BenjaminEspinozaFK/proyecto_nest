@@ -2,20 +2,22 @@ import {
   Injectable,
   UnauthorizedException,
   ConflictException,
+  Inject,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { PrismaService } from '../prisma.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { EmailService } from '../email/email.service';
 import { ValidatedUser } from './interfaces/validated-user.interface';
+import { AuthRepositoryPort } from './domain/auth.repository';
+import { AUTH_REPOSITORY } from './auth.tokens';
 import * as bcrypt from 'bcryptjs';
 import * as crypto from 'crypto';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private prisma: PrismaService,
+    @Inject(AUTH_REPOSITORY) private authRepository: AuthRepositoryPort,
     private jwtService: JwtService,
     private emailService: EmailService,
   ) {}
@@ -26,34 +28,26 @@ export class AuthService {
     role: string,
   ): Promise<ValidatedUser | null> {
     if (role === 'admin') {
-      const admin = await this.prisma.admin.findUnique({
-        where: { email },
-      });
+      const admin = await this.authRepository.findAdminByEmail(email);
       if (admin && (await bcrypt.compare(password, admin.password))) {
         const { password: adminPassword, ...result } = admin;
         return { ...result, role: 'admin' };
       }
       // Verificar si el email existe como usuario
-      const userExists = await this.prisma.user.findUnique({
-        where: { email },
-      });
+      const userExists = await this.authRepository.findUserByEmail(email);
       if (userExists) {
         throw new UnauthorizedException(
           'Este correo está registrado como usuario, no como administrador',
         );
       }
     } else if (role === 'user') {
-      const user = await this.prisma.user.findUnique({
-        where: { email },
-      });
+      const user = await this.authRepository.findUserByEmail(email);
       if (user && (await bcrypt.compare(password, user.password))) {
         const { password: userPassword, ...result } = user;
         return { ...result, role: 'user' };
       }
       // Verificar si el email existe como admin
-      const adminExists = await this.prisma.admin.findUnique({
-        where: { email },
-      });
+      const adminExists = await this.authRepository.findAdminByEmail(email);
       if (adminExists) {
         throw new UnauthorizedException(
           'Este correo está registrado como administrador, no como usuario',
@@ -91,15 +85,9 @@ export class AuthService {
     try {
       const now = new Date();
       if (user.role === 'admin') {
-        await this.prisma.admin.update({
-          where: { id: user.id },
-          data: { lastLogin: now },
-        });
+        await this.authRepository.updateAdminLastLogin(user.id, now);
       } else {
-        await this.prisma.user.update({
-          where: { id: user.id },
-          data: { lastLogin: now },
-        });
+        await this.authRepository.updateUserLastLogin(user.id, now);
       }
     } catch (err) {
       console.error('Error actualizando lastLogin:', err);
@@ -129,9 +117,9 @@ export class AuthService {
   }
 
   async register(registerDto: RegisterDto) {
-    const existingUser = await this.prisma.user.findUnique({
-      where: { email: registerDto.email },
-    });
+    const existingUser = await this.authRepository.findUserByEmail(
+      registerDto.email,
+    );
 
     if (existingUser) {
       throw new ConflictException('El usuario ya existe');
@@ -139,11 +127,9 @@ export class AuthService {
 
     const hashedPassword = await bcrypt.hash(registerDto.password, 10);
 
-    const user = await this.prisma.user.create({
-      data: {
-        ...registerDto,
-        password: hashedPassword,
-      },
+    const user = await this.authRepository.createUser({
+      ...registerDto,
+      password: hashedPassword,
     });
     try {
       await this.emailService.sendWelcomeEmail(
@@ -175,7 +161,7 @@ export class AuthService {
   async requestPasswordReset(email: string, role: string): Promise<void> {
     // Buscar usuario según el rol
     if (role === 'admin') {
-      const admin = await this.prisma.admin.findUnique({ where: { email } });
+      const admin = await this.authRepository.findAdminByEmail(email);
 
       if (!admin) {
         // Por seguridad, no revelar si el email existe o no
@@ -190,13 +176,11 @@ export class AuthService {
       expiresAt.setHours(expiresAt.getHours() + 1);
 
       // Guardar token en DB
-      await this.prisma.admin.update({
-        where: { id: admin.id },
-        data: {
-          resetPasswordToken: resetToken,
-          resetPasswordExpires: expiresAt,
-        },
-      });
+      await this.authRepository.setAdminResetToken(
+        admin.id,
+        resetToken,
+        expiresAt,
+      );
 
       // Enviar email con el token
       try {
@@ -213,7 +197,7 @@ export class AuthService {
         );
       }
     } else {
-      const user = await this.prisma.user.findUnique({ where: { email } });
+      const user = await this.authRepository.findUserByEmail(email);
 
       if (!user) {
         // Por seguridad, no revelar si el email existe o no
@@ -228,13 +212,11 @@ export class AuthService {
       expiresAt.setHours(expiresAt.getHours() + 1);
 
       // Guardar token en DB
-      await this.prisma.user.update({
-        where: { id: user.id },
-        data: {
-          resetPasswordToken: resetToken,
-          resetPasswordExpires: expiresAt,
-        },
-      });
+      await this.authRepository.setUserResetToken(
+        user.id,
+        resetToken,
+        expiresAt,
+      );
 
       // Enviar email con el token
       try {
@@ -260,30 +242,20 @@ export class AuthService {
     const now = new Date();
 
     // Buscar usuario con ese token válido (no expirado)
-    let user = await this.prisma.user.findFirst({
-      where: {
-        resetPasswordToken: token,
-        resetPasswordExpires: { gte: now },
-      },
-    });
+    let user = await this.authRepository.findUserByResetToken(token, now);
 
     let isAdmin = false;
 
     if (!user) {
       // Buscar en admins
-      const admin = await this.prisma.admin.findFirst({
-        where: {
-          resetPasswordToken: token,
-          resetPasswordExpires: { gte: now },
-        },
-      });
+      const admin = await this.authRepository.findAdminByResetToken(token, now);
 
       if (!admin) {
         throw new UnauthorizedException('Token inválido o expirado');
       }
 
       // Admin no tiene requirePasswordChange, por eso lo agregamos manualmente
-      user = { ...admin, requirePasswordChange: false };
+      user = admin;
       isAdmin = true;
     }
 
@@ -296,57 +268,16 @@ export class AuthService {
 
     // Actualizar contraseña y limpiar token
     if (isAdmin) {
-      await this.prisma.admin.update({
-        where: { id: user.id },
-        data: {
-          password: hashedPassword,
-          resetPasswordToken: null,
-          resetPasswordExpires: null,
-        },
-      });
+      await this.authRepository.resetAdminPassword(user.id, hashedPassword);
     } else {
-      await this.prisma.user.update({
-        where: { id: user.id },
-        data: {
-          password: hashedPassword,
-          resetPasswordToken: null,
-          resetPasswordExpires: null,
-        },
-      });
+      await this.authRepository.resetUserPassword(user.id, hashedPassword);
     }
   }
   async getProfile(userId: string, role: string) {
     if (role === 'admin') {
-      return this.prisma.admin.findUnique({
-        where: { id: userId },
-        select: {
-          id: true,
-          email: true,
-          name: true,
-          rut: true,
-          role: true,
-          avatar: true,
-          lastLogin: true,
-          createdAt: true,
-          updatedAt: true,
-        },
-      });
+      return this.authRepository.getAdminProfile(userId);
     } else {
-      return this.prisma.user.findUnique({
-        where: { id: userId },
-        select: {
-          id: true,
-          email: true,
-          name: true,
-          rut: true,
-          role: true,
-          avatar: true,
-          lastLogin: true,
-          requirePasswordChange: true,
-          createdAt: true,
-          updatedAt: true,
-        },
-      });
+      return this.authRepository.getUserProfile(userId);
     }
   }
 }
