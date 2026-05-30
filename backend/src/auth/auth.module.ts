@@ -4,9 +4,10 @@ import { PassportModule } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './jwt.strategy';
-import { PrismaService } from '../prisma.service';
 import { RolesGuard } from './roles.guard';
 import { EmailModule } from '../email/email.module';
+import { AUTH_REPOSITORY } from './auth.tokens';
+import { PrismaAuthRepository } from './infrastructure/prisma-auth.repository';
 
 @Module({
   imports: [
@@ -18,7 +19,12 @@ import { EmailModule } from '../email/email.module';
     EmailModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, RolesGuard],
+  providers: [
+    AuthService,
+    { provide: AUTH_REPOSITORY, useClass: PrismaAuthRepository },
+    JwtStrategy,
+    RolesGuard,
+  ],
   exports: [AuthService, JwtStrategy, RolesGuard, PassportModule, JwtModule],
 })
 export class AuthModule {}
