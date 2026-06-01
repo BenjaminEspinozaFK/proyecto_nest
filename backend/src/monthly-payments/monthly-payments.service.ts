@@ -1,138 +1,80 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../prisma.service';
+import { Inject, Injectable } from '@nestjs/common';
 import { CreateMonthlyPaymentDto } from './dto/create-monthly-payment.dto';
 import { UpdateMonthlyPaymentDto } from './dto/update-monthly-payment.dto';
+import { MonthlyPaymentsRepositoryPort } from './domain/monthly-payment.repository';
+import { MONTHLY_PAYMENTS_REPOSITORY } from './monthly-payments.tokens';
+import { UpdateMonthlyPaymentInput } from './domain/monthly-payment.types';
 
 @Injectable()
 export class MonthlyPaymentsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    @Inject(MONTHLY_PAYMENTS_REPOSITORY)
+    private monthlyPaymentsRepository: MonthlyPaymentsRepositoryPort,
+  ) {}
 
   // Crear un registro de pago mensual
   async createPayment(createDto: CreateMonthlyPaymentDto, createdBy: string) {
-    return this.prisma.monthlyPayment.create({
-      data: {
-        userId: createDto.userId,
-        year: createDto.year,
-        month: createDto.month,
-        amount: createDto.amount,
-        description: createDto.description,
-        createdBy,
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            rut: true,
-          },
-        },
-      },
+    return this.monthlyPaymentsRepository.createPayment({
+      userId: createDto.userId,
+      year: createDto.year,
+      month: createDto.month,
+      amount: createDto.amount,
+      description: createDto.description,
+      createdBy,
     });
   }
 
   // Obtener todos los pagos de un usuario
   async getUserPayments(userId: string) {
-    return this.prisma.monthlyPayment.findMany({
-      where: { userId },
-      orderBy: [{ year: 'desc' }, { month: 'desc' }],
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            rut: true,
-          },
-        },
-      },
-    });
+    return this.monthlyPaymentsRepository.findUserPayments(userId);
   }
 
   // Obtener pagos de un año específico
   async getUserPaymentsByYear(userId: string, year: number) {
-    return this.prisma.monthlyPayment.findMany({
-      where: {
-        userId,
-        year,
-      },
-      orderBy: { month: 'asc' },
-    });
+    return this.monthlyPaymentsRepository.findUserPaymentsByYear(userId, year);
   }
 
   // Obtener el total pagado en un mes específico
   async getMonthTotal(userId: string, year: number, month: number) {
-    const payment = await this.prisma.monthlyPayment.findUnique({
-      where: {
-        userId_year_month: {
-          userId,
-          year,
-          month,
-        },
-      },
-    });
+    const payment =
+      await this.monthlyPaymentsRepository.findPaymentByUserYearMonth(
+        userId,
+        year,
+        month,
+      );
 
     return payment?.amount || 0;
   }
 
   // Obtener el total pagado en un año
   async getYearTotal(userId: string, year: number) {
-    const result = await this.prisma.monthlyPayment.aggregate({
-      where: {
-        userId,
-        year,
-      },
-      _sum: {
-        amount: true,
-      },
-    });
-
-    return result._sum.amount || 0;
+    return this.monthlyPaymentsRepository.sumUserYear(userId, year);
   }
 
   // Obtener el total histórico
   async getTotalPaid(userId: string) {
-    const result = await this.prisma.monthlyPayment.aggregate({
-      where: { userId },
-      _sum: {
-        amount: true,
-      },
-    });
-
-    return result._sum.amount || 0;
+    return this.monthlyPaymentsRepository.sumUserTotal(userId);
   }
 
   // Actualizar un pago
   async updatePayment(id: string, updateDto: UpdateMonthlyPaymentDto) {
-    return this.prisma.monthlyPayment.update({
-      where: { id },
-      data: updateDto,
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            rut: true,
-          },
-        },
-      },
-    });
+    const updateData: UpdateMonthlyPaymentInput = {
+      amount: updateDto.amount,
+      description: updateDto.description,
+    };
+
+    return this.monthlyPaymentsRepository.updatePayment(id, updateData);
   }
 
   // Eliminar un pago
   async deletePayment(id: string) {
-    return this.prisma.monthlyPayment.delete({
-      where: { id },
-    });
+    return this.monthlyPaymentsRepository.deletePayment(id);
   }
 
   // Obtener resumen de pagos por año
   async getPaymentSummary(userId: string) {
-    const payments = await this.prisma.monthlyPayment.findMany({
-      where: { userId },
-      orderBy: [{ year: 'desc' }, { month: 'desc' }],
-    });
+    const payments =
+      await this.monthlyPaymentsRepository.findUserPaymentsForSummary(userId);
 
     // Agrupar por año
     const summary = payments.reduce(
