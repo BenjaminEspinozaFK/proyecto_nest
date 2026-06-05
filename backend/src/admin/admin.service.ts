@@ -16,7 +16,7 @@ import { ADMIN_REPOSITORY } from './admin.tokens';
 import * as bcrypt from 'bcryptjs';
 import * as XLSX from 'xlsx';
 import { EmailService } from '../email/email.service';
-import { ChangePasswordDto } from 'src/user/dto/change-password.dto';
+import { AdminChangePasswordDto } from './dto/admin-change-password.dto';
 
 @Injectable()
 export class AdminService {
@@ -272,7 +272,7 @@ export class AdminService {
 
     return user;
   }
-  async changePassword(adminId: string, dto: ChangePasswordDto) {
+  async changePassword(adminId: string, dto: AdminChangePasswordDto) {
     const admin = await this.adminRepository.findAdminAuthById(adminId);
     if (!admin) {
       throw new NotFoundException('Administrador no encontrado');
