@@ -28,21 +28,18 @@ export class UsersController {
   constructor(private usersService: UsersService) {}
 
   @Get('me')
-  @UseGuards(JwtAuthGuard)
   async getMyProfile(@Req() req: any) {
     const userId = req.user?.userId as string;
     return this.usersService.getUserById(userId);
   }
 
   @Put('me')
-  @UseGuards(JwtAuthGuard)
   async updateMyProfile(@Req() req: any, @Body() userData: UpdateUserDto) {
     const userId = req.user?.userId as string;
     return this.usersService.updateUser(userId, userData);
   }
 
   @Patch('me/change-password')
-  @UseGuards(JwtAuthGuard)
   async changePassword(
     @Req() req: any,
     @Body() changePasswordDto: ChangePasswordDto,
@@ -52,7 +49,6 @@ export class UsersController {
   }
 
   @Post('me/avatar')
-  @UseGuards(JwtAuthGuard)
   @UseInterceptors(FileInterceptor('file', avatarMulterConfig))
   async uploadAvatar(
     @UploadedFile() file: Express.Multer.File,
