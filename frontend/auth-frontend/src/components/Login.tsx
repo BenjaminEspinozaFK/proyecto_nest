@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useAuth } from "./AuthContext";
+import { useTheme } from "../context/ThemeContext";
 import {
   Alert,
   Box,
@@ -31,16 +32,13 @@ import {
 interface LoginProps {
   onSwitchToRegister: () => void;
   onForgotPassword?: () => void;
-  toggleTheme: () => void;
-  isDark: boolean;
 }
 
 const Login: React.FC<LoginProps> = ({
   onSwitchToRegister,
   onForgotPassword,
-  toggleTheme,
-  isDark,
 }) => {
+  const { isDark, toggleTheme } = useTheme();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("user");

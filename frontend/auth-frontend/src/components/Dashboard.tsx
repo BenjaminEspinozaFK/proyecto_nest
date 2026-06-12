@@ -4,12 +4,7 @@ import AdminDashboard from "./AdminDashboard";
 import UserProfile from "./UserProfile";
 import ChangePasswordModal from "./ChangePasswordModal";
 
-interface DashboardProps {
-  toggleTheme: () => void;
-  isDark: boolean;
-}
-
-const Dashboard: React.FC<DashboardProps> = ({ toggleTheme, isDark }) => {
+const Dashboard: React.FC = () => {
   const { user, setUser } = useAuth();
 
   if (!user) {
@@ -27,7 +22,7 @@ const Dashboard: React.FC<DashboardProps> = ({ toggleTheme, isDark }) => {
   if (user.role === "admin") {
     return (
       <>
-        <AdminDashboard toggleTheme={toggleTheme} isDark={isDark} />
+        <AdminDashboard />
         <ChangePasswordModal
           open={user.requirePasswordChange === true}
           onPasswordChanged={handlePasswordChanged}
@@ -39,7 +34,7 @@ const Dashboard: React.FC<DashboardProps> = ({ toggleTheme, isDark }) => {
   // Si es usuario normal, mostrar UserProfile a pantalla completa
   return (
     <>
-      <UserProfile toggleTheme={toggleTheme} isDark={isDark} />
+      <UserProfile />
       <ChangePasswordModal
         open={user.requirePasswordChange === true}
         onPasswordChanged={handlePasswordChanged}
