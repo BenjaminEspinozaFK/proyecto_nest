@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
+import { useTheme } from "../context/ThemeContext";
 import {
   Box,
   Typography,
@@ -56,12 +57,8 @@ import api, { API_BASE_URL } from "../services/authService";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
-interface UserProfileProps {
-  toggleTheme?: () => void;
-  isDark?: boolean;
-}
-
-const UserProfile: React.FC<UserProfileProps> = ({ toggleTheme, isDark }) => {
+const UserProfile: React.FC = () => {
+  const { isDark, toggleTheme } = useTheme();
   const { user, updateUserAvatar, logout } = useAuth();
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
