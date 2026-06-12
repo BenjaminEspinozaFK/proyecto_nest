@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { User } from "../types/auth"; // Ajusta la ruta si es necesario
+import { useTheme } from "../context/ThemeContext";
 import { adminService } from "../services/adminService";
 import { API_BASE_URL } from "../services/authService";
 import { useAuth } from "./AuthContext";
@@ -48,15 +49,8 @@ import AdminProfile from "./admin/Profile";
 import CreateUserModal from "./admin/CreateUserModal";
 import VoucherRequests from "./admin/VoucherRequests";
 
-interface AdminDashboardProps {
-  toggleTheme?: () => void;
-  isDark?: boolean;
-}
-
-const AdminDashboard: React.FC<AdminDashboardProps> = ({
-  toggleTheme,
-  isDark,
-}) => {
+const AdminDashboard: React.FC = () => {
+  const { isDark, toggleTheme } = useTheme();
   const { logout } = useAuth();
   const [tabValue, setTabValue] = useState(0);
   const [users, setUsers] = useState<User[]>([]);
