@@ -7,7 +7,9 @@ import {
   UseGuards,
   Req,
   Patch,
+  Query,
 } from '@nestjs/common';
+import { PaginationDto } from '../common/dto/pagination.dto';
 import { VouchersService } from './vouchers.service';
 import { RequestWithUser } from '../auth/interfaces/request-with-user.interface';
 import { CreateVoucherDto } from './dto/create-voucher.dto';
@@ -59,8 +61,11 @@ export class VouchersController {
   @Get('all')
   @UseGuards(RolesGuard)
   @Roles('admin')
-  async getAllVouchers() {
-    return this.vouchersService.getAllVouchers();
+  async getAllVouchers(@Query() query: PaginationDto) {
+    return this.vouchersService.getAllVouchers(
+      query.page ?? 1,
+      query.limit ?? 20,
+    );
   }
 
   // Admin: Ver vales de un usuario específico
@@ -136,7 +141,7 @@ export class VouchersController {
   @Get('stats/general')
   @UseGuards(RolesGuard)
   @Roles('admin')
-  async getGeneralStats() {
+  getGeneralStats() {
     return this.vouchersService.getGeneralStats();
   }
 }

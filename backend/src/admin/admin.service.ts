@@ -162,8 +162,8 @@ export class AdminService {
     };
   }
 
-  async getAllUsers() {
-    return await this.adminRepository.findAllUsers();
+  async getAllUsers(page: number, limit: number) {
+    return await this.adminRepository.findAllUsers(page, limit);
   }
 
   async updateUser(id: string, userData: UpdateUserByAdminDto) {

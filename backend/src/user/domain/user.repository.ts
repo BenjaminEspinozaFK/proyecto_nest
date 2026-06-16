@@ -4,9 +4,10 @@ import {
   User,
   UserPublic,
 } from './user.types';
+import type { PaginatedResult } from '../../common/interfaces/paginated-result.interface';
 
 export interface UserRepositoryPort {
-  findAll(): Promise<UserPublic[]>;
+  findAll(page: number, limit: number): Promise<PaginatedResult<UserPublic>>;
   findById(id: string): Promise<User | null>;
   findByIdPublic(id: string): Promise<UserPublic | null>;
   findByEmail(email: string): Promise<User | null>;
