@@ -25,6 +25,7 @@ import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorator';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 @Controller('/admins')
 @ApiBearerAuth()
@@ -41,8 +42,8 @@ export class AdminController {
 
   @Get('users')
   @Roles('admin')
-  async getAllUsers() {
-    return this.adminsService.getAllUsers();
+  async getAllUsers(@Query() query: PaginationDto) {
+    return this.adminsService.getAllUsers(query.page ?? 1, query.limit ?? 20);
   }
 
   @Post('users')

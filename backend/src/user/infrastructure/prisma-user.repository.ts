@@ -7,6 +7,7 @@ import {
   User,
   UserPublic,
 } from '../domain/user.types';
+import type { PaginatedResult } from '../../common/interfaces/paginated-result.interface';
 
 @Injectable()
 export class PrismaUserRepository implements UserRepositoryPort {
@@ -26,8 +27,13 @@ export class PrismaUserRepository implements UserRepositoryPort {
 
   constructor(private prisma: PrismaService) {}
 
-  async findAll(): Promise<UserPublic[]> {
-    return this.prisma.user.findMany({ select: this.userSelect });
+  async findAll(page: number, limit: number): Promise<PaginatedResult<UserPublic>> {
+    const skip = (page - 1) * limit;
+    const [data, total] = await Promise.all([
+      this.prisma.user.findMany({ skip, take: limit, select: this.userSelect }),
+      this.prisma.user.count(),
+    ]);
+    return { data, meta: { total, page, limit, totalPages: Math.ceil(total / limit) } };
   }
 
   async findById(id: string): Promise<User | null> {

@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma.service';
 import { VouchersRepositoryPort } from '../domain/voucher.repository';
 import { Voucher } from '../domain/voucher.types';
+import type { PaginatedResult } from '../../common/interfaces/paginated-result.interface';
 
 @Injectable()
 export class PrismaVouchersRepository implements VouchersRepositoryPort {
@@ -49,11 +50,18 @@ export class PrismaVouchersRepository implements VouchersRepositoryPort {
     });
   }
 
-  async findAllVouchers(): Promise<Voucher[]> {
-    return this.prisma.gasVoucher.findMany({
-      orderBy: { requestDate: 'desc' },
-      include: this.voucherInclude,
-    });
+  async findAllVouchers(page: number, limit: number): Promise<PaginatedResult<Voucher>> {
+    const skip = (page - 1) * limit;
+    const [data, total] = await Promise.all([
+      this.prisma.gasVoucher.findMany({
+        skip,
+        take: limit,
+        orderBy: { requestDate: 'desc' },
+        include: this.voucherInclude,
+      }),
+      this.prisma.gasVoucher.count(),
+    ]);
+    return { data, meta: { total, page, limit, totalPages: Math.ceil(total / limit) } };
   }
 
   async approveVoucher(
@@ -100,6 +108,29 @@ export class PrismaVouchersRepository implements VouchersRepositoryPort {
       },
       include: this.voucherInclude,
     });
+  }
+
+  async getVoucherStats() {
+    const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+    const [total, pending, approved, delivered, rejected, amountResult, thisMonth] =
+      await Promise.all([
+        this.prisma.gasVoucher.count(),
+        this.prisma.gasVoucher.count({ where: { status: 'pending' } }),
+        this.prisma.gasVoucher.count({ where: { status: 'approved' } }),
+        this.prisma.gasVoucher.count({ where: { status: 'delivered' } }),
+        this.prisma.gasVoucher.count({ where: { status: 'rejected' } }),
+        this.prisma.gasVoucher.aggregate({ _sum: { amount: true } }),
+        this.prisma.gasVoucher.count({ where: { requestDate: { gte: startOfMonth } } }),
+      ]);
+    return {
+      total,
+      pending,
+      approved,
+      delivered,
+      rejected,
+      totalAmount: amountResult._sum.amount ?? 0,
+      thisMonth,
+    };
   }
 
   async createManualVoucher(

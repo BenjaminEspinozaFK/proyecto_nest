@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma.service';
 import { AdminRepositoryPort } from '../domain/admin.repository';
+import type { PaginatedResult } from '../../common/interfaces/paginated-result.interface';
 import {
   AdminAuth,
   AdminPublic,
@@ -174,8 +175,13 @@ export class PrismaAdminRepository implements AdminRepositoryPort {
     }));
   }
 
-  async findAllUsers(): Promise<AdminUserList[]> {
-    return this.prisma.user.findMany({ select: this.userListSelect });
+  async findAllUsers(page: number, limit: number): Promise<PaginatedResult<AdminUserList>> {
+    const skip = (page - 1) * limit;
+    const [data, total] = await Promise.all([
+      this.prisma.user.findMany({ skip, take: limit, select: this.userListSelect }),
+      this.prisma.user.count(),
+    ]);
+    return { data, meta: { total, page, limit, totalPages: Math.ceil(total / limit) } };
   }
 
   async findUserById(id: string): Promise<AdminUserList | null> {

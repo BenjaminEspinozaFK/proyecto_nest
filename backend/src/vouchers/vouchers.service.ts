@@ -39,8 +39,8 @@ export class VouchersService {
   }
 
   // Admin: Obtener todos los vales
-  async getAllVouchers() {
-    return this.vouchersRepository.findAllVouchers();
+  async getAllVouchers(page: number, limit: number) {
+    return this.vouchersRepository.findAllVouchers(page, limit);
   }
 
   // Admin: Aprobar vale
@@ -131,33 +131,7 @@ export class VouchersService {
   }
 
   // Estadísticas generales (para admin)
-  async getGeneralStats() {
-    const vouchers = await this.vouchersRepository.findAllVouchers();
-
-    const total = vouchers.length;
-    const pending = vouchers.filter((v) => v.status === 'pending').length;
-    const approved = vouchers.filter((v) => v.status === 'approved').length;
-    const delivered = vouchers.filter((v) => v.status === 'delivered').length;
-    const rejected = vouchers.filter((v) => v.status === 'rejected').length;
-    const totalAmount = vouchers
-      .filter((v) => v.amount)
-      .reduce((sum, v) => sum + (v.amount || 0), 0);
-
-    // Vales de este mes
-    const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const thisMonth = vouchers.filter(
-      (v) => v.requestDate >= startOfMonth,
-    ).length;
-
-    return {
-      total,
-      pending,
-      approved,
-      delivered,
-      rejected,
-      totalAmount,
-      thisMonth,
-    };
+  getGeneralStats() {
+    return this.vouchersRepository.getVoucherStats();
   }
 }
