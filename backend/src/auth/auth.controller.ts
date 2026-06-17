@@ -7,6 +7,7 @@ import {
   UseGuards,
   Req,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { RequestWithUser } from './interfaces/request-with-user.interface';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
@@ -27,6 +28,7 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('login')
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
   @ApiOperation({ summary: 'Iniciar sesión' })
   @ApiResponse({
     status: 200,
@@ -48,6 +50,7 @@ export class AuthController {
   }
 
   @Post('register')
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
   @ApiOperation({ summary: 'Registrar nuevo usuario' })
   @ApiResponse({
     status: 201,
@@ -74,6 +77,7 @@ export class AuthController {
    * POST /auth/forgot-password
    */
   @Post('forgot-password')
+  @Throttle({ default: { limit: 3, ttl: 60_000 } })
   @ApiOperation({ summary: 'Solicitar recuperación de contraseña' })
   @ApiResponse({
     status: 200,
@@ -96,6 +100,7 @@ export class AuthController {
    * POST /auth/reset-password
    */
   @Post('reset-password')
+  @Throttle({ default: { limit: 3, ttl: 60_000 } })
   @ApiOperation({ summary: 'Restablecer contraseña con token' })
   @ApiResponse({
     status: 200,
