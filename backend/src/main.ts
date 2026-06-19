@@ -4,6 +4,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
+import helmet from 'helmet';
 import * as dotenv from 'dotenv';
 import { GlobalExceptionFilter } from './common/filters/http-exception.filter';
 
@@ -12,6 +13,8 @@ dotenv.config();
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
+  app.use(helmet());
 
   // Configurar ValidationPipe globalmente
   app.useGlobalPipes(
