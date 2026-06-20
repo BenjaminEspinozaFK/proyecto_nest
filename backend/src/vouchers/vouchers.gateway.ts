@@ -10,7 +10,7 @@ import { Logger } from '@nestjs/common';
 
 @WebSocketGateway({
   cors: {
-    origin: 'http://localhost:3000', // Frontend URL
+    origin: process.env.FRONTEND_URL,
     credentials: true,
   },
 })
@@ -18,7 +18,7 @@ export class VouchersGateway
   implements OnGatewayConnection, OnGatewayDisconnect
 {
   @WebSocketServer()
-  server: Server;
+  server!: Server;
 
   private logger = new Logger('VouchersGateway');
 
