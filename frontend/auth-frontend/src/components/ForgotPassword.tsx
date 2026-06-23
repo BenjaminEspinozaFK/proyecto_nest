@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Container,
   Card,
@@ -18,11 +19,8 @@ import {
 import { AdminPanelSettings, Person } from "@mui/icons-material";
 import { authService } from "../services/authService";
 
-interface ForgotPasswordProps {
-  onBackToLogin: () => void;
-}
-
-const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBackToLogin }) => {
+const ForgotPassword: React.FC = () => {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<"user" | "admin">("user");
   const [loading, setLoading] = useState(false);
@@ -148,7 +146,7 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBackToLogin }) => {
           <Box sx={{ textAlign: "center" }}>
             <Button
               variant="text"
-              onClick={onBackToLogin}
+              onClick={() => navigate("/login")}
               disabled={loading}
               color="inherit"
             >
