@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 import {
   Container,
@@ -25,11 +26,8 @@ import {
   VisibilityOff,
 } from "@mui/icons-material";
 
-interface RegisterProps {
-  onSwitchToLogin: () => void;
-}
-
-const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
+const Register: React.FC = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -251,7 +249,7 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
             </Typography>
             <Button
               variant="text"
-              onClick={onSwitchToLogin}
+              onClick={() => navigate("/login")}
               disabled={isLoading}
               color="inherit"
               sx={{ mt: 1 }}

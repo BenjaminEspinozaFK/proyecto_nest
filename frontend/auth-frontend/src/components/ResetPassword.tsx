@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   Container,
   Card,
@@ -14,11 +15,9 @@ import {
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { authService } from "../services/authService";
 
-interface ResetPasswordProps {
-  onBackToLogin: () => void;
-}
-
-const ResetPassword: React.FC<ResetPasswordProps> = ({ onBackToLogin }) => {
+const ResetPassword: React.FC = () => {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [token, setToken] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -29,8 +28,7 @@ const ResetPassword: React.FC<ResetPasswordProps> = ({ onBackToLogin }) => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const tokenFromUrl = params.get("token");
+    const tokenFromUrl = searchParams.get("token");
     if (tokenFromUrl) {
       setToken(tokenFromUrl);
     } else {
@@ -60,7 +58,7 @@ const ResetPassword: React.FC<ResetPasswordProps> = ({ onBackToLogin }) => {
       setMessage(response.message);
 
       setTimeout(() => {
-        onBackToLogin();
+        navigate("/login");
       }, 3000);
     } catch (err: any) {
       setError(
