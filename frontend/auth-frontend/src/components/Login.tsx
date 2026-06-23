@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import {
@@ -29,15 +30,8 @@ import {
   Brightness7,
 } from "@mui/icons-material";
 
-interface LoginProps {
-  onSwitchToRegister: () => void;
-  onForgotPassword?: () => void;
-}
-
-const Login: React.FC<LoginProps> = ({
-  onSwitchToRegister,
-  onForgotPassword,
-}) => {
+const Login: React.FC = () => {
+  const navigate = useNavigate();
   const { isDark, toggleTheme } = useTheme();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -190,18 +184,16 @@ const Login: React.FC<LoginProps> = ({
             </Button>
 
             {/* Forgot Password Link */}
-            {onForgotPassword && (
-              <Box sx={{ textAlign: "center", mt: 1 }}>
-                <Button
-                  onClick={onForgotPassword}
-                  disabled={isLoading}
-                  size="small"
-                  color="inherit"
-                >
-                  ¿Olvidaste tu contraseña?
-                </Button>
-              </Box>
-            )}
+            <Box sx={{ textAlign: "center", mt: 1 }}>
+              <Button
+                onClick={() => navigate("/forgot-password")}
+                disabled={isLoading}
+                size="small"
+                color="inherit"
+              >
+                ¿Olvidaste tu contraseña?
+              </Button>
+            </Box>
           </Box>
 
           <Divider sx={{ my: 3 }}>
@@ -215,7 +207,7 @@ const Login: React.FC<LoginProps> = ({
             </Typography>
             <Button
               variant="outlined"
-              onClick={onSwitchToRegister}
+              onClick={() => navigate("/register")}
               disabled={isLoading}
               startIcon={<PersonAdd />}
               sx={{

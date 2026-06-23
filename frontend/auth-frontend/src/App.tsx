@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider as MuiThemeProvider } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 import { AuthProvider, useAuth } from "./components/AuthContext";
@@ -11,38 +12,68 @@ import ResetPassword from "./components/ResetPassword";
 import { darkTheme, lightTheme } from "./theme";
 import "./App.css";
 
-type ViewType = "login" | "register" | "forgot" | "reset";
-
-const AuthApp: React.FC = () => {
-  const [view, setView] = useState<ViewType>("login");
+const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const { user } = useAuth();
+  if (!user) return <Navigate to="/login" replace />;
+  return <>{children}</>;
+};
 
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.has("token")) {
-      setView("reset");
-    }
-  }, []);
+const PublicRoute: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
+  const { user } = useAuth();
+  if (user) return <Navigate to="/dashboard" replace />;
+  return <>{children}</>;
+};
 
-  if (user) {
-    return <Dashboard />;
-  }
-
-  switch (view) {
-    case "register":
-      return <Register onSwitchToLogin={() => setView("login")} />;
-    case "forgot":
-      return <ForgotPassword onBackToLogin={() => setView("login")} />;
-    case "reset":
-      return <ResetPassword onBackToLogin={() => setView("login")} />;
-    default:
-      return (
-        <Login
-          onSwitchToRegister={() => setView("register")}
-          onForgotPassword={() => setView("forgot")}
-        />
-      );
-  }
+const AppRoutes: React.FC = () => {
+  return (
+    <Routes>
+      <Route
+        path="/login"
+        element={
+          <PublicRoute>
+            <Login />
+          </PublicRoute>
+        }
+      />
+      <Route
+        path="/register"
+        element={
+          <PublicRoute>
+            <Register />
+          </PublicRoute>
+        }
+      />
+      <Route
+        path="/forgot-password"
+        element={
+          <PublicRoute>
+            <ForgotPassword />
+          </PublicRoute>
+        }
+      />
+      <Route
+        path="/reset-password"
+        element={
+          <PublicRoute>
+            <ResetPassword />
+          </PublicRoute>
+        }
+      />
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route path="*" element={<Navigate to="/login" replace />} />
+    </Routes>
+  );
 };
 
 const ThemedApp: React.FC = () => {
@@ -52,11 +83,13 @@ const ThemedApp: React.FC = () => {
   return (
     <MuiThemeProvider theme={theme}>
       <CssBaseline />
-      <AuthProvider>
-        <div className="App">
-          <AuthApp />
-        </div>
-      </AuthProvider>
+      <BrowserRouter>
+        <AuthProvider>
+          <div className="App">
+            <AppRoutes />
+          </div>
+        </AuthProvider>
+      </BrowserRouter>
     </MuiThemeProvider>
   );
 };
