@@ -31,12 +31,16 @@ export interface AuthResponse {
   user: User;
 }
 
+export interface RegisterResponse {
+  message: string;
+}
+
 export interface AuthContextType {
   user: User | null;
   token: string | null;
   setUser: (user: User | null) => void;
   login: (email: string, password: string, role: string) => Promise<void>; // Agregar role
-  register: (data: RegisterRequest) => Promise<void>;
+  register: (data: RegisterRequest) => Promise<string>;
   logout: () => void;
   updateUserAvatar: (avatarUrl: string) => void;
   isLoading: boolean;

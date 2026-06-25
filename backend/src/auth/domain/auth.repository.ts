@@ -27,4 +27,7 @@ export interface AuthRepositoryPort {
   resetUserPassword(id: string, hashedPassword: string): Promise<void>;
   getAdminProfile(id: string): Promise<AuthAdminProfile | null>;
   getUserProfile(id: string): Promise<AuthUserProfile | null>;
+  setUserVerificationToken(id: string, token: string, expiresAt: Date): Promise<void>;
+  findUserByVerificationToken(token: string, now: Date): Promise<ResetTokenTarget | null>;
+  verifyUserEmail(id: string): Promise<void>;
 }

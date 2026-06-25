@@ -68,6 +68,13 @@ export class AuthService {
       throw new UnauthorizedException('Credenciales inválidas');
     }
 
+    // Verificar si el email está confirmado (solo para usuarios, no admins)
+    if (user.role === 'user' && !user.emailVerified) {
+      throw new UnauthorizedException(
+        'Debes verificar tu correo electrónico antes de iniciar sesión',
+      );
+    }
+
     const isFirstLogin = !user.lastLogin;
     if (isFirstLogin) {
       // 📧 Enviar email de notificación de login
@@ -131,28 +138,31 @@ export class AuthService {
       ...registerDto,
       password: hashedPassword,
     });
+
+    // Generar token de verificación
+    const verificationToken = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date();
+    expiresAt.setHours(expiresAt.getHours() + 24);
+
+    await this.authRepository.setUserVerificationToken(
+      user.id,
+      verificationToken,
+      expiresAt,
+    );
+
+    // Enviar email de verificación
     try {
-      await this.emailService.sendWelcomeEmail(
+      await this.emailService.sendVerificationEmail(
         user.email,
         user.name || 'Usuario',
+        verificationToken,
       );
     } catch (emailError) {
-      console.error('Error enviando email de bienvenida:', emailError);
+      console.error('Error enviando email de verificación:', emailError);
     }
 
-    // Retornar el token
-    const payload = {
-      email: user.email,
-      sub: user.id,
-      name: user.name,
-      role: user.role,
-    };
-
-    const { password: userPassword, ...userWithoutPassword } = user;
-
     return {
-      access_token: this.jwtService.sign(payload),
-      user: { ...userWithoutPassword, role: user.role, avatar: user.avatar }, // Incluir role en la respuesta
+      message: 'Registro exitoso. Revisa tu correo para verificar tu cuenta.',
     };
   }
   /**
@@ -273,6 +283,26 @@ export class AuthService {
       await this.authRepository.resetUserPassword(user.id, hashedPassword);
     }
   }
+  async verifyEmail(token: string) {
+    const now = new Date();
+    const user = await this.authRepository.findUserByVerificationToken(
+      token,
+      now,
+    );
+
+    if (!user) {
+      throw new UnauthorizedException(
+        'Token de verificación inválido o expirado',
+      );
+    }
+
+    await this.authRepository.verifyUserEmail(user.id);
+
+    return {
+      message: 'Correo electrónico verificado exitosamente. Ya puedes iniciar sesión.',
+    };
+  }
+
   async getProfile(userId: string, role: string) {
     if (role === 'admin') {
       return this.authRepository.getAdminProfile(userId);

@@ -4,6 +4,7 @@ import {
   Body,
   ValidationPipe,
   Get,
+  Query,
   UseGuards,
   Req,
 } from '@nestjs/common';
@@ -121,6 +122,20 @@ export class AuthController {
     return {
       message: 'Contraseña actualizada correctamente',
     };
+  }
+
+  @Get('verify-email')
+  @ApiOperation({ summary: 'Verificar correo electrónico con token' })
+  @ApiResponse({
+    status: 200,
+    description: 'Correo verificado exitosamente',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Token inválido o expirado',
+  })
+  async verifyEmail(@Query('token') token: string) {
+    return this.authService.verifyEmail(token);
   }
 
   /**

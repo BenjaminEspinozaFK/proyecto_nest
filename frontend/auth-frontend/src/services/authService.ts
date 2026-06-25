@@ -3,6 +3,7 @@ import {
   AuthResponse,
   LoginRequest,
   RegisterRequest,
+  RegisterResponse,
   User,
 } from "../types/auth";
 
@@ -57,12 +58,28 @@ export const authService = {
     }
   },
 
-  async register(data: RegisterRequest): Promise<AuthResponse> {
+  async register(data: RegisterRequest): Promise<RegisterResponse> {
     try {
-      const response = await api.post<AuthResponse>("/auth/register", data);
+      const response = await api.post<RegisterResponse>(
+        "/auth/register",
+        data,
+      );
       return response.data;
     } catch (error: any) {
       throw new Error(error.response?.data?.message || "Error en el registro");
+    }
+  },
+
+  async verifyEmail(token: string): Promise<{ message: string }> {
+    try {
+      const response = await api.get<{ message: string }>(
+        `/auth/verify-email?token=${token}`,
+      );
+      return response.data;
+    } catch (error: any) {
+      throw new Error(
+        error.response?.data?.message || "Error al verificar el correo",
+      );
     }
   },
 
