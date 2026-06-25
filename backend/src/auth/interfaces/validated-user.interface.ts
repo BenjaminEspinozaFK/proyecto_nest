@@ -10,4 +10,5 @@ export interface ValidatedUser {
   updatedAt: Date;
   lastLogin?: Date | null;
   requirePasswordChange?: boolean;
+  emailVerified?: boolean;
 }

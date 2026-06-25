@@ -20,6 +20,9 @@ model User {
   resetPasswordExpires  DateTime?
   resetPasswordToken    String?          @unique
   requirePasswordChange Boolean          @default(false)
+  emailVerified         Boolean          @default(false)
+  emailVerificationToken String?          @unique
+  emailVerificationExpires DateTime?
   rut                   String           @unique
   phone                 String?
   deletedAt             DateTime?

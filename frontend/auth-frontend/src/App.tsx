@@ -9,6 +9,7 @@ import Register from "./components/Register";
 import Dashboard from "./components/Dashboard";
 import ForgotPassword from "./components/ForgotPassword";
 import ResetPassword from "./components/ResetPassword";
+import VerifyEmail from "./components/VerifyEmail";
 import { darkTheme, lightTheme } from "./theme";
 import "./App.css";
 
@@ -60,6 +61,14 @@ const AppRoutes: React.FC = () => {
         element={
           <PublicRoute>
             <ResetPassword />
+          </PublicRoute>
+        }
+      />
+      <Route
+        path="/verify-email"
+        element={
+          <PublicRoute>
+            <VerifyEmail />
           </PublicRoute>
         }
       />

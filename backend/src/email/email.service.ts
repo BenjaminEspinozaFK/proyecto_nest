@@ -13,11 +13,15 @@ import {
   passwordSetupTemplate,
   passwordSetupSubject,
 } from './templates/password-setup.template';
+import {
+  emailVerificationTemplate,
+  emailVerificationSubject,
+} from './templates/email-verification.template';
 
 @Injectable()
 export class EmailService {
   private readonly logger = new Logger(EmailService.name);
-  private transporter: nodemailer.Transporter;
+  private transporter!: nodemailer.Transporter;
 
   constructor() {
     this.validateEnvironmentVariables();
@@ -66,9 +70,10 @@ export class EmailService {
     try {
       await this.transporter.sendMail(mailOptions);
       this.logger.log(`✅ Email enviado exitosamente a: ${to}`);
-    } catch (error) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
       this.logger.error(`❌ Error enviando email a ${to}:`, error);
-      throw new Error(`Failed to send email: ${error.message}`);
+      throw new Error(`Failed to send email: ${message}`);
     }
   }
 
@@ -146,6 +151,27 @@ export class EmailService {
     });
 
     await this.sendEmail(userEmail, passwordSetupSubject, html);
+  }
+
+  /**
+   * Enviar email de verificación de correo electrónico
+   */
+
+  async sendVerificationEmail(
+    userEmail: string,
+    userName: string,
+    verificationToken: string,
+    expiresIn: string = '24 horas',
+  ): Promise<void> {
+    const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
+
+    const html = emailVerificationTemplate({
+      userName,
+      verificationUrl,
+      expiresIn,
+    });
+
+    await this.sendEmail(userEmail, emailVerificationSubject, html);
   }
 
   /**

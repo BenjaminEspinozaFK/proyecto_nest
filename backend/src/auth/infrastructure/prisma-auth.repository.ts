@@ -37,6 +37,7 @@ export class PrismaAuthRepository implements AuthRepositoryPort {
     avatar: true,
     lastLogin: true,
     requirePasswordChange: true,
+    emailVerified: true,
     createdAt: true,
     updatedAt: true,
   };
@@ -62,6 +63,7 @@ export class PrismaAuthRepository implements AuthRepositoryPort {
     avatar: true,
     lastLogin: true,
     requirePasswordChange: true,
+    emailVerified: true,
     createdAt: true,
     updatedAt: true,
   };
@@ -192,6 +194,43 @@ export class PrismaAuthRepository implements AuthRepositoryPort {
     return this.prisma.user.findUnique({
       where: { id },
       select: this.userProfileSelect,
+    });
+  }
+  async setUserVerificationToken(
+    id: string,
+    token: string,
+    expiresAt: Date,
+  ): Promise<void> {
+    await this.prisma.user.update({
+      where: { id },
+      data: {
+        emailVerificationToken: token,
+        emailVerificationExpires: expiresAt,
+      },
+    });
+  }
+
+  async findUserByVerificationToken(
+    token: string,
+    now: Date,
+  ): Promise<ResetTokenTarget | null> {
+    return this.prisma.user.findFirst({
+      where: {
+        emailVerificationToken: token,
+        emailVerificationExpires: { gte: now },
+      },
+      select: this.resetTargetSelect,
+    });
+  }
+
+  async verifyUserEmail(id: string): Promise<void> {
+    await this.prisma.user.update({
+      where: { id },
+      data: {
+        emailVerified: true,
+        emailVerificationToken: null,
+        emailVerificationExpires: null,
+      },
     });
   }
 }
