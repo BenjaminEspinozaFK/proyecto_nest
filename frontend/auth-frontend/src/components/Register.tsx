@@ -36,6 +36,7 @@ const Register: React.FC = () => {
     phone: "",
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const { register, isLoading, error } = useAuth();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -49,13 +50,14 @@ const Register: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await register({
+      const message = await register({
         email: formData.email,
         password: formData.password,
         name: formData.name,
         rut: formData.rut,
         phone: formData.phone || undefined,
       });
+      setSuccessMessage(message);
     } catch (err) {}
   };
 
@@ -79,7 +81,29 @@ const Register: React.FC = () => {
         }}
       >
         <CardContent sx={{ padding: 0 }}>
-          {/* Header */}
+          {successMessage ? (
+            <Box sx={{ textAlign: "center", py: 3 }}>
+              <Typography variant="h4" component="h1" sx={{ mb: 2 }}>
+                ¡Registro exitoso!
+              </Typography>
+              <Alert severity="success" sx={{ mb: 3, textAlign: "left" }}>
+                {successMessage}
+              </Alert>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                Revisa tu bandeja de entrada (y la carpeta de spam) para
+                verificar tu correo electrónico.
+              </Typography>
+              <Button
+                variant="contained"
+                onClick={() => navigate("/login")}
+                size="large"
+              >
+                Ir al login
+              </Button>
+            </Box>
+          ) : (
+            <>
+              {/* Header */}
           <Box sx={{ textAlign: "center", mb: 3 }}>
             <Typography variant="h4" component="h1" sx={{ mb: 1 }}>
               Crear cuenta
@@ -257,6 +281,8 @@ const Register: React.FC = () => {
               Iniciar sesión
             </Button>
           </Box>
+            </>
+          )}
         </CardContent>
       </Card>
     </Container>

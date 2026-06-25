@@ -23,6 +23,7 @@ export interface AuthUser {
   avatar: string | null;
   lastLogin: Date | null;
   requirePasswordChange: boolean;
+  emailVerified: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -48,6 +49,7 @@ export interface AuthUserProfile {
   avatar: string | null;
   lastLogin: Date | null;
   requirePasswordChange: boolean;
+  emailVerified: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
