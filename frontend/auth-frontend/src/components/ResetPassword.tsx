@@ -34,7 +34,7 @@ const ResetPassword: React.FC = () => {
     } else {
       setError("Token no encontrado en la URL");
     }
-  }, []);
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
