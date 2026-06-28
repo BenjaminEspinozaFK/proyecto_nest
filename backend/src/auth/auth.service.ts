@@ -13,6 +13,8 @@ import { AuthRepositoryPort } from './domain/auth.repository';
 import { AUTH_REPOSITORY } from './auth.tokens';
 import * as bcrypt from 'bcryptjs';
 import * as crypto from 'crypto';
+import { generateSecret, generateURI, verifySync } from 'otplib';
+import * as QRCode from 'qrcode';
 
 @Injectable()
 export class AuthService {
@@ -73,6 +75,14 @@ export class AuthService {
       throw new UnauthorizedException(
         'Debes verificar tu correo electrónico antes de iniciar sesión',
       );
+    }
+
+    // Si tiene 2FA activado, no dar token aún — pedir código
+    if (user.twoFactorEnabled) {
+      return {
+        requires2FA: true,
+        message: 'Se requiere código de autenticación de dos factores',
+      };
     }
 
     const isFirstLogin = !user.lastLogin;
@@ -299,8 +309,141 @@ export class AuthService {
     await this.authRepository.verifyUserEmail(user.id);
 
     return {
-      message: 'Correo electrónico verificado exitosamente. Ya puedes iniciar sesión.',
+      message:
+        'Correo electrónico verificado exitosamente. Ya puedes iniciar sesión.',
     };
+  }
+
+  async loginWith2FA(
+    email: string,
+    password: string,
+    role: string,
+    code: string,
+  ) {
+    const user = await this.validateUser(email, password, role);
+
+    if (!user) {
+      throw new UnauthorizedException('Credenciales inválidas');
+    }
+
+    if (!user.twoFactorEnabled) {
+      throw new UnauthorizedException(
+        '2FA no está habilitado para esta cuenta',
+      );
+    }
+
+    // Obtener el secreto 2FA
+    const userData = await this.authRepository.getUserTwoFactorSecret(user.id);
+    if (!userData?.twoFactorSecret) {
+      throw new UnauthorizedException('Error en la configuración de 2FA');
+    }
+
+    // Verificar el código TOTP
+    const result = verifySync({
+      secret: userData.twoFactorSecret,
+      token: code,
+    });
+
+    if (!result.valid) {
+      throw new UnauthorizedException('Código de autenticación inválido');
+    }
+
+    // Actualizar lastLogin
+    try {
+      const now = new Date();
+      await this.authRepository.updateUserLastLogin(user.id, now);
+    } catch (err) {
+      console.error('Error actualizando lastLogin:', err);
+    }
+
+    const payload = {
+      email: user.email,
+      sub: user.id,
+      name: user.name,
+      role: user.role,
+    };
+
+    return {
+      access_token: this.jwtService.sign(payload),
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        rut: user.rut,
+        phone: user.phone,
+        role: user.role,
+        avatar: user.avatar,
+        lastLogin: user.lastLogin,
+        requirePasswordChange: user.requirePasswordChange || false,
+      },
+    };
+  }
+
+  async generate2FASecret(userId: string) {
+    const user = await this.authRepository.getUserProfile(userId);
+    if (!user) {
+      throw new UnauthorizedException('Usuario no encontrado');
+    }
+
+    const secret = generateSecret();
+
+    // Guardar el secreto (aún no activado)
+    await this.authRepository.setUserTwoFactorSecret(userId, secret);
+
+    const otpauthUrl = generateURI({
+      issuer: 'TuAplicacion',
+      label: user.email,
+      secret,
+    });
+
+    const qrCodeDataUrl = await QRCode.toDataURL(otpauthUrl);
+
+    return {
+      secret,
+      qrCode: qrCodeDataUrl,
+    };
+  }
+
+  async enable2FA(userId: string, code: string) {
+    const userData = await this.authRepository.getUserTwoFactorSecret(userId);
+    if (!userData?.twoFactorSecret) {
+      throw new UnauthorizedException('Primero debes generar un secreto 2FA');
+    }
+
+    const result = verifySync({
+      secret: userData.twoFactorSecret,
+      token: code,
+    });
+
+    if (!result.valid) {
+      throw new UnauthorizedException(
+        'Código inválido. Verifica que tu app de autenticación esté configurada correctamente.',
+      );
+    }
+
+    await this.authRepository.enableUserTwoFactor(userId);
+
+    return { message: 'Autenticación de dos factores activada exitosamente' };
+  }
+
+  async disable2FA(userId: string, code: string) {
+    const userData = await this.authRepository.getUserTwoFactorSecret(userId);
+    if (!userData?.twoFactorSecret) {
+      throw new UnauthorizedException('2FA no está configurado');
+    }
+
+    const result = verifySync({
+      secret: userData.twoFactorSecret,
+      token: code,
+    });
+
+    if (!result.valid) {
+      throw new UnauthorizedException('Código inválido');
+    }
+
+    await this.authRepository.disableUserTwoFactor(userId);
+
+    return { message: 'Autenticación de dos factores desactivada' };
   }
 
   async getProfile(userId: string, role: string) {

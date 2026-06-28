@@ -5,7 +5,12 @@ import React, {
   useEffect,
   ReactNode,
 } from "react";
-import { AuthContextType, User, RegisterRequest } from "../types/auth";
+import {
+  AuthContextType,
+  AuthResponse,
+  User,
+  RegisterRequest,
+} from "../types/auth";
 import { authService } from "../services/authService";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -46,17 +51,58 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     validateAndRestoreSession();
   }, []);
 
-  const login = async (email: string, password: string, role: string) => {
+  const login = async (
+    email: string,
+    password: string,
+    role: string,
+  ): Promise<{ requires2FA?: boolean }> => {
     try {
       setIsLoading(true);
       setError(null);
 
       const response = await authService.login({ email, password, role });
 
+      if ("requires2FA" in response && response.requires2FA) {
+        return { requires2FA: true };
+      }
+
+      const authResponse = response as AuthResponse;
+      setToken(authResponse.access_token);
+      setUser(authResponse.user);
+
+      localStorage.setItem("authToken", authResponse.access_token);
+      localStorage.setItem("authUser", JSON.stringify(authResponse.user));
+
+      authService.setAuthToken(authResponse.access_token);
+      return {};
+    } catch (err: any) {
+      setError(err.message);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loginWith2FA = async (
+    email: string,
+    password: string,
+    role: string,
+    code: string,
+  ) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const response = await authService.loginWith2FA({
+        email,
+        password,
+        role,
+        code,
+      });
+
       setToken(response.access_token);
       setUser(response.user);
 
-      // Guardar en localStorage
       localStorage.setItem("authToken", response.access_token);
       localStorage.setItem("authUser", JSON.stringify(response.user));
 
@@ -108,6 +154,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     token,
     setUser,
     login,
+    loginWith2FA,
     register,
     logout,
     updateUserAvatar,

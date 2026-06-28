@@ -39,7 +39,17 @@ export interface AuthContextType {
   user: User | null;
   token: string | null;
   setUser: (user: User | null) => void;
-  login: (email: string, password: string, role: string) => Promise<void>; // Agregar role
+  login: (
+    email: string,
+    password: string,
+    role: string,
+  ) => Promise<{ requires2FA?: boolean }>;
+  loginWith2FA: (
+    email: string,
+    password: string,
+    role: string,
+    code: string,
+  ) => Promise<void>;
   register: (data: RegisterRequest) => Promise<string>;
   logout: () => void;
   updateUserAvatar: (avatarUrl: string) => void;

@@ -37,12 +37,21 @@ const Login: React.FC = () => {
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("user");
   const [showPassword, setShowPassword] = useState(false);
-  const { login, isLoading, error } = useAuth();
+  const [requires2FA, setRequires2FA] = useState(false);
+  const [twoFACode, setTwoFACode] = useState("");
+  const { login, loginWith2FA, isLoading, error } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await login(email, password, role);
+      if (requires2FA) {
+        await loginWith2FA(email, password, role, twoFACode);
+      } else {
+        const result = await login(email, password, role);
+        if (result.requires2FA) {
+          setRequires2FA(true);
+        }
+      }
     } catch (err) {}
   };
 
@@ -165,6 +174,27 @@ const Login: React.FC = () => {
               </Select>
             </FormControl>
 
+            {/* Campo 2FA */}
+            {requires2FA && (
+              <>
+                <Alert severity="info" sx={{ borderRadius: 2 }}>
+                  Ingresa el código de 6 dígitos de tu app de autenticación
+                </Alert>
+                <TextField
+                  label="Código de verificación"
+                  value={twoFACode}
+                  onChange={(e) => setTwoFACode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                  required
+                  disabled={isLoading}
+                  fullWidth
+                  variant="outlined"
+                  autoFocus
+                  inputProps={{ maxLength: 6, inputMode: "numeric" }}
+                  placeholder="000000"
+                />
+              </>
+            )}
+
             {/* Error Alert */}
             {error && (
               <Alert severity="error" sx={{ borderRadius: 2 }}>
@@ -176,11 +206,15 @@ const Login: React.FC = () => {
             <Button
               type="submit"
               variant="contained"
-              disabled={isLoading}
+              disabled={isLoading || (requires2FA && twoFACode.length !== 6)}
               size="large"
               fullWidth
             >
-              {isLoading ? "Iniciando sesión..." : "Iniciar sesión"}
+              {isLoading
+                ? "Iniciando sesión..."
+                : requires2FA
+                  ? "Verificar código"
+                  : "Iniciar sesión"}
             </Button>
 
             {/* Forgot Password Link */}
