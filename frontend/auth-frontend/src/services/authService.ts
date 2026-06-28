@@ -23,28 +23,88 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Interceptor para manejar errores de autenticación
+let isRefreshing = false;
+let failedQueue: Array<{
+  resolve: (token: string) => void;
+  reject: (error: any) => void;
+}> = [];
+
+const processQueue = (error: any, token: string | null = null) => {
+  failedQueue.forEach((prom) => {
+    if (token) {
+      prom.resolve(token);
+    } else {
+      prom.reject(error);
+    }
+  });
+  failedQueue = [];
+};
+
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      // Solo recargar la página si NO es un intento de login o registro
-      const isAuthEndpoint =
-        error.config?.url?.includes("/auth/login") ||
-        error.config?.url?.includes("/auth/register") ||
-        error.config?.url?.includes("/auth/2fa/");
+  async (error) => {
+    const originalRequest = error.config;
 
-      if (!isAuthEndpoint) {
-        // Token expirado o inválido
-        console.warn("Token inválido (401), limpiando sesión");
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      const isAuthEndpoint =
+        originalRequest.url?.includes("/auth/login") ||
+        originalRequest.url?.includes("/auth/register") ||
+        originalRequest.url?.includes("/auth/2fa/") ||
+        originalRequest.url?.includes("/auth/refresh");
+
+      if (isAuthEndpoint) {
+        return Promise.reject(error);
+      }
+
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        }).then((token) => {
+          originalRequest.headers.Authorization = `Bearer ${token}`;
+          return api(originalRequest);
+        });
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      const refreshToken = localStorage.getItem("refreshToken");
+      if (!refreshToken) {
+        isRefreshing = false;
         localStorage.removeItem("authToken");
         localStorage.removeItem("authUser");
-        delete api.defaults.headers.common["Authorization"];
-
-        // Recargar la página para forzar logout
+        localStorage.removeItem("refreshToken");
         window.location.href = "/";
+        return Promise.reject(error);
+      }
+
+      try {
+        const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
+          refresh_token: refreshToken,
+        });
+
+        const { access_token, refresh_token: newRefreshToken } = response.data;
+
+        localStorage.setItem("authToken", access_token);
+        localStorage.setItem("refreshToken", newRefreshToken);
+        api.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
+
+        processQueue(null, access_token);
+
+        originalRequest.headers.Authorization = `Bearer ${access_token}`;
+        return api(originalRequest);
+      } catch (refreshError) {
+        processQueue(refreshError, null);
+        localStorage.removeItem("authToken");
+        localStorage.removeItem("authUser");
+        localStorage.removeItem("refreshToken");
+        window.location.href = "/";
+        return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
       }
     }
+
     return Promise.reject(error);
   },
 );
@@ -166,6 +226,14 @@ export const authService = {
 
   removeAuthToken() {
     delete api.defaults.headers.common["Authorization"];
+  },
+
+  async serverLogout(): Promise<void> {
+    try {
+      await api.post("/auth/logout");
+    } catch {
+      // Ignorar errores — el token puede estar expirado
+    }
   },
 
   async getProfile(): Promise<User> {

@@ -182,6 +182,22 @@ export class AuthController {
     return this.authService.disable2FA(req.user.userId, verify2faDto.code);
   }
 
+  @Post('refresh')
+  @ApiOperation({ summary: 'Renovar access token con refresh token' })
+  @ApiResponse({ status: 200, description: 'Tokens renovados' })
+  @ApiResponse({ status: 401, description: 'Refresh token inválido o expirado' })
+  async refreshTokens(@Body('refresh_token') refreshToken: string) {
+    return this.authService.refreshTokens(refreshToken);
+  }
+
+  @Post('logout')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Cerrar sesión e invalidar refresh token' })
+  async logout(@Req() req: RequestWithUser) {
+    return this.authService.logout(req.user.userId, req.user.role);
+  }
+
   /**
    * GET /auth/me
    * Obtiene el perfil del usuario autenticado

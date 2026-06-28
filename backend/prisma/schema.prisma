@@ -25,6 +25,8 @@ model User {
   emailVerificationExpires DateTime?
   twoFactorEnabled      Boolean          @default(false)
   twoFactorSecret       String?
+  refreshToken          String?          @unique
+  refreshTokenExpires   DateTime?
   rut                   String           @unique
   phone                 String?
   deletedAt             DateTime?
@@ -44,6 +46,8 @@ model Admin {
   lastLogin            DateTime?
   resetPasswordExpires DateTime?
   resetPasswordToken   String?   @unique
+  refreshToken         String?   @unique
+  refreshTokenExpires  DateTime?
   rut                  String    @unique
   phone                String?
   deletedAt            DateTime?
