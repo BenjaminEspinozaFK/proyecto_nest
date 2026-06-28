@@ -53,7 +53,7 @@ import { GasVoucher, VoucherStats } from "../types/voucher";
 import { useSocket } from "../hooks/useSocket";
 import { monthlyPaymentsService } from "../services/monthlyPaymentsService";
 import type { MonthlyPayment, PaymentSummary } from "../types/payment";
-import api, { API_BASE_URL } from "../services/authService";
+import api, { API_BASE_URL, authService } from "../services/authService";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
@@ -109,6 +109,15 @@ const UserProfile: React.FC = () => {
   const [passwordSuccess, setPasswordSuccess] = useState("");
   const [changingPassword, setChangingPassword] = useState(false);
 
+  // Estados para 2FA
+  const [twoFAEnabled, setTwoFAEnabled] = useState(false);
+  const [twoFALoading, setTwoFALoading] = useState(false);
+  const [twoFAQrCode, setTwoFAQrCode] = useState<string | null>(null);
+  const [twoFASecret, setTwoFASecret] = useState<string | null>(null);
+  const [twoFACode, setTwoFACode] = useState("");
+  const [twoFAError, setTwoFAError] = useState("");
+  const [twoFASuccess, setTwoFASuccess] = useState("");
+
   // Socket.IO para actualizaciones en tiempo real (usuario)
   const socket = useSocket(user?.id, false);
 
@@ -161,6 +170,7 @@ const UserProfile: React.FC = () => {
         phone: data.phone || "",
         comuna: data.comuna || "",
       });
+      setTwoFAEnabled(data.twoFactorEnabled || false);
     } catch (error) {
       console.error("Error fetching profile:", error);
       setError("Error al cargar el perfil");
@@ -566,6 +576,61 @@ const UserProfile: React.FC = () => {
       );
     } finally {
       setChangingPassword(false);
+    }
+  };
+
+  const handleGenerate2FA = async () => {
+    setTwoFALoading(true);
+    setTwoFAError("");
+    setTwoFASuccess("");
+    try {
+      const response = await authService.generate2FA();
+      setTwoFAQrCode(response.qrCode);
+      setTwoFASecret(response.secret);
+    } catch (err: any) {
+      setTwoFAError(err.message);
+    } finally {
+      setTwoFALoading(false);
+    }
+  };
+
+  const handleEnable2FA = async () => {
+    if (twoFACode.length !== 6) {
+      setTwoFAError("El código debe tener 6 dígitos");
+      return;
+    }
+    setTwoFALoading(true);
+    setTwoFAError("");
+    try {
+      const response = await authService.enable2FA(twoFACode);
+      setTwoFASuccess(response.message);
+      setTwoFAEnabled(true);
+      setTwoFAQrCode(null);
+      setTwoFASecret(null);
+      setTwoFACode("");
+    } catch (err: any) {
+      setTwoFAError(err.message);
+    } finally {
+      setTwoFALoading(false);
+    }
+  };
+
+  const handleDisable2FA = async () => {
+    if (twoFACode.length !== 6) {
+      setTwoFAError("El código debe tener 6 dígitos");
+      return;
+    }
+    setTwoFALoading(true);
+    setTwoFAError("");
+    try {
+      const response = await authService.disable2FA(twoFACode);
+      setTwoFASuccess(response.message);
+      setTwoFAEnabled(false);
+      setTwoFACode("");
+    } catch (err: any) {
+      setTwoFAError(err.message);
+    } finally {
+      setTwoFALoading(false);
     }
   };
 
@@ -2030,6 +2095,161 @@ const UserProfile: React.FC = () => {
                       )}
                     </Button>
                   </Box>
+                </Box>
+
+                <Divider sx={{ mb: 4 }} />
+
+                {/* Sección: Autenticación de dos factores */}
+                <Box sx={{ mb: 4 }}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                      mb: 2,
+                    }}
+                  >
+                    <Lock sx={{ color: "primary.main" }} />
+                    <Typography variant="h6" fontWeight="600">
+                      Autenticación de dos factores (2FA)
+                    </Typography>
+                  </Box>
+
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                    {twoFAEnabled
+                      ? "2FA está activado. Tu cuenta tiene una capa extra de seguridad."
+                      : "Agrega una capa extra de seguridad usando Google Authenticator u otra app compatible."}
+                  </Typography>
+
+                  {twoFAError && (
+                    <Alert severity="error" sx={{ mb: 2, borderRadius: "12px" }}>
+                      {twoFAError}
+                    </Alert>
+                  )}
+
+                  {twoFASuccess && (
+                    <Alert severity="success" sx={{ mb: 2, borderRadius: "12px" }}>
+                      {twoFASuccess}
+                    </Alert>
+                  )}
+
+                  {!twoFAEnabled && !twoFAQrCode && (
+                    <Button
+                      variant="contained"
+                      onClick={handleGenerate2FA}
+                      disabled={twoFALoading}
+                      sx={{
+                        background:
+                          "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                        borderRadius: "12px",
+                        textTransform: "none",
+                        fontWeight: 600,
+                        py: 1.5,
+                      }}
+                    >
+                      {twoFALoading ? (
+                        <CircularProgress size={24} color="inherit" />
+                      ) : (
+                        "Configurar 2FA"
+                      )}
+                    </Button>
+                  )}
+
+                  {twoFAQrCode && (
+                    <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                      <Typography variant="body2">
+                        1. Escanea este código QR con Google Authenticator:
+                      </Typography>
+                      <Box sx={{ textAlign: "center" }}>
+                        <img
+                          src={twoFAQrCode}
+                          alt="Código QR para 2FA"
+                          style={{ width: 200, height: 200 }}
+                        />
+                      </Box>
+                      <Typography variant="body2" color="text.secondary">
+                        O ingresa este código manualmente: <strong>{twoFASecret}</strong>
+                      </Typography>
+                      <Typography variant="body2">
+                        2. Ingresa el código de 6 dígitos que muestra la app:
+                      </Typography>
+                      <TextField
+                        label="Código de verificación"
+                        value={twoFACode}
+                        onChange={(e) =>
+                          setTwoFACode(e.target.value.replace(/\D/g, "").slice(0, 6))
+                        }
+                        fullWidth
+                        inputProps={{ maxLength: 6, inputMode: "numeric" }}
+                        placeholder="000000"
+                        sx={{
+                          "& .MuiOutlinedInput-root": {
+                            borderRadius: "12px",
+                          },
+                        }}
+                      />
+                      <Button
+                        variant="contained"
+                        onClick={handleEnable2FA}
+                        disabled={twoFALoading || twoFACode.length !== 6}
+                        sx={{
+                          background:
+                            "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                          borderRadius: "12px",
+                          textTransform: "none",
+                          fontWeight: 600,
+                          py: 1.5,
+                        }}
+                      >
+                        {twoFALoading ? (
+                          <CircularProgress size={24} color="inherit" />
+                        ) : (
+                          "Activar 2FA"
+                        )}
+                      </Button>
+                    </Box>
+                  )}
+
+                  {twoFAEnabled && (
+                    <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                      <Typography variant="body2">
+                        Ingresa un código de tu app de autenticación para desactivar 2FA:
+                      </Typography>
+                      <TextField
+                        label="Código de verificación"
+                        value={twoFACode}
+                        onChange={(e) =>
+                          setTwoFACode(e.target.value.replace(/\D/g, "").slice(0, 6))
+                        }
+                        fullWidth
+                        inputProps={{ maxLength: 6, inputMode: "numeric" }}
+                        placeholder="000000"
+                        sx={{
+                          "& .MuiOutlinedInput-root": {
+                            borderRadius: "12px",
+                          },
+                        }}
+                      />
+                      <Button
+                        variant="outlined"
+                        color="error"
+                        onClick={handleDisable2FA}
+                        disabled={twoFALoading || twoFACode.length !== 6}
+                        sx={{
+                          borderRadius: "12px",
+                          textTransform: "none",
+                          fontWeight: 600,
+                          py: 1.5,
+                        }}
+                      >
+                        {twoFALoading ? (
+                          <CircularProgress size={24} color="error" />
+                        ) : (
+                          "Desactivar 2FA"
+                        )}
+                      </Button>
+                    </Box>
+                  )}
                 </Box>
 
                 <Divider sx={{ mb: 4 }} />

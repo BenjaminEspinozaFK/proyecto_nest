@@ -24,6 +24,7 @@ export interface AuthUser {
   lastLogin: Date | null;
   requirePasswordChange: boolean;
   emailVerified: boolean;
+  twoFactorEnabled: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -50,6 +51,7 @@ export interface AuthUserProfile {
   lastLogin: Date | null;
   requirePasswordChange: boolean;
   emailVerified: boolean;
+  twoFactorEnabled: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

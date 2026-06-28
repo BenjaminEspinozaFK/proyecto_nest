@@ -31,7 +31,8 @@ api.interceptors.response.use(
       // Solo recargar la página si NO es un intento de login o registro
       const isAuthEndpoint =
         error.config?.url?.includes("/auth/login") ||
-        error.config?.url?.includes("/auth/register");
+        error.config?.url?.includes("/auth/register") ||
+        error.config?.url?.includes("/auth/2fa/");
 
       if (!isAuthEndpoint) {
         // Token expirado o inválido
@@ -49,12 +50,62 @@ api.interceptors.response.use(
 );
 
 export const authService = {
-  async login(data: LoginRequest): Promise<AuthResponse> {
+  async login(
+    data: LoginRequest,
+  ): Promise<AuthResponse | { requires2FA: true; message: string }> {
     try {
-      const response = await api.post<AuthResponse>("/auth/login", data);
+      const response = await api.post("/auth/login", data);
       return response.data;
     } catch (error: any) {
       throw new Error(error.response?.data?.message || "Error en el login");
+    }
+  },
+
+  async loginWith2FA(
+    data: LoginRequest & { code: string },
+  ): Promise<AuthResponse> {
+    try {
+      const response = await api.post<AuthResponse>("/auth/2fa/login", data);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || "Error en la verificación 2FA");
+    }
+  },
+
+  async generate2FA(): Promise<{ secret: string; qrCode: string }> {
+    try {
+      const response = await api.post<{ secret: string; qrCode: string }>(
+        "/auth/2fa/generate",
+      );
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || "Error generando 2FA");
+    }
+  },
+
+  async enable2FA(code: string): Promise<{ message: string }> {
+    try {
+      const response = await api.post<{ message: string }>(
+        "/auth/2fa/enable",
+        { code },
+      );
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || "Error activando 2FA");
+    }
+  },
+
+  async disable2FA(code: string): Promise<{ message: string }> {
+    try {
+      const response = await api.post<{ message: string }>(
+        "/auth/2fa/disable",
+        { code },
+      );
+      return response.data;
+    } catch (error: any) {
+      throw new Error(
+        error.response?.data?.message || "Error desactivando 2FA",
+      );
     }
   },
 

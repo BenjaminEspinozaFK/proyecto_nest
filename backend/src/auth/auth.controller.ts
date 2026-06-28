@@ -21,6 +21,7 @@ import {
 } from '@nestjs/swagger';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { Verify2faDto, Login2faDto } from './dto/verify-2fa.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
 
 @ApiTags('Auth')
@@ -136,6 +137,49 @@ export class AuthController {
   })
   async verifyEmail(@Query('token') token: string) {
     return this.authService.verifyEmail(token);
+  }
+
+  @Post('2fa/login')
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  @ApiOperation({ summary: 'Login con código 2FA' })
+  @ApiResponse({ status: 200, description: 'Login con 2FA exitoso' })
+  async loginWith2FA(@Body(ValidationPipe) login2faDto: Login2faDto) {
+    return this.authService.loginWith2FA(
+      login2faDto.email,
+      login2faDto.password,
+      login2faDto.role,
+      login2faDto.code,
+    );
+  }
+
+  @Post('2fa/generate')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Generar secreto 2FA y código QR' })
+  async generate2FA(@Req() req: RequestWithUser) {
+    return this.authService.generate2FASecret(req.user.userId);
+  }
+
+  @Post('2fa/enable')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Activar 2FA verificando código TOTP' })
+  async enable2FA(
+    @Req() req: RequestWithUser,
+    @Body(ValidationPipe) verify2faDto: Verify2faDto,
+  ) {
+    return this.authService.enable2FA(req.user.userId, verify2faDto.code);
+  }
+
+  @Post('2fa/disable')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Desactivar 2FA' })
+  async disable2FA(
+    @Req() req: RequestWithUser,
+    @Body(ValidationPipe) verify2faDto: Verify2faDto,
+  ) {
+    return this.authService.disable2FA(req.user.userId, verify2faDto.code);
   }
 
   /**

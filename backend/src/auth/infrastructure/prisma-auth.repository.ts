@@ -38,6 +38,7 @@ export class PrismaAuthRepository implements AuthRepositoryPort {
     lastLogin: true,
     requirePasswordChange: true,
     emailVerified: true,
+    twoFactorEnabled: true,
     createdAt: true,
     updatedAt: true,
   };
@@ -64,6 +65,7 @@ export class PrismaAuthRepository implements AuthRepositoryPort {
     lastLogin: true,
     requirePasswordChange: true,
     emailVerified: true,
+    twoFactorEnabled: true,
     createdAt: true,
     updatedAt: true,
   };
@@ -231,6 +233,39 @@ export class PrismaAuthRepository implements AuthRepositoryPort {
         emailVerificationToken: null,
         emailVerificationExpires: null,
       },
+    });
+  }
+
+  async setUserTwoFactorSecret(id: string, secret: string): Promise<void> {
+    await this.prisma.user.update({
+      where: { id },
+      data: { twoFactorSecret: secret },
+    });
+  }
+
+  async enableUserTwoFactor(id: string): Promise<void> {
+    await this.prisma.user.update({
+      where: { id },
+      data: { twoFactorEnabled: true },
+    });
+  }
+
+  async disableUserTwoFactor(id: string): Promise<void> {
+    await this.prisma.user.update({
+      where: { id },
+      data: {
+        twoFactorEnabled: false,
+        twoFactorSecret: null,
+      },
+    });
+  }
+
+  async getUserTwoFactorSecret(
+    id: string,
+  ): Promise<{ twoFactorSecret: string | null } | null> {
+    return this.prisma.user.findUnique({
+      where: { id },
+      select: { twoFactorSecret: true },
     });
   }
 }
