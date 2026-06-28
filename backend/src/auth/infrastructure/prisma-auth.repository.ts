@@ -268,4 +268,64 @@ export class PrismaAuthRepository implements AuthRepositoryPort {
       select: { twoFactorSecret: true },
     });
   }
+
+  async setUserRefreshToken(
+    id: string,
+    token: string,
+    expiresAt: Date,
+  ): Promise<void> {
+    await this.prisma.user.update({
+      where: { id },
+      data: { refreshToken: token, refreshTokenExpires: expiresAt },
+    });
+  }
+
+  async setAdminRefreshToken(
+    id: string,
+    token: string,
+    expiresAt: Date,
+  ): Promise<void> {
+    await this.prisma.admin.update({
+      where: { id },
+      data: { refreshToken: token, refreshTokenExpires: expiresAt },
+    });
+  }
+
+  async findUserByRefreshToken(
+    token: string,
+  ): Promise<ResetTokenTarget | null> {
+    return this.prisma.user.findFirst({
+      where: {
+        refreshToken: token,
+        refreshTokenExpires: { gte: new Date() },
+      },
+      select: this.resetTargetSelect,
+    });
+  }
+
+  async findAdminByRefreshToken(
+    token: string,
+  ): Promise<ResetTokenTarget | null> {
+    return this.prisma.admin.findFirst({
+      where: {
+        refreshToken: token,
+        refreshTokenExpires: { gte: new Date() },
+      },
+      select: this.resetTargetSelect,
+    });
+  }
+
+  async clearUserRefreshToken(id: string): Promise<void> {
+    await this.prisma.user.update({
+      where: { id },
+      data: { refreshToken: null, refreshTokenExpires: null },
+    });
+  }
+
+  async clearAdminRefreshToken(id: string): Promise<void> {
+    await this.prisma.admin.update({
+      where: { id },
+      data: { refreshToken: null, refreshTokenExpires: null },
+    });
+  }
 }

@@ -110,6 +110,10 @@ export class AuthService {
       console.error('Error actualizando lastLogin:', err);
     }
 
+    return this.generateTokens(user);
+  }
+
+  private async generateTokens(user: ValidatedUser) {
     const payload = {
       email: user.email,
       sub: user.id,
@@ -117,8 +121,27 @@ export class AuthService {
       role: user.role,
     };
 
+    const refreshToken = crypto.randomBytes(40).toString('hex');
+    const refreshExpires = new Date();
+    refreshExpires.setDate(refreshExpires.getDate() + 30);
+
+    if (user.role === 'admin') {
+      await this.authRepository.setAdminRefreshToken(
+        user.id,
+        refreshToken,
+        refreshExpires,
+      );
+    } else {
+      await this.authRepository.setUserRefreshToken(
+        user.id,
+        refreshToken,
+        refreshExpires,
+      );
+    }
+
     return {
       access_token: this.jwtService.sign(payload),
+      refresh_token: refreshToken,
       user: {
         id: user.id,
         email: user.email,
@@ -356,27 +379,7 @@ export class AuthService {
       console.error('Error actualizando lastLogin:', err);
     }
 
-    const payload = {
-      email: user.email,
-      sub: user.id,
-      name: user.name,
-      role: user.role,
-    };
-
-    return {
-      access_token: this.jwtService.sign(payload),
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        rut: user.rut,
-        phone: user.phone,
-        role: user.role,
-        avatar: user.avatar,
-        lastLogin: user.lastLogin,
-        requirePasswordChange: user.requirePasswordChange || false,
-      },
-    };
+    return this.generateTokens(user);
   }
 
   async generate2FASecret(userId: string) {
@@ -444,6 +447,72 @@ export class AuthService {
     await this.authRepository.disableUserTwoFactor(userId);
 
     return { message: 'Autenticación de dos factores desactivada' };
+  }
+
+  async refreshTokens(refreshToken: string) {
+    // Buscar en usuarios primero, luego en admins
+    let target = await this.authRepository.findUserByRefreshToken(refreshToken);
+    let role = 'user';
+
+    if (!target) {
+      target = await this.authRepository.findAdminByRefreshToken(refreshToken);
+      role = 'admin';
+    }
+
+    if (!target) {
+      throw new UnauthorizedException('Refresh token inválido o expirado');
+    }
+
+    // Obtener perfil completo para generar nuevo token
+    const profile =
+      role === 'admin'
+        ? await this.authRepository.getAdminProfile(target.id)
+        : await this.authRepository.getUserProfile(target.id);
+
+    if (!profile) {
+      throw new UnauthorizedException('Usuario no encontrado');
+    }
+
+    const payload = {
+      email: profile.email,
+      sub: profile.id,
+      name: profile.name,
+      role: profile.role,
+    };
+
+    // Generar nuevo refresh token (rotación)
+    const newRefreshToken = crypto.randomBytes(40).toString('hex');
+    const refreshExpires = new Date();
+    refreshExpires.setDate(refreshExpires.getDate() + 30);
+
+    if (role === 'admin') {
+      await this.authRepository.setAdminRefreshToken(
+        target.id,
+        newRefreshToken,
+        refreshExpires,
+      );
+    } else {
+      await this.authRepository.setUserRefreshToken(
+        target.id,
+        newRefreshToken,
+        refreshExpires,
+      );
+    }
+
+    return {
+      access_token: this.jwtService.sign(payload),
+      refresh_token: newRefreshToken,
+    };
+  }
+
+  async logout(userId: string, role: string) {
+    if (role === 'admin') {
+      await this.authRepository.clearAdminRefreshToken(userId);
+    } else {
+      await this.authRepository.clearUserRefreshToken(userId);
+    }
+
+    return { message: 'Sesión cerrada correctamente' };
   }
 
   async getProfile(userId: string, role: string) {

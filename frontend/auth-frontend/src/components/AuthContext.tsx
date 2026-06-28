@@ -42,6 +42,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           // Error de red o backend, limpiar sesión por seguridad
           console.error("Error validando token, limpiando sesión:", error);
           localStorage.removeItem("authToken");
+          localStorage.removeItem("refreshToken");
           localStorage.removeItem("authUser");
           authService.removeAuthToken();
         }
@@ -71,6 +72,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(authResponse.user);
 
       localStorage.setItem("authToken", authResponse.access_token);
+      localStorage.setItem("refreshToken", authResponse.refresh_token);
       localStorage.setItem("authUser", JSON.stringify(authResponse.user));
 
       authService.setAuthToken(authResponse.access_token);
@@ -104,6 +106,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(response.user);
 
       localStorage.setItem("authToken", response.access_token);
+      localStorage.setItem("refreshToken", response.refresh_token);
       localStorage.setItem("authUser", JSON.stringify(response.user));
 
       authService.setAuthToken(response.access_token);
@@ -132,11 +135,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const logout = () => {
+    authService.serverLogout();
+
     setUser(null);
     setToken(null);
     setError(null);
 
     localStorage.removeItem("authToken");
+    localStorage.removeItem("refreshToken");
     localStorage.removeItem("authUser");
 
     authService.removeAuthToken();
