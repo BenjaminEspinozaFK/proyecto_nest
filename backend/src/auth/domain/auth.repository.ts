@@ -43,4 +43,10 @@ export interface AuthRepositoryPort {
   getUserTwoFactorSecret(
     id: string,
   ): Promise<{ twoFactorSecret: string | null } | null>;
+  setUserRefreshToken(id: string, token: string, expiresAt: Date): Promise<void>;
+  setAdminRefreshToken(id: string, token: string, expiresAt: Date): Promise<void>;
+  findUserByRefreshToken(token: string): Promise<ResetTokenTarget | null>;
+  findAdminByRefreshToken(token: string): Promise<ResetTokenTarget | null>;
+  clearUserRefreshToken(id: string): Promise<void>;
+  clearAdminRefreshToken(id: string): Promise<void>;
 }
