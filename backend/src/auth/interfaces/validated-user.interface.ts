@@ -11,4 +11,5 @@ export interface ValidatedUser {
   lastLogin?: Date | null;
   requirePasswordChange?: boolean;
   emailVerified?: boolean;
+  twoFactorEnabled?: boolean;
 }
