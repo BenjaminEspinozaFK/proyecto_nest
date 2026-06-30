@@ -8,6 +8,8 @@ export interface AuthAdmin {
   role: string;
   avatar: string | null;
   lastLogin: Date | null;
+  failedLoginAttempts: number;
+  lockedUntil: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -22,6 +24,8 @@ export interface AuthUser {
   role: string;
   avatar: string | null;
   lastLogin: Date | null;
+  failedLoginAttempts: number;
+  lockedUntil: Date | null;
   requirePasswordChange: boolean;
   emailVerified: boolean;
   twoFactorEnabled: boolean;
