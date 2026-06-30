@@ -29,12 +29,49 @@ export class AuthService {
     password: string,
     role: string,
   ): Promise<ValidatedUser | null> {
+    const MAX_ATTEMPTS = 5;
+    const LOCK_MINUTES = 15;
+
     if (role === 'admin') {
       const admin = await this.authRepository.findAdminByEmail(email);
-      if (admin && (await bcrypt.compare(password, admin.password))) {
+
+      if (!admin) {
+        return null;
+      }
+
+      // Verificar si la cuenta está bloqueada
+      if (admin.lockedUntil && admin.lockedUntil > new Date()) {
+        const minutesLeft = Math.ceil(
+          (admin.lockedUntil.getTime() - Date.now()) / 60000,
+        );
+        throw new UnauthorizedException(
+          `Cuenta bloqueada por intentos fallidos. Intenta de nuevo en ${minutesLeft} minuto(s).`,
+        );
+      }
+
+      const isValid = await bcrypt.compare(password, admin.password);
+
+      if (isValid) {
+        if (admin.failedLoginAttempts > 0) {
+          await this.authRepository.resetAdminFailedAttempts(admin.id);
+        }
         const { password: adminPassword, ...result } = admin;
         return { ...result, role: 'admin' };
       }
+
+      // Contraseña incorrecta: incrementar intentos
+      const newAttempts = admin.failedLoginAttempts + 1;
+      if (newAttempts >= MAX_ATTEMPTS) {
+        const until = new Date();
+        until.setMinutes(until.getMinutes() + LOCK_MINUTES);
+        await this.authRepository.lockAdminAccount(admin.id, until);
+        throw new UnauthorizedException(
+          `Cuenta bloqueada por ${LOCK_MINUTES} minutos debido a múltiples intentos fallidos.`,
+        );
+      } else {
+        await this.authRepository.incrementAdminFailedAttempts(admin.id);
+      }
+
       // Verificar si el email existe como usuario
       const userExists = await this.authRepository.findUserByEmail(email);
       if (userExists) {
@@ -44,10 +81,44 @@ export class AuthService {
       }
     } else if (role === 'user') {
       const user = await this.authRepository.findUserByEmail(email);
-      if (user && (await bcrypt.compare(password, user.password))) {
+
+      if (!user) {
+        return null;
+      }
+
+      // Verificar si la cuenta está bloqueada
+      if (user.lockedUntil && user.lockedUntil > new Date()) {
+        const minutesLeft = Math.ceil(
+          (user.lockedUntil.getTime() - Date.now()) / 60000,
+        );
+        throw new UnauthorizedException(
+          `Cuenta bloqueada por intentos fallidos. Intenta de nuevo en ${minutesLeft} minuto(s).`,
+        );
+      }
+
+      const isValid = await bcrypt.compare(password, user.password);
+
+      if (isValid) {
+        if (user.failedLoginAttempts > 0) {
+          await this.authRepository.resetUserFailedAttempts(user.id);
+        }
         const { password: userPassword, ...result } = user;
         return { ...result, role: 'user' };
       }
+
+      // Contraseña incorrecta: incrementar intentos
+      const newAttempts = user.failedLoginAttempts + 1;
+      if (newAttempts >= MAX_ATTEMPTS) {
+        const until = new Date();
+        until.setMinutes(until.getMinutes() + LOCK_MINUTES);
+        await this.authRepository.lockUserAccount(user.id, until);
+        throw new UnauthorizedException(
+          `Cuenta bloqueada por ${LOCK_MINUTES} minutos debido a múltiples intentos fallidos.`,
+        );
+      } else {
+        await this.authRepository.incrementUserFailedAttempts(user.id);
+      }
+
       // Verificar si el email existe como admin
       const adminExists = await this.authRepository.findAdminByEmail(email);
       if (adminExists) {

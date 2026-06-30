@@ -27,6 +27,8 @@ model User {
   twoFactorSecret       String?
   refreshToken          String?          @unique
   refreshTokenExpires   DateTime?
+  failedLoginAttempts   Int              @default(0)
+  lockedUntil           DateTime?
   rut                   String           @unique
   phone                 String?
   deletedAt             DateTime?
@@ -48,6 +50,8 @@ model Admin {
   resetPasswordToken   String?   @unique
   refreshToken         String?   @unique
   refreshTokenExpires  DateTime?
+  failedLoginAttempts  Int       @default(0)
+  lockedUntil          DateTime?
   rut                  String    @unique
   phone                String?
   deletedAt            DateTime?
