@@ -22,6 +22,8 @@ export class PrismaAuthRepository implements AuthRepositoryPort {
     role: true,
     avatar: true,
     lastLogin: true,
+    failedLoginAttempts: true,
+    lockedUntil: true,
     createdAt: true,
     updatedAt: true,
   };
@@ -36,6 +38,8 @@ export class PrismaAuthRepository implements AuthRepositoryPort {
     role: true,
     avatar: true,
     lastLogin: true,
+    failedLoginAttempts: true,
+    lockedUntil: true,
     requirePasswordChange: true,
     emailVerified: true,
     twoFactorEnabled: true,
@@ -326,6 +330,47 @@ export class PrismaAuthRepository implements AuthRepositoryPort {
     await this.prisma.admin.update({
       where: { id },
       data: { refreshToken: null, refreshTokenExpires: null },
+    });
+  }
+
+  async incrementUserFailedAttempts(id: string): Promise<void> {
+    await this.prisma.user.update({
+      where: { id },
+      data: { failedLoginAttempts: { increment: 1 } },
+    });
+  }
+  async incrementAdminFailedAttempts(id: string): Promise<void> {
+    await this.prisma.admin.update({
+      where: { id },
+      data: { failedLoginAttempts: { increment: 1 } },
+    });
+  }
+
+  async lockUserAccount(id: string, until: Date): Promise<void> {
+    await this.prisma.user.update({
+      where: { id },
+      data: { lockedUntil: until },
+    });
+  }
+
+  async lockAdminAccount(id: string, until: Date): Promise<void> {
+    await this.prisma.admin.update({
+      where: { id },
+      data: { lockedUntil: until },
+    });
+  }
+
+  async resetUserFailedAttempts(id: string): Promise<void> {
+    await this.prisma.user.update({
+      where: { id },
+      data: { failedLoginAttempts: 0, lockedUntil: null },
+    });
+  }
+
+  async resetAdminFailedAttempts(id: string): Promise<void> {
+    await this.prisma.admin.update({
+      where: { id },
+      data: { failedLoginAttempts: 0, lockedUntil: null },
     });
   }
 }
