@@ -4,6 +4,7 @@ import {
   LoginRequest,
   RegisterRequest,
   RegisterResponse,
+  Session,
   User,
 } from "../types/auth";
 
@@ -230,9 +231,34 @@ export const authService = {
 
   async serverLogout(): Promise<void> {
     try {
-      await api.post("/auth/logout");
+      const refreshToken = localStorage.getItem("refreshToken");
+      await api.post("/auth/logout", { refresh_token: refreshToken });
     } catch {
       // Ignorar errores — el token puede estar expirado
+    }
+  },
+
+  async getSessions(): Promise<Session[]> {
+    try {
+      const response = await api.get<Session[]>("/auth/sessions");
+      return response.data;
+    } catch (error: any) {
+      throw new Error(
+        error.response?.data?.message || "Error obteniendo sesiones",
+      );
+    }
+  },
+
+  async revokeSession(id: string): Promise<{ message: string }> {
+    try {
+      const response = await api.delete<{ message: string }>(
+        `/auth/sessions/${id}`,
+      );
+      return response.data;
+    } catch (error: any) {
+      throw new Error(
+        error.response?.data?.message || "Error cerrando la sesión",
+      );
     }
   },
 

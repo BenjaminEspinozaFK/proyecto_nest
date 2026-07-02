@@ -9,6 +9,7 @@ import {
   CreateAuthUserInput,
   ResetTokenTarget,
 } from '../domain/auth.types';
+import { Session, CreateSessionInput } from '../domain/session.types';
 
 @Injectable()
 export class PrismaAuthRepository implements AuthRepositoryPort {
@@ -273,64 +274,50 @@ export class PrismaAuthRepository implements AuthRepositoryPort {
     });
   }
 
-  async setUserRefreshToken(
-    id: string,
-    token: string,
-    expiresAt: Date,
-  ): Promise<void> {
-    await this.prisma.user.update({
-      where: { id },
-      data: { refreshToken: token, refreshTokenExpires: expiresAt },
-    });
+  createSession(data: CreateSessionInput): Promise<Session> {
+    return this.prisma.session.create({ data });
   }
 
-  async setAdminRefreshToken(
-    id: string,
-    token: string,
-    expiresAt: Date,
-  ): Promise<void> {
-    await this.prisma.admin.update({
-      where: { id },
-      data: { refreshToken: token, refreshTokenExpires: expiresAt },
-    });
-  }
-
-  async findUserByRefreshToken(
-    token: string,
-  ): Promise<ResetTokenTarget | null> {
-    return this.prisma.user.findFirst({
+  findSessionByToken(token: string): Promise<Session | null> {
+    return this.prisma.session.findFirst({
       where: {
         refreshToken: token,
-        refreshTokenExpires: { gte: new Date() },
+        expiresAt: { gte: new Date() },
       },
-      select: this.resetTargetSelect,
     });
   }
 
-  async findAdminByRefreshToken(
-    token: string,
-  ): Promise<ResetTokenTarget | null> {
-    return this.prisma.admin.findFirst({
+  async rotateSessionToken(
+    sessionId: string,
+    newToken: string,
+    expiresAt: Date,
+  ): Promise<void> {
+    await this.prisma.session.update({
+      where: { id: sessionId },
+      data: {
+        refreshToken: newToken,
+        expiresAt,
+        lastUsedAt: new Date(),
+      },
+    });
+  }
+
+  listSessions(ownerId: string, role: string): Promise<Session[]> {
+    return this.prisma.session.findMany({
       where: {
-        refreshToken: token,
-        refreshTokenExpires: { gte: new Date() },
+        ...(role === 'admin' ? { adminId: ownerId } : { userId: ownerId }),
+        expiresAt: { gte: new Date() },
       },
-      select: this.resetTargetSelect,
+      orderBy: { lastUsedAt: 'desc' },
     });
   }
 
-  async clearUserRefreshToken(id: string): Promise<void> {
-    await this.prisma.user.update({
-      where: { id },
-      data: { refreshToken: null, refreshTokenExpires: null },
-    });
+  findSessionById(id: string): Promise<Session | null> {
+    return this.prisma.session.findUnique({ where: { id } });
   }
 
-  async clearAdminRefreshToken(id: string): Promise<void> {
-    await this.prisma.admin.update({
-      where: { id },
-      data: { refreshToken: null, refreshTokenExpires: null },
-    });
+  async deleteSession(id: string): Promise<void> {
+    await this.prisma.session.delete({ where: { id } });
   }
 
   async incrementUserFailedAttempts(id: string): Promise<void> {

@@ -25,8 +25,7 @@ model User {
   emailVerificationExpires DateTime?
   twoFactorEnabled      Boolean          @default(false)
   twoFactorSecret       String?
-  refreshToken          String?          @unique
-  refreshTokenExpires   DateTime?
+  sessions              Session[]
   failedLoginAttempts   Int              @default(0)
   lockedUntil           DateTime?
   rut                   String           @unique
@@ -48,8 +47,7 @@ model Admin {
   lastLogin            DateTime?
   resetPasswordExpires DateTime?
   resetPasswordToken   String?   @unique
-  refreshToken         String?   @unique
-  refreshTokenExpires  DateTime?
+  sessions             Session[]
   failedLoginAttempts  Int       @default(0)
   lockedUntil          DateTime?
   rut                  String    @unique
@@ -93,4 +91,21 @@ model MonthlyPayment {
   @@unique([userId, year, month]) // Un solo registro por usuario por mes
   @@index([userId])
   @@index([year, month])
+}
+
+model Session {
+  id           String    @id @default(cuid())
+  userId       String?
+  adminId      String?
+  refreshToken String    @unique
+  userAgent    String?
+  ipAddress    String?
+  createdAt    DateTime  @default(now())
+  lastUsedAt   DateTime  @default(now())
+  expiresAt    DateTime
+  user         User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  admin        Admin?    @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([adminId])
 }

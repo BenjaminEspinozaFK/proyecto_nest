@@ -36,6 +36,14 @@ export interface RegisterResponse {
   message: string;
 }
 
+export interface Session {
+  id: string;
+  userAgent: string | null;
+  ipAddress: string | null;
+  createdAt: string;
+  lastUsedAt: string;
+}
+
 export interface AuthContextType {
   user: User | null;
   token: string | null;
