@@ -1,6 +1,8 @@
 import {
   Controller,
   Post,
+  Delete,
+  Param,
   Body,
   ValidationPipe,
   Get,
@@ -8,6 +10,7 @@ import {
   UseGuards,
   Req,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { Throttle } from '@nestjs/throttler';
 import { RequestWithUser } from './interfaces/request-with-user.interface';
 import { AuthService } from './auth.service';
@@ -47,8 +50,11 @@ export class AuthController {
       },
     },
   })
-  async login(@Body(ValidationPipe) loginDto: LoginDto) {
-    return this.authService.login(loginDto);
+  async login(@Body(ValidationPipe) loginDto: LoginDto, @Req() req: Request) {
+    return this.authService.login(loginDto, {
+      userAgent: req.headers['user-agent'],
+      ipAddress: req.ip,
+    });
   }
 
   @Post('register')
@@ -143,12 +149,19 @@ export class AuthController {
   @Throttle({ default: { limit: 5, ttl: 60_000 } })
   @ApiOperation({ summary: 'Login con código 2FA' })
   @ApiResponse({ status: 200, description: 'Login con 2FA exitoso' })
-  async loginWith2FA(@Body(ValidationPipe) login2faDto: Login2faDto) {
+  async loginWith2FA(
+    @Body(ValidationPipe) login2faDto: Login2faDto,
+    @Req() req: Request,
+  ) {
     return this.authService.loginWith2FA(
       login2faDto.email,
       login2faDto.password,
       login2faDto.role,
       login2faDto.code,
+      {
+        userAgent: req.headers['user-agent'],
+        ipAddress: req.ip,
+      },
     );
   }
 
@@ -185,7 +198,10 @@ export class AuthController {
   @Post('refresh')
   @ApiOperation({ summary: 'Renovar access token con refresh token' })
   @ApiResponse({ status: 200, description: 'Tokens renovados' })
-  @ApiResponse({ status: 401, description: 'Refresh token inválido o expirado' })
+  @ApiResponse({
+    status: 401,
+    description: 'Refresh token inválido o expirado',
+  })
   async refreshTokens(@Body('refresh_token') refreshToken: string) {
     return this.authService.refreshTokens(refreshToken);
   }
@@ -194,8 +210,31 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Cerrar sesión e invalidar refresh token' })
-  async logout(@Req() req: RequestWithUser) {
-    return this.authService.logout(req.user.userId, req.user.role);
+  async logout(@Body('refresh_token') refreshToken: string) {
+    return this.authService.logout(refreshToken);
+  }
+
+  @Get('sessions')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Listar sesiones activas del usuario' })
+  async listSessions(@Req() req: RequestWithUser) {
+    return this.authService.listSessions(req.user.userId, req.user.role);
+  }
+
+  @Delete('sessions/:id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Cerrar una sesión específica' })
+  async revokeSession(
+    @Req() req: RequestWithUser,
+    @Param('id') sessionId: string,
+  ) {
+    return this.authService.revokeSession(
+      sessionId,
+      req.user.userId,
+      req.user.role,
+    );
   }
 
   /**

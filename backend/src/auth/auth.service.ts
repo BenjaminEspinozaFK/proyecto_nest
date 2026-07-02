@@ -130,7 +130,10 @@ export class AuthService {
     return null;
   }
 
-  async login(loginDto: LoginDto) {
+  async login(
+    loginDto: LoginDto,
+    meta?: { userAgent?: string; ipAddress?: string },
+  ) {
     const user = await this.validateUser(
       loginDto.email,
       loginDto.password,
@@ -181,10 +184,13 @@ export class AuthService {
       console.error('Error actualizando lastLogin:', err);
     }
 
-    return this.generateTokens(user);
+    return this.generateTokens(user, meta);
   }
 
-  private async generateTokens(user: ValidatedUser) {
+  private async generateTokens(
+    user: ValidatedUser,
+    meta?: { userAgent?: string; ipAddress?: string },
+  ) {
     const payload = {
       email: user.email,
       sub: user.id,
@@ -196,19 +202,13 @@ export class AuthService {
     const refreshExpires = new Date();
     refreshExpires.setDate(refreshExpires.getDate() + 30);
 
-    if (user.role === 'admin') {
-      await this.authRepository.setAdminRefreshToken(
-        user.id,
-        refreshToken,
-        refreshExpires,
-      );
-    } else {
-      await this.authRepository.setUserRefreshToken(
-        user.id,
-        refreshToken,
-        refreshExpires,
-      );
-    }
+    await this.authRepository.createSession({
+      ...(user.role === 'admin' ? { adminId: user.id } : { userId: user.id }),
+      refreshToken,
+      expiresAt: refreshExpires,
+      userAgent: meta?.userAgent,
+      ipAddress: meta?.ipAddress,
+    });
 
     return {
       access_token: this.jwtService.sign(payload),
@@ -413,6 +413,7 @@ export class AuthService {
     password: string,
     role: string,
     code: string,
+    meta?: { userAgent?: string; ipAddress?: string },
   ) {
     const user = await this.validateUser(email, password, role);
 
@@ -450,7 +451,7 @@ export class AuthService {
       console.error('Error actualizando lastLogin:', err);
     }
 
-    return this.generateTokens(user);
+    return this.generateTokens(user, meta);
   }
 
   async generate2FASecret(userId: string) {
@@ -521,24 +522,19 @@ export class AuthService {
   }
 
   async refreshTokens(refreshToken: string) {
-    // Buscar en usuarios primero, luego en admins
-    let target = await this.authRepository.findUserByRefreshToken(refreshToken);
-    let role = 'user';
+    const session = await this.authRepository.findSessionByToken(refreshToken);
 
-    if (!target) {
-      target = await this.authRepository.findAdminByRefreshToken(refreshToken);
-      role = 'admin';
-    }
-
-    if (!target) {
+    if (!session) {
       throw new UnauthorizedException('Refresh token inválido o expirado');
     }
 
-    // Obtener perfil completo para generar nuevo token
+    const role = session.adminId ? 'admin' : 'user';
+    const ownerId = (session.adminId ?? session.userId) as string;
+
     const profile =
       role === 'admin'
-        ? await this.authRepository.getAdminProfile(target.id)
-        : await this.authRepository.getUserProfile(target.id);
+        ? await this.authRepository.getAdminProfile(ownerId)
+        : await this.authRepository.getUserProfile(ownerId);
 
     if (!profile) {
       throw new UnauthorizedException('Usuario no encontrado');
@@ -551,24 +547,15 @@ export class AuthService {
       role: profile.role,
     };
 
-    // Generar nuevo refresh token (rotación)
     const newRefreshToken = crypto.randomBytes(40).toString('hex');
     const refreshExpires = new Date();
     refreshExpires.setDate(refreshExpires.getDate() + 30);
 
-    if (role === 'admin') {
-      await this.authRepository.setAdminRefreshToken(
-        target.id,
-        newRefreshToken,
-        refreshExpires,
-      );
-    } else {
-      await this.authRepository.setUserRefreshToken(
-        target.id,
-        newRefreshToken,
-        refreshExpires,
-      );
-    }
+    await this.authRepository.rotateSessionToken(
+      session.id,
+      newRefreshToken,
+      refreshExpires,
+    );
 
     return {
       access_token: this.jwtService.sign(payload),
@@ -576,12 +563,45 @@ export class AuthService {
     };
   }
 
-  async logout(userId: string, role: string) {
-    if (role === 'admin') {
-      await this.authRepository.clearAdminRefreshToken(userId);
-    } else {
-      await this.authRepository.clearUserRefreshToken(userId);
+  async logout(refreshToken?: string) {
+    if (refreshToken) {
+      const session =
+        await this.authRepository.findSessionByToken(refreshToken);
+      if (session) {
+        await this.authRepository.deleteSession(session.id);
+      }
     }
+
+    return { message: 'Sesión cerrada correctamente' };
+  }
+
+  async listSessions(userId: string, role: string) {
+    const sessions = await this.authRepository.listSessions(userId, role);
+
+    return sessions.map((session) => ({
+      id: session.id,
+      userAgent: session.userAgent,
+      ipAddress: session.ipAddress,
+      createdAt: session.createdAt,
+      lastUsedAt: session.lastUsedAt,
+    }));
+  }
+
+  async revokeSession(sessionId: string, userId: string, role: string) {
+    const session = await this.authRepository.findSessionById(sessionId);
+
+    if (!session) {
+      throw new UnauthorizedException('Sesión no encontrada');
+    }
+
+    const belongsToUser =
+      role === 'admin' ? session.adminId === userId : session.userId === userId;
+
+    if (!belongsToUser) {
+      throw new UnauthorizedException('No puedes cerrar esta sesión');
+    }
+
+    await this.authRepository.deleteSession(sessionId);
 
     return { message: 'Sesión cerrada correctamente' };
   }

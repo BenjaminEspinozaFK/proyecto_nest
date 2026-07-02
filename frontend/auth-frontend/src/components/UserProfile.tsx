@@ -54,6 +54,7 @@ import { useSocket } from "../hooks/useSocket";
 import { monthlyPaymentsService } from "../services/monthlyPaymentsService";
 import type { MonthlyPayment, PaymentSummary } from "../types/payment";
 import api, { API_BASE_URL, authService } from "../services/authService";
+import type { Session } from "../types/auth";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
@@ -117,6 +118,11 @@ const UserProfile: React.FC = () => {
   const [twoFACode, setTwoFACode] = useState("");
   const [twoFAError, setTwoFAError] = useState("");
   const [twoFASuccess, setTwoFASuccess] = useState("");
+
+  // Estados para sesiones activas
+  const [sessions, setSessions] = useState<Session[]>([]);
+  const [loadingSessions, setLoadingSessions] = useState(false);
+  const [sessionsError, setSessionsError] = useState("");
 
   // Socket.IO para actualizaciones en tiempo real (usuario)
   const socket = useSocket(user?.id, false);
@@ -533,8 +539,31 @@ const UserProfile: React.FC = () => {
     handleMenuClose();
   };
 
+  const fetchSessions = async () => {
+    setLoadingSessions(true);
+    setSessionsError("");
+    try {
+      const data = await authService.getSessions();
+      setSessions(data);
+    } catch (err: any) {
+      setSessionsError(err.message);
+    } finally {
+      setLoadingSessions(false);
+    }
+  };
+
+  const handleRevokeSession = async (id: string) => {
+    try {
+      await authService.revokeSession(id);
+      setSessions((prev) => prev.filter((s) => s.id !== id));
+    } catch (err: any) {
+      setSessionsError(err.message);
+    }
+  };
+
   const handleOpenSettings = () => {
     setShowSettingsModal(true);
+    fetchSessions();
     handleMenuClose();
   };
 
@@ -2248,6 +2277,102 @@ const UserProfile: React.FC = () => {
                           "Desactivar 2FA"
                         )}
                       </Button>
+                    </Box>
+                  )}
+                </Box>
+
+                <Divider sx={{ mb: 4 }} />
+
+                {/* Sección: Sesiones activas */}
+                <Box sx={{ mb: 4 }}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                      mb: 2,
+                    }}
+                  >
+                    <Lock sx={{ color: "primary.main" }} />
+                    <Typography variant="h6" fontWeight="600">
+                      Sesiones activas
+                    </Typography>
+                  </Box>
+
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ mb: 2 }}
+                  >
+                    Estos son los dispositivos donde tu cuenta tiene una
+                    sesión iniciada.
+                  </Typography>
+
+                  {sessionsError && (
+                    <Alert
+                      severity="error"
+                      sx={{ mb: 2, borderRadius: "12px" }}
+                    >
+                      {sessionsError}
+                    </Alert>
+                  )}
+
+                  {loadingSessions ? (
+                    <Box
+                      sx={{ display: "flex", justifyContent: "center", py: 2 }}
+                    >
+                      <CircularProgress size={28} />
+                    </Box>
+                  ) : sessions.length === 0 ? (
+                    <Typography variant="body2" color="text.secondary">
+                      No hay sesiones activas.
+                    </Typography>
+                  ) : (
+                    <Box
+                      sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}
+                    >
+                      {sessions.map((session) => (
+                        <Box
+                          key={session.id}
+                          sx={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            p: 2,
+                            borderRadius: "12px",
+                            border: (theme) =>
+                              `1px solid ${
+                                theme.palette.mode === "dark"
+                                  ? "rgba(255, 255, 255, 0.12)"
+                                  : "rgba(0, 0, 0, 0.12)"
+                              }`,
+                          }}
+                        >
+                          <Box>
+                            <Typography variant="body2" fontWeight="500">
+                              {session.userAgent || "Dispositivo desconocido"}
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                              IP: {session.ipAddress || "desconocida"}
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                              Último uso:{" "}
+                              {new Date(session.lastUsedAt).toLocaleString(
+                                "es-CL",
+                              )}
+                            </Typography>
+                          </Box>
+                          <Button
+                            variant="outlined"
+                            color="error"
+                            size="small"
+                            onClick={() => handleRevokeSession(session.id)}
+                            sx={{ borderRadius: "10px", textTransform: "none" }}
+                          >
+                            Cerrar sesión
+                          </Button>
+                        </Box>
+                      ))}
                     </Box>
                   )}
                 </Box>
