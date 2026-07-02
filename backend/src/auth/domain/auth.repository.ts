@@ -6,6 +6,7 @@ import {
   CreateAuthUserInput,
   ResetTokenTarget,
 } from './auth.types';
+import { Session, CreateSessionInput } from './session.types';
 
 export interface AuthRepositoryPort {
   findAdminByEmail(email: string): Promise<AuthAdmin | null>;
@@ -43,20 +44,16 @@ export interface AuthRepositoryPort {
   getUserTwoFactorSecret(
     id: string,
   ): Promise<{ twoFactorSecret: string | null } | null>;
-  setUserRefreshToken(
-    id: string,
-    token: string,
+  createSession(data: CreateSessionInput): Promise<Session>;
+  findSessionByToken(token: string): Promise<Session | null>;
+  rotateSessionToken(
+    sessionId: string,
+    newToken: string,
     expiresAt: Date,
   ): Promise<void>;
-  setAdminRefreshToken(
-    id: string,
-    token: string,
-    expiresAt: Date,
-  ): Promise<void>;
-  findUserByRefreshToken(token: string): Promise<ResetTokenTarget | null>;
-  findAdminByRefreshToken(token: string): Promise<ResetTokenTarget | null>;
-  clearUserRefreshToken(id: string): Promise<void>;
-  clearAdminRefreshToken(id: string): Promise<void>;
+  listSessions(ownerId: string, role: string): Promise<Session[]>;
+  findSessionById(id: string): Promise<Session | null>;
+  deleteSession(id: string): Promise<void>;
   incrementUserFailedAttempts(id: string): Promise<void>;
   incrementAdminFailedAttempts(id: string): Promise<void>;
   lockUserAccount(id: string, until: Date): Promise<void>;
