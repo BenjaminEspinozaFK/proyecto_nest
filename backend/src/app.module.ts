@@ -6,6 +6,7 @@ import { UsersModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { VouchersModule } from './vouchers/vouchers.module';
 import { MonthlyPaymentsModule } from './monthly-payments/monthly-payments.module';
+import { NotificationsModule } from './notifications/notifications.module';
 import { PrismaModule } from './prisma.module';
 
 @Module({
@@ -23,6 +24,7 @@ import { PrismaModule } from './prisma.module';
     AuthModule,
     VouchersModule,
     MonthlyPaymentsModule,
+    NotificationsModule,
   ],
   providers: [
     {

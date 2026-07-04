@@ -5,6 +5,7 @@ import { RejectVoucherDto } from './dto/reject-voucher.dto';
 import { VouchersGateway } from './vouchers.gateway';
 import { VouchersRepositoryPort } from './domain/voucher.repository';
 import { VOUCHERS_REPOSITORY } from './vouchers.tokens';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class VouchersService {
@@ -12,6 +13,7 @@ export class VouchersService {
     @Inject(VOUCHERS_REPOSITORY)
     private vouchersRepository: VouchersRepositoryPort,
     private vouchersGateway: VouchersGateway,
+    private notificationsService: NotificationsService,
   ) {}
 
   // Funcionario solicita un vale
@@ -24,6 +26,14 @@ export class VouchersService {
 
     // Emitir evento de nuevo vale creado a los admins
     this.vouchersGateway.notifyVoucherCreated(voucher);
+
+    // Notificar a todos los admins
+    await this.notificationsService.notifyAllAdmins(
+      'Nueva solicitud de vale',
+      `${voucher.user?.name || 'Un usuario'} solicitó ${voucher.kilos} kg de gas`,
+      '/dashboard',
+    );
+    this.vouchersGateway.notifyNewNotification('admin');
 
     return voucher;
   }
@@ -59,6 +69,15 @@ export class VouchersService {
     // Emitir evento de vale aprobado
     this.vouchersGateway.notifyVoucherApproved(voucher);
 
+    // Notificar al usuario
+    await this.notificationsService.notifyUser(
+      voucher.userId,
+      'Vale aprobado',
+      `Tu solicitud de ${voucher.kilos} kg fue aprobada por $${approveVoucherDto.amount}`,
+      '/dashboard',
+    );
+    this.vouchersGateway.notifyNewNotification(`user:${voucher.userId}`);
+
     return voucher;
   }
 
@@ -77,6 +96,17 @@ export class VouchersService {
     // Emitir evento de vale rechazado
     this.vouchersGateway.notifyVoucherRejected(voucher);
 
+    // Notificar al usuario
+    await this.notificationsService.notifyUser(
+      voucher.userId,
+      'Vale rechazado',
+      rejectVoucherDto.notes
+        ? `Tu solicitud de ${voucher.kilos} kg fue rechazada: ${rejectVoucherDto.notes}`
+        : `Tu solicitud de ${voucher.kilos} kg fue rechazada`,
+      '/dashboard',
+    );
+    this.vouchersGateway.notifyNewNotification(`user:${voucher.userId}`);
+
     return voucher;
   }
 
@@ -86,6 +116,15 @@ export class VouchersService {
 
     // Emitir evento de vale entregado
     this.vouchersGateway.notifyVoucherDelivered(voucher);
+
+    // Notificar al usuario
+    await this.notificationsService.notifyUser(
+      voucher.userId,
+      'Vale entregado',
+      `Tu vale de ${voucher.kilos} kg fue marcado como entregado`,
+      '/dashboard',
+    );
+    this.vouchersGateway.notifyNewNotification(`user:${voucher.userId}`);
 
     return voucher;
   }

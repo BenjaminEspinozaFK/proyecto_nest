@@ -55,6 +55,7 @@ import { monthlyPaymentsService } from "../services/monthlyPaymentsService";
 import type { MonthlyPayment, PaymentSummary } from "../types/payment";
 import api, { API_BASE_URL, authService } from "../services/authService";
 import type { Session } from "../types/auth";
+import NotificationBell from "./NotificationBell";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
@@ -730,6 +731,9 @@ const UserProfile: React.FC = () => {
           </Box>
 
           <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+            {/* Centro de notificaciones */}
+            <NotificationBell userId={user?.id} isAdmin={false} />
+
             {/* Avatar con menú desplegable */}
             <IconButton
               onClick={handleMenuOpen}

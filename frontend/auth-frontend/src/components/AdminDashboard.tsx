@@ -48,6 +48,7 @@ import AdminStats from "./admin/Stats";
 import AdminProfile from "./admin/Profile";
 import CreateUserModal from "./admin/CreateUserModal";
 import VoucherRequests from "./admin/VoucherRequests";
+import NotificationBell from "./NotificationBell";
 
 const AdminDashboard: React.FC = () => {
   const { isDark, toggleTheme } = useTheme();
@@ -229,6 +230,9 @@ const AdminDashboard: React.FC = () => {
                 Crear Usuario
               </Button>
             )}
+
+            {/* Centro de notificaciones */}
+            <NotificationBell isAdmin={true} />
 
             {/* Avatar con menú desplegable */}
             <IconButton

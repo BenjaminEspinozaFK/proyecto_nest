@@ -4,8 +4,10 @@ import { VouchersController } from './vouchers.controller';
 import { VouchersGateway } from './vouchers.gateway';
 import { VOUCHERS_REPOSITORY } from './vouchers.tokens';
 import { PrismaVouchersRepository } from './infrastructure/prisma-vouchers.repository';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
+  imports: [NotificationsModule],
   controllers: [VouchersController],
   providers: [
     VouchersService,
