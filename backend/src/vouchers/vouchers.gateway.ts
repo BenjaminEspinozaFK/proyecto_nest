@@ -69,4 +69,10 @@ export class VouchersGateway
     this.server.emit('voucher:updated', voucher);
     this.logger.log(`Evento voucher:updated emitido para vale ${voucher.id}`);
   }
+
+  // Método genérico para avisar que hay una notificación nueva en una sala
+  notifyNewNotification(room: string) {
+    this.server.to(room).emit('notification:new');
+    this.logger.log(`Evento notification:new emitido a la sala: ${room}`);
+  }
 }
