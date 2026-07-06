@@ -5,9 +5,10 @@ import { VouchersGateway } from './vouchers.gateway';
 import { VOUCHERS_REPOSITORY } from './vouchers.tokens';
 import { PrismaVouchersRepository } from './infrastructure/prisma-vouchers.repository';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { PushModule } from '../push/push.module';
 
 @Module({
-  imports: [NotificationsModule],
+  imports: [NotificationsModule, PushModule],
   controllers: [VouchersController],
   providers: [
     VouchersService,

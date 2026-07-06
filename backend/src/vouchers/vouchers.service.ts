@@ -6,6 +6,7 @@ import { VouchersGateway } from './vouchers.gateway';
 import { VouchersRepositoryPort } from './domain/voucher.repository';
 import { VOUCHERS_REPOSITORY } from './vouchers.tokens';
 import { NotificationsService } from '../notifications/notifications.service';
+import { PushService } from '../push/push.service';
 
 @Injectable()
 export class VouchersService {
@@ -14,6 +15,7 @@ export class VouchersService {
     private vouchersRepository: VouchersRepositoryPort,
     private vouchersGateway: VouchersGateway,
     private notificationsService: NotificationsService,
+    private pushService: PushService,
   ) {}
 
   // Funcionario solicita un vale
@@ -28,12 +30,20 @@ export class VouchersService {
     this.vouchersGateway.notifyVoucherCreated(voucher);
 
     // Notificar a todos los admins
-    await this.notificationsService.notifyAllAdmins(
-      'Nueva solicitud de vale',
-      `${voucher.user?.name || 'Un usuario'} solicitó ${voucher.kilos} kg de gas`,
-      '/dashboard',
-    );
+    const title = 'Nueva solicitud de vale';
+    const message = `${voucher.user?.name || 'Un usuario'} solicitó ${voucher.kilos} kg de gas`;
+    await this.notificationsService.notifyAllAdmins(title, message, '/dashboard');
     this.vouchersGateway.notifyNewNotification('admin');
+
+    try {
+      await this.pushService.sendToAdmins({
+        title,
+        message,
+        link: '/dashboard',
+      });
+    } catch (error) {
+      console.error('Error enviando push a admins:', error);
+    }
 
     return voucher;
   }
@@ -70,13 +80,25 @@ export class VouchersService {
     this.vouchersGateway.notifyVoucherApproved(voucher);
 
     // Notificar al usuario
+    const approvedTitle = 'Vale aprobado';
+    const approvedMessage = `Tu solicitud de ${voucher.kilos} kg fue aprobada por $${approveVoucherDto.amount}`;
     await this.notificationsService.notifyUser(
       voucher.userId,
-      'Vale aprobado',
-      `Tu solicitud de ${voucher.kilos} kg fue aprobada por $${approveVoucherDto.amount}`,
+      approvedTitle,
+      approvedMessage,
       '/dashboard',
     );
     this.vouchersGateway.notifyNewNotification(`user:${voucher.userId}`);
+
+    try {
+      await this.pushService.sendToUser(voucher.userId, {
+        title: approvedTitle,
+        message: approvedMessage,
+        link: '/dashboard',
+      });
+    } catch (error) {
+      console.error('Error enviando push al usuario:', error);
+    }
 
     return voucher;
   }
@@ -97,15 +119,27 @@ export class VouchersService {
     this.vouchersGateway.notifyVoucherRejected(voucher);
 
     // Notificar al usuario
+    const rejectedTitle = 'Vale rechazado';
+    const rejectedMessage = rejectVoucherDto.notes
+      ? `Tu solicitud de ${voucher.kilos} kg fue rechazada: ${rejectVoucherDto.notes}`
+      : `Tu solicitud de ${voucher.kilos} kg fue rechazada`;
     await this.notificationsService.notifyUser(
       voucher.userId,
-      'Vale rechazado',
-      rejectVoucherDto.notes
-        ? `Tu solicitud de ${voucher.kilos} kg fue rechazada: ${rejectVoucherDto.notes}`
-        : `Tu solicitud de ${voucher.kilos} kg fue rechazada`,
+      rejectedTitle,
+      rejectedMessage,
       '/dashboard',
     );
     this.vouchersGateway.notifyNewNotification(`user:${voucher.userId}`);
+
+    try {
+      await this.pushService.sendToUser(voucher.userId, {
+        title: rejectedTitle,
+        message: rejectedMessage,
+        link: '/dashboard',
+      });
+    } catch (error) {
+      console.error('Error enviando push al usuario:', error);
+    }
 
     return voucher;
   }
@@ -118,13 +152,25 @@ export class VouchersService {
     this.vouchersGateway.notifyVoucherDelivered(voucher);
 
     // Notificar al usuario
+    const deliveredTitle = 'Vale entregado';
+    const deliveredMessage = `Tu vale de ${voucher.kilos} kg fue marcado como entregado`;
     await this.notificationsService.notifyUser(
       voucher.userId,
-      'Vale entregado',
-      `Tu vale de ${voucher.kilos} kg fue marcado como entregado`,
+      deliveredTitle,
+      deliveredMessage,
       '/dashboard',
     );
     this.vouchersGateway.notifyNewNotification(`user:${voucher.userId}`);
+
+    try {
+      await this.pushService.sendToUser(voucher.userId, {
+        title: deliveredTitle,
+        message: deliveredMessage,
+        link: '/dashboard',
+      });
+    } catch (error) {
+      console.error('Error enviando push al usuario:', error);
+    }
 
     return voucher;
   }
