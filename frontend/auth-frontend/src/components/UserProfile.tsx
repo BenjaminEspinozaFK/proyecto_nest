@@ -56,6 +56,7 @@ import type { MonthlyPayment, PaymentSummary } from "../types/payment";
 import api, { API_BASE_URL, authService } from "../services/authService";
 import type { Session } from "../types/auth";
 import NotificationBell from "./NotificationBell";
+import { usePushNotifications } from "../hooks/usePushNotifications";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
@@ -124,6 +125,16 @@ const UserProfile: React.FC = () => {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loadingSessions, setLoadingSessions] = useState(false);
   const [sessionsError, setSessionsError] = useState("");
+
+  // Notificaciones push del navegador
+  const {
+    isSupported: pushSupported,
+    isSubscribed: pushSubscribed,
+    loading: pushLoading,
+    error: pushError,
+    subscribe: subscribeToPush,
+    unsubscribe: unsubscribeFromPush,
+  } = usePushNotifications();
 
   // Socket.IO para actualizaciones en tiempo real (usuario)
   const socket = useSocket(user?.id, false);
@@ -2497,6 +2508,82 @@ const UserProfile: React.FC = () => {
                       sx={{ alignItems: "flex-start", m: 0, ml: 4 }}
                     />
                   </Box>
+                </Box>
+
+                <Divider sx={{ mb: 4 }} />
+
+                {/* Sección: Notificaciones Push del Navegador */}
+                <Box sx={{ mb: 4 }}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                      mb: 2,
+                    }}
+                  >
+                    <Notifications sx={{ color: "primary.main" }} />
+                    <Typography variant="h6" fontWeight="600">
+                      Notificaciones Push del Navegador
+                    </Typography>
+                  </Box>
+
+                  {!pushSupported ? (
+                    <Typography variant="body2" color="text.secondary">
+                      Tu navegador no soporta notificaciones push.
+                    </Typography>
+                  ) : (
+                    <>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{ mb: 2 }}
+                      >
+                        Recibe notificaciones en tu navegador incluso cuando
+                        no tengas la página abierta.
+                      </Typography>
+
+                      {pushError && (
+                        <Alert
+                          severity="error"
+                          sx={{ mb: 2, borderRadius: "12px" }}
+                        >
+                          {pushError}
+                        </Alert>
+                      )}
+
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={pushSubscribed}
+                            disabled={pushLoading}
+                            onChange={(e) =>
+                              e.target.checked
+                                ? subscribeToPush()
+                                : unsubscribeFromPush()
+                            }
+                            color="primary"
+                          />
+                        }
+                        label={
+                          <Box>
+                            <Typography variant="body1" fontWeight="500">
+                              Activar notificaciones push
+                            </Typography>
+                            <Typography
+                              variant="body2"
+                              color="text.secondary"
+                            >
+                              {pushSubscribed
+                                ? "Están activadas en este navegador"
+                                : "Actualmente desactivadas"}
+                            </Typography>
+                          </Box>
+                        }
+                        sx={{ alignItems: "flex-start", m: 0 }}
+                      />
+                    </>
+                  )}
                 </Box>
 
                 <Divider sx={{ mb: 4 }} />
