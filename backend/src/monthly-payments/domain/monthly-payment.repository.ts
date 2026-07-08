@@ -6,6 +6,7 @@ import {
 
 export interface MonthlyPaymentsRepositoryPort {
   createPayment(data: CreateMonthlyPaymentInput): Promise<MonthlyPayment>;
+  findAllPayments(): Promise<MonthlyPayment[]>;
   findUserPayments(userId: string): Promise<MonthlyPayment[]>;
   findUserPaymentsByYear(
     userId: string,

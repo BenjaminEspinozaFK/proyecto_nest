@@ -24,6 +24,11 @@ export class MonthlyPaymentsService {
     });
   }
 
+  // Admin: Obtener todos los pagos del sistema
+  async getAllPayments() {
+    return this.monthlyPaymentsRepository.findAllPayments();
+  }
+
   // Obtener todos los pagos de un usuario
   async getUserPayments(userId: string) {
     return this.monthlyPaymentsRepository.findUserPayments(userId);

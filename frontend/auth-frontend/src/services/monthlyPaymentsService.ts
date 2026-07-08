@@ -19,6 +19,11 @@ class MonthlyPaymentsService {
     return response.data;
   }
 
+  async getAllPayments(): Promise<MonthlyPayment[]> {
+    const response = await api.get<MonthlyPayment[]>("/monthly-payments/all");
+    return response.data;
+  }
+
   async getUserPayments(userId: string): Promise<MonthlyPayment[]> {
     const response = await api.get<MonthlyPayment[]>(
       `/monthly-payments/user/${userId}`,
