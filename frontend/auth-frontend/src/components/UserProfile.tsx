@@ -57,6 +57,8 @@ import api, { API_BASE_URL, authService } from "../services/authService";
 import type { Session } from "../types/auth";
 import NotificationBell from "./NotificationBell";
 import { usePushNotifications } from "../hooks/usePushNotifications";
+import PaymentTrendChart from "./PaymentTrendChart";
+import { buildUserPaymentTrend } from "../utils/paymentTrends";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
@@ -1486,6 +1488,17 @@ const UserProfile: React.FC = () => {
                       </Paper>
                     ))}
                   </Box>
+                </Box>
+              )}
+
+              {/* Gráfico de Tendencia de Pagos */}
+              {payments.length > 0 && (
+                <Box sx={{ mb: 4 }}>
+                  <PaymentTrendChart
+                    data={buildUserPaymentTrend(payments)}
+                    title="Tendencia de mis Pagos"
+                    height={280}
+                  />
                 </Box>
               )}
 

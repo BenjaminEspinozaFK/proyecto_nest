@@ -35,6 +35,13 @@ export class MonthlyPaymentsController {
     return this.monthlyPaymentsService.createPayment(createDto, adminId);
   }
 
+  // Admin: Obtener todos los pagos del sistema (para gráficos de tendencia)
+  @Get('all')
+  @Roles('admin')
+  async getAllPayments() {
+    return this.monthlyPaymentsService.getAllPayments();
+  }
+
   // Admin: Obtener todos los pagos de un usuario
   @Get('user/:userId')
   @Roles('admin')

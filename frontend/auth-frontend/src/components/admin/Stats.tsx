@@ -29,7 +29,11 @@ import {
 } from "@mui/icons-material";
 import { adminService } from "../../services/adminService";
 import { voucherService } from "../../services/voucherService";
+import { monthlyPaymentsService } from "../../services/monthlyPaymentsService";
 import { GasVoucher } from "../../types/voucher";
+import { MonthlyPayment } from "../../types/payment";
+import PaymentTrendChart from "../PaymentTrendChart";
+import { buildSystemPaymentTrend } from "../../utils/paymentTrends";
 import {
   BarChart,
   Bar,
@@ -81,11 +85,22 @@ const AdminStats: React.FC = () => {
   const [timeRange, setTimeRange] = useState<"day" | "week" | "month">("week");
   const [allVouchers, setAllVouchers] = useState<GasVoucher[]>([]);
   const [voucherStats, setVoucherStats] = useState<any>(null);
+  const [allPayments, setAllPayments] = useState<MonthlyPayment[]>([]);
 
   useEffect(() => {
     fetchStats();
     fetchVoucherData();
+    fetchPaymentData();
   }, []);
+
+  const fetchPaymentData = async () => {
+    try {
+      const payments = await monthlyPaymentsService.getAllPayments();
+      setAllPayments(payments);
+    } catch (error) {
+      console.error("Error fetching payment data:", error);
+    }
+  };
 
   const fetchStats = async () => {
     try {
@@ -986,6 +1001,16 @@ const AdminStats: React.FC = () => {
           </AreaChart>
         </ResponsiveContainer>
       </Paper>
+
+      {/* Gráfico de Tendencia de Pagos del Sistema */}
+      <Box sx={{ mb: 3 }}>
+        <PaymentTrendChart
+          data={buildSystemPaymentTrend(allPayments, 6)}
+          title="Tendencia de Pagos del Sistema (Últimos 6 Meses)"
+          emoji="💵"
+          height={320}
+        />
+      </Box>
 
       <Box
         sx={{
