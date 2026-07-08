@@ -50,6 +50,8 @@ import { GasVoucher, VoucherStats } from "../../types/voucher";
 import { voucherService } from "../../services/voucherService";
 import { monthlyPaymentsService } from "../../services/monthlyPaymentsService";
 import type { MonthlyPayment, PaymentSummary } from "../../types/payment";
+import PaymentTrendChart from "../PaymentTrendChart";
+import { buildUserPaymentTrend } from "../../utils/paymentTrends";
 import api, { API_BASE_URL } from "../../services/authService";
 
 interface UserDetailModalProps {
@@ -1232,6 +1234,14 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
                 </Box>
               ) : (
                 <>
+                  <Box sx={{ mb: 3 }}>
+                    <PaymentTrendChart
+                      data={buildUserPaymentTrend(payments)}
+                      title={`Tendencia de Pagos de ${user?.name || "Usuario"}`}
+                      height={260}
+                    />
+                  </Box>
+
                   {paymentSummary.map((yearSummary) => (
                     <Paper key={yearSummary.year} sx={{ p: 3, mb: 3 }}>
                       <Box

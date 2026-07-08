@@ -38,6 +38,15 @@ export class PrismaMonthlyPaymentsRepository
     });
   }
 
+  async findAllPayments(): Promise<MonthlyPayment[]> {
+    return this.prisma.monthlyPayment.findMany({
+      orderBy: [{ year: 'desc' }, { month: 'desc' }],
+      include: {
+        user: { select: this.userSelect },
+      },
+    });
+  }
+
   async findUserPayments(userId: string): Promise<MonthlyPayment[]> {
     return this.prisma.monthlyPayment.findMany({
       where: { userId },
