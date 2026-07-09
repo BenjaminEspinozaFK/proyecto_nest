@@ -126,8 +126,8 @@ const PaymentTrendChart: React.FC<PaymentTrendChartProps> = ({
                 boxShadow: "0 4px 20px rgba(0, 0, 0, 0.15)",
                 padding: "12px 16px",
               }}
-              formatter={(value: number) => [
-                `$${value.toLocaleString()}`,
+              formatter={(value) => [
+                `$${Number(value).toLocaleString()}`,
                 "Monto",
               ]}
               cursor={{
