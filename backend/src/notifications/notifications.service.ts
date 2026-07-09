@@ -44,10 +44,7 @@ export class NotificationsService {
   }
 
   async unreadCount(ownerId: string, role: string) {
-    const count = await this.notificationsRepository.countUnread(
-      ownerId,
-      role,
-    );
+    const count = await this.notificationsRepository.countUnread(ownerId, role);
     return { count };
   }
 
@@ -64,9 +61,7 @@ export class NotificationsService {
         : notification.userId === ownerId;
 
     if (!belongsToOwner) {
-      throw new UnauthorizedException(
-        'No puedes modificar esta notificación',
-      );
+      throw new UnauthorizedException('No puedes modificar esta notificación');
     }
 
     await this.notificationsRepository.markAsRead(id);
