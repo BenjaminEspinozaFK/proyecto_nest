@@ -23,11 +23,7 @@ export class PushService {
     return { publicKey: process.env.VAPID_PUBLIC_KEY || '' };
   }
 
-  async subscribe(
-    ownerId: string,
-    role: string,
-    dto: SubscribePushDto,
-  ) {
+  async subscribe(ownerId: string, role: string, dto: SubscribePushDto) {
     await this.pushRepository.upsertSubscription({
       ...(role === 'admin' ? { adminId: ownerId } : { userId: ownerId }),
       endpoint: dto.endpoint,
@@ -44,16 +40,12 @@ export class PushService {
   }
 
   async sendToUser(userId: string, payload: PushPayload) {
-    const subscriptions = await this.pushRepository.findByOwner(
-      userId,
-      'user',
-    );
+    const subscriptions = await this.pushRepository.findByOwner(userId, 'user');
     await this.sendToSubscriptions(subscriptions, payload);
   }
 
   async sendToAdmins(payload: PushPayload) {
-    const subscriptions =
-      await this.pushRepository.findAllAdminSubscriptions();
+    const subscriptions = await this.pushRepository.findAllAdminSubscriptions();
     await this.sendToSubscriptions(subscriptions, payload);
   }
 
@@ -77,10 +69,7 @@ export class PushService {
           if (error.statusCode === 404 || error.statusCode === 410) {
             await this.pushRepository.deleteByEndpoint(sub.endpoint);
           } else {
-            this.logger.error(
-              `Error enviando push a ${sub.endpoint}:`,
-              error,
-            );
+            this.logger.error(`Error enviando push a ${sub.endpoint}:`, error);
           }
         }
       }),

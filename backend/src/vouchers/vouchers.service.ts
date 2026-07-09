@@ -32,7 +32,11 @@ export class VouchersService {
     // Notificar a todos los admins
     const title = 'Nueva solicitud de vale';
     const message = `${voucher.user?.name || 'Un usuario'} solicitó ${voucher.kilos} kg de gas`;
-    await this.notificationsService.notifyAllAdmins(title, message, '/dashboard');
+    await this.notificationsService.notifyAllAdmins(
+      title,
+      message,
+      '/dashboard',
+    );
     this.vouchersGateway.notifyNewNotification('admin');
 
     try {
