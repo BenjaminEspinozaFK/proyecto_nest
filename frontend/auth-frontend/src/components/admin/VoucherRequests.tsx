@@ -18,19 +18,44 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from "@mui/material";
+import { Search, FilterAltOff } from "@mui/icons-material";
 import { voucherService } from "../../services/voucherService";
 import { GasVoucher, VoucherStats } from "../../types/voucher";
 import { useSocket } from "../../hooks/useSocket";
 
+type StatusFilter = "all" | "pending" | "approved" | "rejected" | "delivered";
+
+const STATUS_LABELS: Record<StatusFilter, string> = {
+  all: "Todos los Vales",
+  pending: "Solicitudes Pendientes",
+  approved: "Vales Aprobados",
+  rejected: "Vales Rechazados",
+  delivered: "Vales Entregados",
+};
+
+const normalizeText = (text: string) =>
+  text
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+
 const VoucherRequests: React.FC = () => {
-  const [pendingVouchers, setPendingVouchers] = useState<GasVoucher[]>([]);
   const [allVouchers, setAllVouchers] = useState<GasVoucher[]>([]);
   const [stats, setStats] = useState<VoucherStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [showAll, setShowAll] = useState(false);
+
+  // Filtros
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("pending");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
 
   // Estados para aprobar
   const [approveDialog, setApproveDialog] = useState(false);
@@ -87,12 +112,10 @@ const VoucherRequests: React.FC = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [pending, all, statsData] = await Promise.all([
-        voucherService.getPendingVouchers(),
+      const [all, statsData] = await Promise.all([
         voucherService.getAllVouchers(),
         voucherService.getGeneralStats(),
       ]);
-      setPendingVouchers(pending);
       setAllVouchers(all);
       setStats(statsData);
     } catch (error) {
@@ -172,7 +195,44 @@ const VoucherRequests: React.FC = () => {
     );
   }
 
-  const vouchersToShow = showAll ? allVouchers : pendingVouchers;
+  const vouchersToShow = allVouchers.filter((voucher: GasVoucher) => {
+    if (statusFilter !== "all" && voucher.status !== statusFilter) {
+      return false;
+    }
+
+    if (searchTerm) {
+      const haystack = `${voucher.user?.name || ""} ${voucher.user?.email || ""}`;
+      if (!normalizeText(haystack).includes(normalizeText(searchTerm))) {
+        return false;
+      }
+    }
+
+    const requestDate = new Date(voucher.requestDate);
+
+    if (dateFrom && requestDate < new Date(dateFrom)) {
+      return false;
+    }
+
+    if (dateTo) {
+      const to = new Date(dateTo);
+      to.setHours(23, 59, 59, 999);
+      if (requestDate > to) {
+        return false;
+      }
+    }
+
+    return true;
+  });
+
+  const hasActiveFilters =
+    statusFilter !== "pending" || searchTerm !== "" || dateFrom !== "" || dateTo !== "";
+
+  const clearFilters = () => {
+    setStatusFilter("pending");
+    setSearchTerm("");
+    setDateFrom("");
+    setDateTo("");
+  };
 
   return (
     <Box>
@@ -185,13 +245,79 @@ const VoucherRequests: React.FC = () => {
         <Typography variant="h5" fontWeight="bold">
           Gestión de Vales de Gas
         </Typography>
-        <Button
-          variant={showAll ? "contained" : "outlined"}
-          onClick={() => setShowAll(!showAll)}
-        >
-          {showAll ? "Ver Solo Pendientes" : "Ver Todos"}
-        </Button>
       </Box>
+
+      {/* Barra de filtros avanzados */}
+      <Paper sx={{ p: 2, mb: 3 }}>
+        <Box
+          sx={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: 2,
+            alignItems: "center",
+          }}
+        >
+          <TextField
+            placeholder="Buscar por funcionario o email..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            size="small"
+            sx={{ minWidth: 260, flex: 1 }}
+            InputProps={{
+              startAdornment: (
+                <Search sx={{ mr: 1, color: "text.secondary" }} />
+              ),
+            }}
+          />
+
+          <FormControl size="small" sx={{ minWidth: 160 }}>
+            <InputLabel>Estado</InputLabel>
+            <Select
+              value={statusFilter}
+              label="Estado"
+              onChange={(e) =>
+                setStatusFilter(e.target.value as StatusFilter)
+              }
+            >
+              <MenuItem value="all">Todos</MenuItem>
+              <MenuItem value="pending">Pendiente</MenuItem>
+              <MenuItem value="approved">Aprobado</MenuItem>
+              <MenuItem value="rejected">Rechazado</MenuItem>
+              <MenuItem value="delivered">Entregado</MenuItem>
+            </Select>
+          </FormControl>
+
+          <TextField
+            label="Desde"
+            type="date"
+            size="small"
+            value={dateFrom}
+            onChange={(e) => setDateFrom(e.target.value)}
+            InputLabelProps={{ shrink: true }}
+            sx={{ minWidth: 160 }}
+          />
+
+          <TextField
+            label="Hasta"
+            type="date"
+            size="small"
+            value={dateTo}
+            onChange={(e) => setDateTo(e.target.value)}
+            InputLabelProps={{ shrink: true }}
+            sx={{ minWidth: 160 }}
+          />
+
+          <Button
+            variant="outlined"
+            color="inherit"
+            startIcon={<FilterAltOff />}
+            onClick={clearFilters}
+            disabled={!hasActiveFilters}
+          >
+            Limpiar filtros
+          </Button>
+        </Box>
+      </Paper>
 
       {error && (
         <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
@@ -280,17 +406,15 @@ const VoucherRequests: React.FC = () => {
       <Paper>
         <Box sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
           <Typography variant="h6" fontWeight="bold">
-            {showAll
-              ? `Todos los Vales (${vouchersToShow.length})`
-              : `Solicitudes Pendientes (${pendingVouchers.length})`}
+            {STATUS_LABELS[statusFilter]} ({vouchersToShow.length})
           </Typography>
         </Box>
 
         {vouchersToShow.length === 0 ? (
           <Box sx={{ p: 4, textAlign: "center" }}>
             <Typography color="text.secondary">
-              {showAll
-                ? "No hay vales registrados"
+              {hasActiveFilters
+                ? "No hay vales que coincidan con los filtros"
                 : "No hay solicitudes pendientes 🎉"}
             </Typography>
           </Box>
