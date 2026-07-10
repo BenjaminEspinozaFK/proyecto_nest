@@ -29,6 +29,9 @@ import {
   TextField,
   Alert,
   CircularProgress,
+  FormControl,
+  InputLabel,
+  Select,
 } from "@mui/material";
 import {
   People,
@@ -42,6 +45,7 @@ import {
   Lock,
   Palette,
   Search,
+  FilterAltOff,
 } from "@mui/icons-material";
 import UserDetailModal from "./admin/UserDetailModal";
 import AdminStats from "./admin/Stats";
@@ -57,6 +61,9 @@ const AdminDashboard: React.FC = () => {
   const [tabValue, setTabValue] = useState(0);
   const [users, setUsers] = useState<User[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [roleFilter, setRoleFilter] = useState<"all" | "user" | "admin">(
+    "all",
+  );
   const [adminProfile, setAdminProfile] = useState<any>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -178,6 +185,23 @@ const AdminDashboard: React.FC = () => {
       setChangingPassword(false);
     }
   };
+
+  const normalizeText = (text: string) =>
+    text
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "");
+
+  const filteredUsers = users.filter((user) => {
+    if (roleFilter !== "all" && user.role !== roleFilter) {
+      return false;
+    }
+
+    if (!searchTerm) return true;
+
+    const haystack = `${user.name} ${user.email} ${user.rut} ${user.phone || ""}`;
+    return normalizeText(haystack).includes(normalizeText(searchTerm));
+  });
 
   return (
     <Box
@@ -436,10 +460,17 @@ const AdminDashboard: React.FC = () => {
 
         {tabValue === 0 && (
           <>
-            <Box sx={{ mb: 3 }}>
+            <Box
+              sx={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: 2,
+                alignItems: "center",
+                mb: 3,
+              }}
+            >
               <TextField
-                fullWidth
-                placeholder="Buscar usuario por nombre..."
+                placeholder="Buscar por nombre, email, RUT o teléfono..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 InputProps={{
@@ -448,6 +479,8 @@ const AdminDashboard: React.FC = () => {
                   ),
                 }}
                 sx={{
+                  minWidth: 280,
+                  flex: 1,
                   "& .MuiOutlinedInput-root": {
                     borderRadius: "12px",
                     "&:hover fieldset": {
@@ -459,6 +492,36 @@ const AdminDashboard: React.FC = () => {
                   },
                 }}
               />
+
+              <FormControl sx={{ minWidth: 180 }}>
+                <InputLabel>Rol</InputLabel>
+                <Select
+                  value={roleFilter}
+                  label="Rol"
+                  onChange={(e) =>
+                    setRoleFilter(e.target.value as "all" | "user" | "admin")
+                  }
+                  sx={{ borderRadius: "12px" }}
+                >
+                  <MenuItem value="all">Todos los roles</MenuItem>
+                  <MenuItem value="user">Usuario</MenuItem>
+                  <MenuItem value="admin">Administrador</MenuItem>
+                </Select>
+              </FormControl>
+
+              <Button
+                variant="outlined"
+                color="inherit"
+                startIcon={<FilterAltOff />}
+                onClick={() => {
+                  setSearchTerm("");
+                  setRoleFilter("all");
+                }}
+                disabled={searchTerm === "" && roleFilter === "all"}
+                sx={{ borderRadius: "12px", textTransform: "none" }}
+              >
+                Limpiar filtros
+              </Button>
             </Box>
             <TableContainer
               component={Paper}
@@ -480,18 +543,16 @@ const AdminDashboard: React.FC = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {users
-                    .filter((user) => {
-                      const normalizeText = (text: string) =>
-                        text
-                          .toLowerCase()
-                          .normalize("NFD")
-                          .replace(/[\u0300-\u036f]/g, "");
-                      return normalizeText(user.name).includes(
-                        normalizeText(searchTerm),
-                      );
-                    })
-                    .map((user) => (
+                  {filteredUsers.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
+                        <Typography color="text.secondary">
+                          No hay usuarios que coincidan con los filtros
+                        </Typography>
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredUsers.map((user) => (
                       <TableRow key={user.id}>
                         <TableCell>{user.email}</TableCell>
                         <TableCell>{user.name}</TableCell>
@@ -512,7 +573,8 @@ const AdminDashboard: React.FC = () => {
                           </Button>
                         </TableCell>
                       </TableRow>
-                    ))}
+                    ))
+                  )}
                 </TableBody>
               </Table>
             </TableContainer>
