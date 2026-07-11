@@ -5,10 +5,14 @@ export interface User {
   name: string | null;
   rut: string;
   phone: string | null;
+  address: string | null;
+  comuna: string | null;
   role: string;
   avatar: string | null;
   lastLogin: Date | null;
   requirePasswordChange: boolean;
+  emailVerified: boolean;
+  twoFactorEnabled: boolean;
   createdAt: Date;
   updatedAt: Date;
   deletedAt: Date | null;
@@ -29,4 +33,6 @@ export interface UpdateUserInput {
   password?: string;
   name?: string;
   phone?: string;
+  address?: string;
+  comuna?: string;
 }
