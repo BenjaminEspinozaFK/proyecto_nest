@@ -30,6 +30,8 @@ model User {
   lockedUntil           DateTime?
   rut                   String           @unique
   phone                 String?
+  address               String?
+  comuna                String?
   deletedAt             DateTime?
   gasVouchers           GasVoucher[]
   monthlyPayments       MonthlyPayment[]

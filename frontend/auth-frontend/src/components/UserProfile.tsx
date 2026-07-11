@@ -46,6 +46,8 @@ import {
   AttachMoney,
   CalendarToday,
   PictureAsPdf,
+  CheckCircle,
+  Cancel,
 } from "@mui/icons-material";
 import { useAuth } from "./AuthContext";
 import { voucherService } from "../services/voucherService";
@@ -702,6 +704,12 @@ const UserProfile: React.FC = () => {
   const avatarSrc = profile?.avatar
     ? `${API_BASE_URL}${profile.avatar}`
     : undefined;
+
+  const totalVouchersRequested = voucherStats?.total ?? vouchers.length;
+  const totalPaid = paymentSummary.reduce(
+    (sum, summary) => sum + summary.total,
+    0,
+  );
 
   return (
     <Box
@@ -1746,10 +1754,122 @@ const UserProfile: React.FC = () => {
                       ? new Date(profile.lastLogin).toLocaleDateString("es-ES")
                       : "Nunca"}
                   </Typography>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ mb: 2 }}
+                  >
+                    Miembro desde:{" "}
+                    {profile?.createdAt
+                      ? new Date(profile.createdAt).toLocaleDateString(
+                          "es-ES",
+                          { year: "numeric", month: "long" },
+                        )
+                      : "-"}
+                  </Typography>
+
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 1,
+                      alignItems: "center",
+                    }}
+                  >
+                    <Chip
+                      size="small"
+                      icon={
+                        profile?.emailVerified ? (
+                          <CheckCircle />
+                        ) : (
+                          <Cancel />
+                        )
+                      }
+                      label={
+                        profile?.emailVerified
+                          ? "Email verificado"
+                          : "Email sin verificar"
+                      }
+                      color={profile?.emailVerified ? "success" : "default"}
+                      variant="outlined"
+                    />
+                    <Chip
+                      size="small"
+                      icon={
+                        profile?.twoFactorEnabled ? (
+                          <CheckCircle />
+                        ) : (
+                          <Cancel />
+                        )
+                      }
+                      label={
+                        profile?.twoFactorEnabled
+                          ? "2FA activado"
+                          : "2FA desactivado"
+                      }
+                      color={profile?.twoFactorEnabled ? "success" : "default"}
+                      variant="outlined"
+                    />
+                  </Box>
                 </Box>
 
                 {/* Profile Form */}
                 <Box>
+                  {/* Resumen de Actividad */}
+                  <Box
+                    sx={{
+                      display: "grid",
+                      gridTemplateColumns: "repeat(2, 1fr)",
+                      gap: 2,
+                      mb: 3,
+                    }}
+                  >
+                    <Paper
+                      sx={{
+                        p: 2,
+                        borderRadius: "14px",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1.5,
+                        bgcolor: isDark
+                          ? "rgba(102, 126, 234, 0.1)"
+                          : "rgba(102, 126, 234, 0.06)",
+                      }}
+                    >
+                      <LocalGasStation sx={{ color: "#667eea" }} />
+                      <Box>
+                        <Typography variant="h6" fontWeight="bold">
+                          {totalVouchersRequested}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          Vales solicitados
+                        </Typography>
+                      </Box>
+                    </Paper>
+                    <Paper
+                      sx={{
+                        p: 2,
+                        borderRadius: "14px",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1.5,
+                        bgcolor: isDark
+                          ? "rgba(16, 185, 129, 0.1)"
+                          : "rgba(16, 185, 129, 0.06)",
+                      }}
+                    >
+                      <AttachMoney sx={{ color: "#10b981" }} />
+                      <Box>
+                        <Typography variant="h6" fontWeight="bold">
+                          ${totalPaid.toLocaleString()}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          Total pagado
+                        </Typography>
+                      </Box>
+                    </Paper>
+                  </Box>
+
                   <Box
                     sx={{
                       display: "flex",

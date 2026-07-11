@@ -32,4 +32,14 @@ export class UpdateUserDto {
     message: 'El teléfono debe tener exactamente 8 dígitos',
   })
   phone?: string;
+
+  @Transform(({ value }) => value?.trim())
+  @IsString()
+  @IsOptional()
+  address?: string;
+
+  @Transform(({ value }) => value?.trim())
+  @IsString()
+  @IsOptional()
+  comuna?: string;
 }

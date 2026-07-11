@@ -4,12 +4,16 @@ export interface User {
   name: string;
   rut: string;
   phone?: string;
+  address?: string;
+  comuna?: string;
   banco?: string;
   role: string;
   avatar?: string;
   createdAt?: string;
   lastLogin?: string;
   requirePasswordChange?: boolean;
+  emailVerified?: boolean;
+  twoFactorEnabled?: boolean;
 }
 
 export interface LoginRequest {
