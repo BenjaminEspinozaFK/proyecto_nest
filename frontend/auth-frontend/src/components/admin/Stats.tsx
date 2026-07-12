@@ -26,6 +26,14 @@ import {
   CheckCircle,
   AttachMoney,
   BarChart as BarChartIcon,
+  People,
+  PersonAdd,
+  Groups,
+  Savings,
+  AccountBalanceWallet,
+  Speed,
+  ThumbUpAlt,
+  ThumbDownAlt,
 } from "@mui/icons-material";
 import { adminService } from "../../services/adminService";
 import { voucherService } from "../../services/voucherService";
@@ -76,6 +84,73 @@ interface Stats {
 }
 
 const CHART_COLORS = ["#667eea", "#764ba2", "#22c55e", "#f59e0b", "#3b82f6"];
+
+interface KpiCardProps {
+  label: string;
+  value: string | number;
+  icon: React.ReactNode;
+  color: string;
+  subtitle?: string;
+}
+
+const KpiCard: React.FC<KpiCardProps> = ({
+  label,
+  value,
+  icon,
+  color,
+  subtitle,
+}) => (
+  <Card
+    sx={{
+      background: `linear-gradient(135deg, ${color}22 0%, ${color}11 100%)`,
+      border: `1px solid ${color}44`,
+      borderRadius: "16px",
+      transition: "transform 0.3s ease, box-shadow 0.3s ease",
+      "&:hover": {
+        transform: "translateY(-6px)",
+        boxShadow: `0 12px 24px ${color}33`,
+      },
+    }}
+  >
+    <CardContent>
+      <Box display="flex" justifyContent="space-between" alignItems="center">
+        <Box>
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            gutterBottom
+            fontWeight={600}
+          >
+            {label}
+          </Typography>
+          <Typography variant="h4" fontWeight="bold" sx={{ color }}>
+            {value}
+          </Typography>
+          {subtitle && (
+            <Chip
+              label={subtitle}
+              size="small"
+              sx={{ mt: 1, bgcolor: `${color}22`, color, fontWeight: 600 }}
+            />
+          )}
+        </Box>
+        <Box
+          sx={{
+            width: 56,
+            height: 56,
+            borderRadius: "14px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: `linear-gradient(135deg, ${color} 0%, ${color}cc 100%)`,
+          }}
+        >
+          {icon}
+        </Box>
+      </Box>
+    </CardContent>
+  </Card>
+);
 
 const AdminStats: React.FC = () => {
   const theme = useTheme();
@@ -227,6 +302,47 @@ const AdminStats: React.FC = () => {
 
   const totalAmount = allVouchers.reduce((acc, v) => acc + (v.amount || 0), 0);
   const totalKilos = allVouchers.reduce((acc, v) => acc + v.kilos, 0);
+
+  // KPIs de pagos
+  const totalCollected = allPayments.reduce((acc, p) => acc + p.amount, 0);
+  const now = new Date();
+  const collectedThisMonth = allPayments
+    .filter(
+      (p) => p.year === now.getFullYear() && p.month === now.getMonth() + 1,
+    )
+    .reduce((acc, p) => acc + p.amount, 0);
+  const monthsWithPayments = new Set(
+    allPayments.map((p) => `${p.year}-${p.month}`),
+  ).size;
+  const avgMonthlyCollected = monthsWithPayments
+    ? totalCollected / monthsWithPayments
+    : 0;
+  const usersWithPayments = new Set(allPayments.map((p) => p.userId)).size;
+
+  // KPIs de eficiencia de vales
+  const nonPendingVouchers = allVouchers.filter((v) => v.status !== "pending");
+  const approvedOrDelivered = allVouchers.filter(
+    (v) => v.status === "approved" || v.status === "delivered",
+  );
+  const rejectedVouchers = allVouchers.filter((v) => v.status === "rejected");
+  const approvalRate = nonPendingVouchers.length
+    ? Math.round((approvedOrDelivered.length / nonPendingVouchers.length) * 100)
+    : 0;
+  const rejectionRate = nonPendingVouchers.length
+    ? Math.round((rejectedVouchers.length / nonPendingVouchers.length) * 100)
+    : 0;
+  const vouchersWithProcessingTime = allVouchers.filter((v) => v.approvalDate);
+  const avgProcessingDays = vouchersWithProcessingTime.length
+    ? vouchersWithProcessingTime.reduce(
+        (sum, v) =>
+          sum +
+          (new Date(v.approvalDate as string).getTime() -
+            new Date(v.requestDate).getTime()),
+        0,
+      ) /
+      vouchersWithProcessingTime.length /
+      (1000 * 60 * 60 * 24)
+    : 0;
 
   return (
     <Box>
@@ -578,6 +694,153 @@ const AdminStats: React.FC = () => {
             </Box>
           </CardContent>
         </Card>
+      </Box>
+
+      {/* KPIs de Usuarios */}
+      <Typography
+        variant="h6"
+        fontWeight="bold"
+        sx={{ mb: 2, color: isDark ? "#e0e0e0" : "#1a1a1a" }}
+      >
+        👥 Usuarios
+      </Typography>
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: {
+            xs: "1fr",
+            sm: "repeat(2, 1fr)",
+            md: "repeat(4, 1fr)",
+          },
+          gap: 3,
+          mb: 2,
+        }}
+      >
+        <KpiCard
+          label="Total Usuarios"
+          value={stats.totalUsers}
+          icon={<People sx={{ fontSize: 30, color: "white" }} />}
+          color="#3b82f6"
+        />
+        <KpiCard
+          label="Nuevos Hoy"
+          value={stats.usersToday}
+          icon={<PersonAdd sx={{ fontSize: 30, color: "white" }} />}
+          color="#22c55e"
+        />
+        <KpiCard
+          label="Nuevos Esta Semana"
+          value={stats.usersThisWeek}
+          icon={<PersonAdd sx={{ fontSize: 30, color: "white" }} />}
+          color="#f59e0b"
+        />
+        <KpiCard
+          label="Nuevos Este Mes"
+          value={stats.usersThisMonth}
+          icon={<Groups sx={{ fontSize: 30, color: "white" }} />}
+          color="#764ba2"
+        />
+      </Box>
+
+      {stats.usersByRole.length > 0 && (
+        <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mb: 4 }}>
+          {stats.usersByRole.map((item) => (
+            <Chip
+              key={item.role}
+              label={`${item.role === "admin" ? "Administradores" : "Usuarios"}: ${item.count}`}
+              sx={{ fontWeight: 600 }}
+            />
+          ))}
+        </Box>
+      )}
+
+      {/* KPIs de Pagos */}
+      <Typography
+        variant="h6"
+        fontWeight="bold"
+        sx={{ mb: 2, color: isDark ? "#e0e0e0" : "#1a1a1a" }}
+      >
+        💰 Pagos
+      </Typography>
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: {
+            xs: "1fr",
+            sm: "repeat(2, 1fr)",
+            md: "repeat(4, 1fr)",
+          },
+          gap: 3,
+          mb: 4,
+        }}
+      >
+        <KpiCard
+          label="Total Recaudado"
+          value={`$${totalCollected.toLocaleString()}`}
+          icon={<Savings sx={{ fontSize: 30, color: "white" }} />}
+          color="#10b981"
+        />
+        <KpiCard
+          label="Recaudado Este Mes"
+          value={`$${collectedThisMonth.toLocaleString()}`}
+          icon={
+            <AccountBalanceWallet sx={{ fontSize: 30, color: "white" }} />
+          }
+          color="#059669"
+        />
+        <KpiCard
+          label="Promedio Mensual"
+          value={`$${Math.round(avgMonthlyCollected).toLocaleString()}`}
+          icon={<AttachMoney sx={{ fontSize: 30, color: "white" }} />}
+          color="#3b82f6"
+        />
+        <KpiCard
+          label="Usuarios con Pagos"
+          value={usersWithPayments}
+          icon={<Groups sx={{ fontSize: 30, color: "white" }} />}
+          color="#764ba2"
+        />
+      </Box>
+
+      {/* KPIs de Eficiencia */}
+      <Typography
+        variant="h6"
+        fontWeight="bold"
+        sx={{ mb: 2, color: isDark ? "#e0e0e0" : "#1a1a1a" }}
+      >
+        ⚡ Eficiencia de Gestión de Vales
+      </Typography>
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: {
+            xs: "1fr",
+            sm: "repeat(3, 1fr)",
+          },
+          gap: 3,
+          mb: 4,
+        }}
+      >
+        <KpiCard
+          label="Tasa de Aprobación"
+          value={`${approvalRate}%`}
+          icon={<ThumbUpAlt sx={{ fontSize: 30, color: "white" }} />}
+          color="#22c55e"
+          subtitle={`${approvedOrDelivered.length} de ${nonPendingVouchers.length}`}
+        />
+        <KpiCard
+          label="Tasa de Rechazo"
+          value={`${rejectionRate}%`}
+          icon={<ThumbDownAlt sx={{ fontSize: 30, color: "white" }} />}
+          color="#ef4444"
+          subtitle={`${rejectedVouchers.length} de ${nonPendingVouchers.length}`}
+        />
+        <KpiCard
+          label="Tiempo Promedio de Aprobación"
+          value={`${avgProcessingDays.toFixed(1)} días`}
+          icon={<Speed sx={{ fontSize: 30, color: "white" }} />}
+          color="#f59e0b"
+        />
       </Box>
 
       {/* Gráficos Principales */}
