@@ -48,6 +48,7 @@ import {
   PictureAsPdf,
   CheckCircle,
   Cancel,
+  GridOn,
 } from "@mui/icons-material";
 import { useAuth } from "./AuthContext";
 import { voucherService } from "../services/voucherService";
@@ -63,6 +64,7 @@ import PaymentTrendChart from "./PaymentTrendChart";
 import { buildUserPaymentTrend } from "../utils/paymentTrends";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { exportPaymentsToExcel } from "../utils/exportPayments";
 
 const UserProfile: React.FC = () => {
   const { isDark, toggleTheme } = useTheme();
@@ -231,6 +233,14 @@ const UserProfile: React.FC = () => {
     } finally {
       setLoadingPayments(false);
     }
+  };
+
+  const handleExportPaymentsExcel = () => {
+    if (!user) return;
+    exportPaymentsToExcel(
+      payments,
+      `Historial_Pagos_${user.rut}_${new Date().getFullYear()}.xlsx`,
+    );
   };
 
   const generatePaymentPDF = () => {
@@ -1385,26 +1395,44 @@ const UserProfile: React.FC = () => {
                 </Typography>
               </Box>
             </Box>
-            <Button
-              variant="contained"
-              color="success"
-              startIcon={<PictureAsPdf />}
-              onClick={generatePaymentPDF}
-              disabled={payments.length === 0}
-              sx={{
-                borderRadius: "12px",
-                textTransform: "none",
-                px: 3,
-                py: 1.5,
-                fontWeight: 600,
-                boxShadow: "0 4px 12px rgba(16, 185, 129, 0.3)",
-                "&:hover": {
-                  boxShadow: "0 6px 16px rgba(16, 185, 129, 0.4)",
-                },
-              }}
-            >
-              Generar Cartola PDF
-            </Button>
+            <Box sx={{ display: "flex", gap: 1.5 }}>
+              <Button
+                variant="outlined"
+                color="success"
+                startIcon={<GridOn />}
+                onClick={handleExportPaymentsExcel}
+                disabled={payments.length === 0}
+                sx={{
+                  borderRadius: "12px",
+                  textTransform: "none",
+                  px: 3,
+                  py: 1.5,
+                  fontWeight: 600,
+                }}
+              >
+                Exportar Excel
+              </Button>
+              <Button
+                variant="contained"
+                color="success"
+                startIcon={<PictureAsPdf />}
+                onClick={generatePaymentPDF}
+                disabled={payments.length === 0}
+                sx={{
+                  borderRadius: "12px",
+                  textTransform: "none",
+                  px: 3,
+                  py: 1.5,
+                  fontWeight: 600,
+                  boxShadow: "0 4px 12px rgba(16, 185, 129, 0.3)",
+                  "&:hover": {
+                    boxShadow: "0 6px 16px rgba(16, 185, 129, 0.4)",
+                  },
+                }}
+              >
+                Generar Cartola PDF
+              </Button>
+            </Box>
           </Box>
 
           {loadingPayments ? (
