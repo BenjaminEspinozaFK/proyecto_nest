@@ -42,6 +42,7 @@ import {
   Add,
   Delete,
   PictureAsPdf,
+  GridOn,
 } from "@mui/icons-material";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -52,6 +53,7 @@ import { monthlyPaymentsService } from "../../services/monthlyPaymentsService";
 import type { MonthlyPayment, PaymentSummary } from "../../types/payment";
 import PaymentTrendChart from "../PaymentTrendChart";
 import { buildUserPaymentTrend } from "../../utils/paymentTrends";
+import { exportPaymentsToExcel } from "../../utils/exportPayments";
 import api, { API_BASE_URL } from "../../services/authService";
 
 interface UserDetailModalProps {
@@ -241,6 +243,14 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
       setError("Error al eliminar el pago");
       console.error(error);
     }
+  };
+
+  const handleExportPaymentsExcel = () => {
+    if (!user) return;
+    exportPaymentsToExcel(
+      payments,
+      `Historial_Pagos_${user.rut}_${new Date().getFullYear()}.xlsx`,
+    );
   };
 
   const generatePaymentPDF = () => {
@@ -1090,6 +1100,15 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
                   Registro de Pagos Mensuales
                 </Typography>
                 <Box display="flex" gap={2}>
+                  <Button
+                    variant="outlined"
+                    color="success"
+                    startIcon={<GridOn />}
+                    onClick={handleExportPaymentsExcel}
+                    disabled={payments.length === 0}
+                  >
+                    Exportar Excel
+                  </Button>
                   <Button
                     variant="outlined"
                     color="success"
