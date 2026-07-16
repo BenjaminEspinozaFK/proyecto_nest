@@ -15,6 +15,7 @@ import {
   ToggleButtonGroup,
   ToggleButton,
   Chip,
+  Button,
   useTheme,
 } from "@mui/material";
 import {
@@ -34,6 +35,7 @@ import {
   Speed,
   ThumbUpAlt,
   ThumbDownAlt,
+  GridOn,
 } from "@mui/icons-material";
 import { adminService } from "../../services/adminService";
 import { voucherService } from "../../services/voucherService";
@@ -42,6 +44,7 @@ import { GasVoucher } from "../../types/voucher";
 import { MonthlyPayment } from "../../types/payment";
 import PaymentTrendChart from "../PaymentTrendChart";
 import { buildSystemPaymentTrend } from "../../utils/paymentTrends";
+import { exportAllPaymentsToExcel } from "../../utils/exportPayments";
 import {
   BarChart,
   Bar,
@@ -1273,6 +1276,23 @@ const AdminStats: React.FC = () => {
           emoji="💵"
           height={320}
         />
+        <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
+          <Button
+            variant="outlined"
+            color="success"
+            startIcon={<GridOn />}
+            disabled={allPayments.length === 0}
+            onClick={() =>
+              exportAllPaymentsToExcel(
+                allPayments,
+                `Historial_Pagos_Sistema_${new Date().getFullYear()}.xlsx`,
+              )
+            }
+            sx={{ borderRadius: "12px", textTransform: "none", fontWeight: 600 }}
+          >
+            Exportar Todos los Pagos (Excel)
+          </Button>
+        </Box>
       </Box>
 
       <Box
