@@ -43,6 +43,7 @@ import {
   Delete,
   PictureAsPdf,
   GridOn,
+  Receipt,
 } from "@mui/icons-material";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -54,6 +55,7 @@ import type { MonthlyPayment, PaymentSummary } from "../../types/payment";
 import PaymentTrendChart from "../PaymentTrendChart";
 import { buildUserPaymentTrend } from "../../utils/paymentTrends";
 import { exportPaymentsToExcel } from "../../utils/exportPayments";
+import { generatePaymentReceipt } from "../../utils/generateReceipt";
 import api, { API_BASE_URL } from "../../services/authService";
 
 interface UserDetailModalProps {
@@ -251,6 +253,16 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
       payments,
       `Historial_Pagos_${user.rut}_${new Date().getFullYear()}.xlsx`,
     );
+  };
+
+  const handleDownloadReceipt = (payment: MonthlyPayment) => {
+    if (!user) return;
+    generatePaymentReceipt(payment, {
+      name: user.name,
+      rut: user.rut,
+      email: user.email,
+      phone: user.phone,
+    });
   };
 
   const generatePaymentPDF = () => {
@@ -1313,6 +1325,17 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
                                     {monthData.description || "-"}
                                   </TableCell>
                                   <TableCell align="center">
+                                    <IconButton
+                                      size="small"
+                                      color="success"
+                                      title="Descargar comprobante"
+                                      onClick={() =>
+                                        payment &&
+                                        handleDownloadReceipt(payment)
+                                      }
+                                    >
+                                      <Receipt fontSize="small" />
+                                    </IconButton>
                                     <IconButton
                                       size="small"
                                       color="error"
