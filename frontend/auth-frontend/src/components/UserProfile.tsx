@@ -49,6 +49,7 @@ import {
   CheckCircle,
   Cancel,
   GridOn,
+  Receipt,
 } from "@mui/icons-material";
 import { useAuth } from "./AuthContext";
 import { voucherService } from "../services/voucherService";
@@ -65,6 +66,7 @@ import { buildUserPaymentTrend } from "../utils/paymentTrends";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { exportPaymentsToExcel } from "../utils/exportPayments";
+import { generatePaymentReceipt } from "../utils/generateReceipt";
 
 const UserProfile: React.FC = () => {
   const { isDark, toggleTheme } = useTheme();
@@ -241,6 +243,16 @@ const UserProfile: React.FC = () => {
       payments,
       `Historial_Pagos_${user.rut}_${new Date().getFullYear()}.xlsx`,
     );
+  };
+
+  const handleDownloadReceipt = (payment: MonthlyPayment) => {
+    if (!user) return;
+    generatePaymentReceipt(payment, {
+      name: user.name,
+      rut: user.rut,
+      email: user.email,
+      phone: user.phone,
+    });
   };
 
   const generatePaymentPDF = () => {
@@ -1591,6 +1603,9 @@ const UserProfile: React.FC = () => {
                         <TableCell sx={{ fontWeight: 600 }}>
                           Descripción
                         </TableCell>
+                        <TableCell align="center" sx={{ fontWeight: 600 }}>
+                          Recibo
+                        </TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
@@ -1637,6 +1652,16 @@ const UserProfile: React.FC = () => {
                             >
                               {payment.description || "Sin descripción"}
                             </Typography>
+                          </TableCell>
+                          <TableCell align="center">
+                            <IconButton
+                              size="small"
+                              color="success"
+                              onClick={() => handleDownloadReceipt(payment)}
+                              title="Descargar comprobante"
+                            >
+                              <Receipt fontSize="small" />
+                            </IconButton>
                           </TableCell>
                         </TableRow>
                       ))}
