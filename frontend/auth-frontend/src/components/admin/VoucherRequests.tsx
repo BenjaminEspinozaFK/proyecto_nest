@@ -11,7 +11,6 @@ import {
   TableRow,
   Button,
   Chip,
-  CircularProgress,
   Alert,
   TextField,
   Dialog,
@@ -22,11 +21,14 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  Skeleton,
 } from "@mui/material";
 import { Search, FilterAltOff } from "@mui/icons-material";
 import { voucherService } from "../../services/voucherService";
 import { GasVoucher, VoucherStats } from "../../types/voucher";
 import { useSocket } from "../../hooks/useSocket";
+import CardsSkeleton from "../skeletons/CardsSkeleton";
+import TableRowsSkeleton from "../skeletons/TableRowsSkeleton";
 
 type StatusFilter = "all" | "pending" | "approved" | "rejected" | "delivered";
 
@@ -184,13 +186,28 @@ const VoucherRequests: React.FC = () => {
 
   if (loading) {
     return (
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        minHeight="400px"
-      >
-        <CircularProgress />
+      <Box>
+        <Box
+          display="flex"
+          justifyContent="space-between"
+          alignItems="center"
+          mb={3}
+        >
+          <Skeleton variant="text" width={260} height={40} />
+        </Box>
+        <CardsSkeleton count={5} height={90} minColumnWidth={150} />
+        <Skeleton
+          variant="rounded"
+          height={72}
+          sx={{ borderRadius: "12px", mb: 3 }}
+        />
+        <TableContainer component={Paper}>
+          <Table>
+            <TableBody>
+              <TableRowsSkeleton rows={6} columns={7} />
+            </TableBody>
+          </Table>
+        </TableContainer>
       </Box>
     );
   }
