@@ -7,8 +7,8 @@ import {
   Button,
   Avatar,
   Alert,
-  CircularProgress,
   IconButton,
+  Skeleton,
 } from "@mui/material";
 import { Edit, Save, Cancel, PhotoCamera } from "@mui/icons-material";
 import { adminService } from "../../services/adminService";
@@ -153,13 +153,37 @@ const AdminProfile: React.FC = () => {
 
   if (loading) {
     return (
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        minHeight="400px"
-      >
-        <CircularProgress />
+      <Box>
+        <Skeleton variant="text" width={220} height={44} sx={{ mb: 3 }} />
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: { xs: "1fr", md: "1fr 2fr" },
+            gap: 3,
+          }}
+        >
+          <Paper sx={{ p: 3, textAlign: "center" }}>
+            <Skeleton
+              variant="circular"
+              width={120}
+              height={120}
+              sx={{ mx: "auto", mb: 2 }}
+            />
+            <Skeleton variant="text" width="60%" height={32} sx={{ mx: "auto" }} />
+            <Skeleton variant="text" width="40%" height={24} sx={{ mx: "auto" }} />
+          </Paper>
+          <Paper sx={{ p: 3 }}>
+            <Skeleton variant="text" width={180} height={32} sx={{ mb: 2 }} />
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton
+                key={i}
+                variant="rounded"
+                height={56}
+                sx={{ mb: 2, borderRadius: "8px" }}
+              />
+            ))}
+          </Paper>
+        </Box>
       </Box>
     );
   }
