@@ -31,6 +31,7 @@ import {
   ListItemText,
   Switch,
   FormControlLabel,
+  Skeleton,
 } from "@mui/material";
 import {
   Edit,
@@ -61,6 +62,9 @@ import api, { API_BASE_URL, authService } from "../services/authService";
 import type { Session } from "../types/auth";
 import NotificationBell from "./NotificationBell";
 import { usePushNotifications } from "../hooks/usePushNotifications";
+import CardsSkeleton from "./skeletons/CardsSkeleton";
+import ChartSkeleton from "./skeletons/ChartSkeleton";
+import TableRowsSkeleton from "./skeletons/TableRowsSkeleton";
 import PaymentTrendChart from "./PaymentTrendChart";
 import { buildUserPaymentTrend } from "../utils/paymentTrends";
 import jsPDF from "jspdf";
@@ -713,12 +717,59 @@ const UserProfile: React.FC = () => {
           width: "100%",
           py: 4,
           px: 3,
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
         }}
       >
-        <CircularProgress />
+        <Box sx={{ maxWidth: "1400px", margin: "0 auto" }}>
+          {/* Header skeleton */}
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              mb: 4,
+              pb: 3,
+              borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
+            }}
+          >
+            <Box>
+              <Skeleton variant="text" width={280} height={44} />
+              <Skeleton variant="text" width={200} height={24} />
+            </Box>
+            <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+              <Skeleton variant="circular" width={40} height={40} />
+              <Skeleton variant="circular" width={48} height={48} />
+            </Box>
+          </Box>
+
+          {/* Vales: tarjetas de estadísticas */}
+          <Skeleton
+            variant="text"
+            width={220}
+            height={36}
+            sx={{ mb: 2 }}
+          />
+          <CardsSkeleton count={4} height={130} />
+
+          {/* Pagos: gráfico */}
+          <Skeleton
+            variant="text"
+            width={220}
+            height={36}
+            sx={{ mb: 2, mt: 2 }}
+          />
+          <ChartSkeleton height={280} />
+
+          {/* Tabla */}
+          <Box sx={{ mt: 4 }}>
+            <TableContainer component={Paper} sx={{ borderRadius: "16px" }}>
+              <Table>
+                <TableBody>
+                  <TableRowsSkeleton rows={5} columns={5} />
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Box>
+        </Box>
       </Box>
     );
   }
@@ -972,8 +1023,15 @@ const UserProfile: React.FC = () => {
           </Box>
 
           {loadingVouchers ? (
-            <Box display="flex" justifyContent="center" py={4}>
-              <CircularProgress />
+            <Box>
+              <CardsSkeleton count={4} height={110} />
+              <TableContainer component={Paper} sx={{ borderRadius: "16px" }}>
+                <Table>
+                  <TableBody>
+                    <TableRowsSkeleton rows={4} columns={5} />
+                  </TableBody>
+                </Table>
+              </TableContainer>
             </Box>
           ) : (
             <>
@@ -1448,8 +1506,18 @@ const UserProfile: React.FC = () => {
           </Box>
 
           {loadingPayments ? (
-            <Box display="flex" justifyContent="center" py={4}>
-              <CircularProgress />
+            <Box>
+              <CardsSkeleton count={3} height={100} minColumnWidth={180} />
+              <ChartSkeleton height={220} />
+              <Box sx={{ mt: 3 }}>
+                <TableContainer component={Paper} sx={{ borderRadius: "16px" }}>
+                  <Table>
+                    <TableBody>
+                      <TableRowsSkeleton rows={4} columns={5} />
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Box>
             </Box>
           ) : (
             <>

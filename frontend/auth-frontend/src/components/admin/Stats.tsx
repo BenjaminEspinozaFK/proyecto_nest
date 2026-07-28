@@ -11,11 +11,11 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  CircularProgress,
   ToggleButtonGroup,
   ToggleButton,
   Chip,
   Button,
+  Skeleton,
   useTheme,
 } from "@mui/material";
 import {
@@ -44,6 +44,8 @@ import { GasVoucher } from "../../types/voucher";
 import { MonthlyPayment } from "../../types/payment";
 import PaymentTrendChart from "../PaymentTrendChart";
 import { buildSystemPaymentTrend } from "../../utils/paymentTrends";
+import CardsSkeleton from "../skeletons/CardsSkeleton";
+import ChartSkeleton from "../skeletons/ChartSkeleton";
 import { exportAllPaymentsToExcel } from "../../utils/exportPayments";
 import {
   BarChart,
@@ -206,13 +208,51 @@ const AdminStats: React.FC = () => {
 
   if (loading) {
     return (
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        minHeight="400px"
-      >
-        <CircularProgress />
+      <Box>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mb: 4,
+            flexWrap: "wrap",
+            gap: 2,
+          }}
+        >
+          <Box>
+            <Skeleton variant="text" width={320} height={44} />
+            <Skeleton variant="text" width={260} height={24} />
+          </Box>
+          <Skeleton
+            variant="rounded"
+            width={220}
+            height={40}
+            sx={{ borderRadius: "12px" }}
+          />
+        </Box>
+
+        <CardsSkeleton count={4} height={140} />
+        <CardsSkeleton count={4} height={110} />
+        <CardsSkeleton count={4} height={110} />
+        <CardsSkeleton count={3} height={110} minColumnWidth={200} />
+
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: { xs: "1fr", lg: "repeat(2, 1fr)" },
+            gap: 3,
+            mb: 3,
+          }}
+        >
+          <ChartSkeleton height={320} />
+          <ChartSkeleton height={320} />
+        </Box>
+        <Box sx={{ mb: 3 }}>
+          <ChartSkeleton height={350} />
+        </Box>
+        <Box sx={{ mb: 3 }}>
+          <ChartSkeleton height={320} />
+        </Box>
       </Box>
     );
   }

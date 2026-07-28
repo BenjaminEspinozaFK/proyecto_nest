@@ -54,12 +54,14 @@ import CreateUserModal from "./admin/CreateUserModal";
 import VoucherRequests from "./admin/VoucherRequests";
 import NotificationBell from "./NotificationBell";
 import { usePushNotifications } from "../hooks/usePushNotifications";
+import TableRowsSkeleton from "./skeletons/TableRowsSkeleton";
 
 const AdminDashboard: React.FC = () => {
   const { isDark, toggleTheme } = useTheme();
   const { logout } = useAuth();
   const [tabValue, setTabValue] = useState(0);
   const [users, setUsers] = useState<User[]>([]);
+  const [usersLoading, setUsersLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState<"all" | "user" | "admin">(
     "all",
@@ -110,6 +112,7 @@ const AdminDashboard: React.FC = () => {
   };
 
   const fetchUsers = async () => {
+    setUsersLoading(true);
     try {
       const data = await adminService.getUsers();
       console.log("Fetched users:", data); // Para debug
@@ -117,6 +120,8 @@ const AdminDashboard: React.FC = () => {
     } catch (error) {
       console.error("Error fetching users:", error);
       setUsers([]);
+    } finally {
+      setUsersLoading(false);
     }
   };
 
@@ -543,7 +548,9 @@ const AdminDashboard: React.FC = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {filteredUsers.length === 0 ? (
+                  {usersLoading ? (
+                    <TableRowsSkeleton rows={6} columns={6} />
+                  ) : filteredUsers.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
                         <Typography color="text.secondary">

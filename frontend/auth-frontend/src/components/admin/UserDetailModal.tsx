@@ -23,7 +23,6 @@ import {
   TableHead,
   TableRow,
   Paper,
-  CircularProgress,
 } from "@mui/material";
 import {
   Close,
@@ -55,6 +54,9 @@ import type { MonthlyPayment, PaymentSummary } from "../../types/payment";
 import PaymentTrendChart from "../PaymentTrendChart";
 import { buildUserPaymentTrend } from "../../utils/paymentTrends";
 import { exportPaymentsToExcel } from "../../utils/exportPayments";
+import CardsSkeleton from "../skeletons/CardsSkeleton";
+import ChartSkeleton from "../skeletons/ChartSkeleton";
+import TableRowsSkeleton from "../skeletons/TableRowsSkeleton";
 import { generatePaymentReceipt } from "../../utils/generateReceipt";
 import api, { API_BASE_URL } from "../../services/authService";
 
@@ -889,8 +891,15 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
               </Typography>
 
               {loadingVouchers ? (
-                <Box display="flex" justifyContent="center" py={4}>
-                  <CircularProgress />
+                <Box>
+                  <CardsSkeleton count={4} height={100} minColumnWidth={160} />
+                  <TableContainer component={Paper}>
+                    <Table>
+                      <TableBody>
+                        <TableRowsSkeleton rows={4} columns={5} />
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
                 </Box>
               ) : (
                 <>
@@ -1247,8 +1256,17 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
 
               {/* Resumen de pagos */}
               {loadingPayments ? (
-                <Box display="flex" justifyContent="center" p={3}>
-                  <CircularProgress />
+                <Box>
+                  <ChartSkeleton height={220} />
+                  <Box sx={{ mt: 3 }}>
+                    <TableContainer component={Paper}>
+                      <Table size="small">
+                        <TableBody>
+                          <TableRowsSkeleton rows={4} columns={4} />
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+                  </Box>
                 </Box>
               ) : paymentSummary.length === 0 ? (
                 <Box

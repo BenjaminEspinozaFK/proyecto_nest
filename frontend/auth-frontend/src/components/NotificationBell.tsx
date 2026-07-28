@@ -7,7 +7,7 @@ import {
   Typography,
   Button,
   Divider,
-  CircularProgress,
+  Skeleton,
 } from "@mui/material";
 import { Notifications as NotificationsIcon } from "@mui/icons-material";
 import { notificationService } from "../services/notificationService";
@@ -155,8 +155,14 @@ const NotificationBell: React.FC<NotificationBellProps> = ({
         <Divider />
 
         {loading ? (
-          <Box sx={{ display: "flex", justifyContent: "center", py: 3 }}>
-            <CircularProgress size={24} />
+          <Box sx={{ px: 2, py: 1 }}>
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Box key={i} sx={{ py: 1.5 }}>
+                <Skeleton variant="text" width="60%" height={20} />
+                <Skeleton variant="text" width="90%" height={18} />
+                <Skeleton variant="text" width="30%" height={16} />
+              </Box>
+            ))}
           </Box>
         ) : notifications.length === 0 ? (
           <Box sx={{ py: 3, px: 2, textAlign: "center" }}>
