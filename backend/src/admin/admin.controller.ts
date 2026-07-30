@@ -48,8 +48,11 @@ export class AdminController {
 
   @Post('users')
   @Roles('admin')
-  async createUser(@Body() user: CreateUserDto) {
-    return await this.adminsService.createUser(user);
+  async createUser(@Body() user: CreateUserDto, @Req() req: any) {
+    return await this.adminsService.createUser(user, {
+      id: req.user?.userId,
+      name: req.user?.name,
+    });
   }
 
   @Post('users/bulk-excel')
@@ -72,8 +75,14 @@ export class AdminController {
       limits: { fileSize: 5 * 1024 * 1024 },
     }),
   )
-  async bulkCreateUsersFromExcel(@UploadedFile() file: Express.Multer.File) {
-    return await this.adminsService.bulkCreateUsersFromExcel(file.buffer);
+  async bulkCreateUsersFromExcel(
+    @UploadedFile() file: Express.Multer.File,
+    @Req() req: any,
+  ) {
+    return await this.adminsService.bulkCreateUsersFromExcel(file.buffer, {
+      id: req.user?.userId,
+      name: req.user?.name,
+    });
   }
 
   @Get('users/search')
@@ -100,7 +109,10 @@ export class AdminController {
   @Roles('admin')
   async updateMyProfile(@Req() req: any, @Body() updateData: UpdateAdminDto) {
     const adminId = req.user?.userId as string;
-    return this.adminsService.updateAdmin(adminId, updateData);
+    return this.adminsService.updateAdmin(adminId, updateData, {
+      id: adminId,
+      name: req.user?.name,
+    });
   }
 
   @Post('me/avatar')
@@ -122,20 +134,33 @@ export class AdminController {
 
   @Post()
   @Roles('admin')
-  async createAdmin(@Body() admin: CreateAdminDto) {
-    return this.adminsService.createAdmin(admin);
+  async createAdmin(@Body() admin: CreateAdminDto, @Req() req: any) {
+    return this.adminsService.createAdmin(admin, {
+      id: req.user?.userId,
+      name: req.user?.name,
+    });
   }
 
   @Put(':id')
   @Roles('admin')
-  async updateAdmin(@Param('id') id: string, @Body() admin: UpdateAdminDto) {
-    return this.adminsService.updateAdmin(id, admin);
+  async updateAdmin(
+    @Param('id') id: string,
+    @Body() admin: UpdateAdminDto,
+    @Req() req: any,
+  ) {
+    return this.adminsService.updateAdmin(id, admin, {
+      id: req.user?.userId,
+      name: req.user?.name,
+    });
   }
 
   @Delete(':id')
   @Roles('admin')
-  async deleteAdmin(@Param('id') id: string) {
-    return this.adminsService.deleteAdmin(id);
+  async deleteAdmin(@Param('id') id: string, @Req() req: any) {
+    return this.adminsService.deleteAdmin(id, {
+      id: req.user?.userId,
+      name: req.user?.name,
+    });
   }
 
   @Put('users/:id')
@@ -143,14 +168,21 @@ export class AdminController {
   async updateUser(
     @Param('id') id: string,
     @Body() user: UpdateUserByAdminDto,
+    @Req() req: any,
   ) {
-    return await this.adminsService.updateUser(id, user);
+    return await this.adminsService.updateUser(id, user, {
+      id: req.user?.userId,
+      name: req.user?.name,
+    });
   }
 
   @Delete('users/:id')
   @Roles('admin')
-  async deleteUser(@Param('id') id: string) {
-    return await this.adminsService.deleteUser(id);
+  async deleteUser(@Param('id') id: string, @Req() req: any) {
+    return await this.adminsService.deleteUser(id, {
+      id: req.user?.userId,
+      name: req.user?.name,
+    });
   }
 
   @Patch('me/change-password')

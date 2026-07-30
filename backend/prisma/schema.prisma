@@ -59,6 +59,7 @@ model Admin {
   deletedAt            DateTime?
   notifications        Notification[]
   pushSubscriptions    PushSubscription[]
+  auditLogs            AuditLog[]
 }
 
 model GasVoucher {
@@ -146,4 +147,20 @@ model PushSubscription {
 
   @@index([userId])
   @@index([adminId])
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  adminId     String
+  adminName   String?
+  action      String
+  entityType  String
+  entityId    String?
+  description String
+  createdAt   DateTime @default(now())
+  admin       Admin    @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@index([adminId])
+  @@index([entityType])
+  @@index([createdAt])
 }

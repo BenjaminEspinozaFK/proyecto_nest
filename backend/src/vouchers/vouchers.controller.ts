@@ -94,7 +94,12 @@ export class VouchersController {
     @Req() req: RequestWithUser,
   ) {
     const adminId = req.user.userId;
-    return this.vouchersService.approveVoucher(id, approveVoucherDto, adminId);
+    return this.vouchersService.approveVoucher(
+      id,
+      approveVoucherDto,
+      adminId,
+      req.user.name,
+    );
   }
 
   // Admin: Rechazar vale
@@ -107,15 +112,24 @@ export class VouchersController {
     @Req() req: RequestWithUser,
   ) {
     const adminId = req.user.userId;
-    return this.vouchersService.rejectVoucher(id, rejectVoucherDto, adminId);
+    return this.vouchersService.rejectVoucher(
+      id,
+      rejectVoucherDto,
+      adminId,
+      req.user.name,
+    );
   }
 
   // Admin: Marcar como entregado
   @Patch(':id/deliver')
   @UseGuards(RolesGuard)
   @Roles('admin')
-  async markAsDelivered(@Param('id') id: string) {
-    return this.vouchersService.markAsDelivered(id);
+  async markAsDelivered(@Param('id') id: string, @Req() req: RequestWithUser) {
+    return this.vouchersService.markAsDelivered(
+      id,
+      req.user.userId,
+      req.user.name,
+    );
   }
 
   // Admin: Crear vale manual
@@ -134,6 +148,7 @@ export class VouchersController {
       body.amount,
       adminId,
       body.notes,
+      req.user.name,
     );
   }
 

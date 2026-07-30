@@ -32,7 +32,11 @@ export class MonthlyPaymentsController {
     @Req() req: RequestWithUser,
   ) {
     const adminId = req.user.userId;
-    return this.monthlyPaymentsService.createPayment(createDto, adminId);
+    return this.monthlyPaymentsService.createPayment(
+      createDto,
+      adminId,
+      req.user.name,
+    );
   }
 
   // Admin: Obtener todos los pagos del sistema (para gráficos de tendencia)
@@ -91,15 +95,25 @@ export class MonthlyPaymentsController {
   async updatePayment(
     @Param('id') id: string,
     @Body() updateDto: UpdateMonthlyPaymentDto,
+    @Req() req: RequestWithUser,
   ) {
-    return this.monthlyPaymentsService.updatePayment(id, updateDto);
+    return this.monthlyPaymentsService.updatePayment(
+      id,
+      updateDto,
+      req.user.userId,
+      req.user.name,
+    );
   }
 
   // Admin: Eliminar un pago
   @Delete(':id')
   @Roles('admin')
-  async deletePayment(@Param('id') id: string) {
-    return this.monthlyPaymentsService.deletePayment(id);
+  async deletePayment(@Param('id') id: string, @Req() req: RequestWithUser) {
+    return this.monthlyPaymentsService.deletePayment(
+      id,
+      req.user.userId,
+      req.user.name,
+    );
   }
 
   // Usuario: Obtener mis propios pagos

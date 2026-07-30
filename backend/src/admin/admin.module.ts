@@ -13,9 +13,10 @@ import { RolesGuard } from 'src/auth/roles.guard';
 import { EmailModule } from '../email/email.module';
 import { ADMIN_REPOSITORY } from './admin.tokens';
 import { PrismaAdminRepository } from './infrastructure/prisma-admin.repository';
+import { AuditLogModule } from '../audit-log/audit-log.module';
 
 @Module({
-  imports: [PassportModule, EmailModule],
+  imports: [PassportModule, EmailModule, AuditLogModule],
   controllers: [AdminController],
   providers: [
     AdminService,
