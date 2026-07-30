@@ -46,12 +46,14 @@ import {
   Palette,
   Search,
   FilterAltOff,
+  History,
 } from "@mui/icons-material";
 import UserDetailModal from "./admin/UserDetailModal";
 import AdminStats from "./admin/Stats";
 import AdminProfile from "./admin/Profile";
 import CreateUserModal from "./admin/CreateUserModal";
 import VoucherRequests from "./admin/VoucherRequests";
+import AdminAuditLog from "./admin/AuditLog";
 import NotificationBell from "./NotificationBell";
 import { usePushNotifications } from "../hooks/usePushNotifications";
 import TableRowsSkeleton from "./skeletons/TableRowsSkeleton";
@@ -460,6 +462,11 @@ const AdminDashboard: React.FC = () => {
               iconPosition="start"
               label="Estadísticas"
             />
+            <Tab
+              icon={<History />}
+              iconPosition="start"
+              label="Auditoría"
+            />
           </Tabs>
         </Paper>
 
@@ -609,6 +616,8 @@ const AdminDashboard: React.FC = () => {
         {tabValue === 1 && <VoucherRequests />}
 
         {tabValue === 2 && <AdminStats />}
+
+        {tabValue === 3 && <AdminAuditLog />}
 
         {/* Modal de perfil */}
         {showProfile && (
