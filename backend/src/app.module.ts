@@ -10,6 +10,7 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { PushModule } from './push/push.module';
 import { AuditLogModule } from './audit-log/audit-log.module';
 import { PrismaModule } from './prisma.module';
+import { RedisCacheModule } from './cache/redis-cache.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { PrismaModule } from './prisma.module';
         limit: 100,
       },
     ]),
+    RedisCacheModule,
     PrismaModule,
     AdminModule,
     UsersModule,
