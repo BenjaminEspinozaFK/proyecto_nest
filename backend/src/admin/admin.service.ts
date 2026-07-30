@@ -18,11 +18,16 @@ import * as XLSX from 'xlsx';
 import { EmailService } from '../email/email.service';
 import { AdminChangePasswordDto } from './dto/admin-change-password.dto';
 import { AuditLogService } from '../audit-log/audit-log.service';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import type { Cache } from 'cache-manager';
 
 interface ActingAdmin {
   id: string;
   name?: string;
 }
+
+const ADMIN_STATS_CACHE_KEY = 'admin:stats';
+const ADMIN_STATS_TTL = 60_000; // 60 segundos
 
 @Injectable()
 export class AdminService {
@@ -30,7 +35,12 @@ export class AdminService {
     @Inject(ADMIN_REPOSITORY) private adminRepository: AdminRepositoryPort,
     private emailService: EmailService,
     private auditLogService: AuditLogService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
+
+  private async invalidateStatsCache(): Promise<void> {
+    await this.cacheManager.del(ADMIN_STATS_CACHE_KEY);
+  }
 
   /**
    * Genera una contraseña temporal segura
@@ -104,6 +114,7 @@ export class AdminService {
       `Creó al administrador ${newAdmin.email}`,
       newAdmin.id,
     );
+    await this.invalidateStatsCache();
 
     return newAdmin;
   }
@@ -134,6 +145,7 @@ export class AdminService {
       `Actualizó al administrador ${updatedAdmin.email}`,
       id,
     );
+    await this.invalidateStatsCache();
 
     return updatedAdmin;
   }
@@ -158,11 +170,17 @@ export class AdminService {
       `Eliminó al administrador ${adminExists.email}`,
       id,
     );
+    await this.invalidateStatsCache();
 
     return { message: `Admin con ID ${id} eliminado` };
   }
 
   async getStats() {
+    const cached = await this.cacheManager.get(ADMIN_STATS_CACHE_KEY);
+    if (cached) {
+      return cached;
+    }
+
     const totalUsers = await this.adminRepository.countUsers();
     const totalAdmins = await this.adminRepository.countAdmins();
 
@@ -192,7 +210,7 @@ export class AdminService {
     // Usuarios por rol
     const usersByRole = await this.adminRepository.groupUsersByRole();
 
-    return {
+    const stats = {
       totalUsers,
       totalAdmins,
       usersToday,
@@ -202,6 +220,10 @@ export class AdminService {
       recentLogins,
       usersByRole,
     };
+
+    await this.cacheManager.set(ADMIN_STATS_CACHE_KEY, stats, ADMIN_STATS_TTL);
+
+    return stats;
   }
 
   async getAllUsers() {
@@ -248,6 +270,7 @@ export class AdminService {
       `Actualizó al usuario ${updatedUser.email}`,
       id,
     );
+    await this.invalidateStatsCache();
 
     return updatedUser;
   }
@@ -269,6 +292,7 @@ export class AdminService {
       `Eliminó al usuario ${userFound.email}`,
       id,
     );
+    await this.invalidateStatsCache();
 
     return { message: `Usuario con ID ${id} eliminado` };
   }
@@ -333,6 +357,7 @@ export class AdminService {
       `Creó al usuario ${newUser.email}`,
       newUser.id,
     );
+    await this.invalidateStatsCache();
 
     return newUser;
   }
@@ -503,6 +528,9 @@ export class AdminService {
         'User',
         `Importó ${results.success.length} usuarios desde Excel (${results.errors.length} errores de ${results.total} filas)`,
       );
+      if (results.success.length > 0) {
+        await this.invalidateStatsCache();
+      }
 
       return {
         message: `Procesados ${results.total} registros: ${results.success.length} exitosos, ${results.errors.length} con errores`,
