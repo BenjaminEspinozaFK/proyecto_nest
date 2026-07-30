@@ -7,11 +7,13 @@ import {
   Post,
   Put,
   Req,
+  Query,
   UploadedFile,
   UseGuards,
   UseInterceptors,
   Patch,
 } from '@nestjs/common';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { avatarMulterConfig } from 'src/common/multer-avatar.config';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { UsersService } from './user.service';
@@ -59,8 +61,8 @@ export class UsersController {
   }
 
   @Get()
-  async getUsers() {
-    return this.usersService.getUsers();
+  async getUsers(@Query() query: PaginationDto) {
+    return this.usersService.getUsers(query.page ?? 1, query.limit ?? 20);
   }
 
   @Get(':id')

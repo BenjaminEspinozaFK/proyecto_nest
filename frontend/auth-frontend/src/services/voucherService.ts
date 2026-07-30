@@ -8,6 +8,11 @@ import {
   CreateManualVoucherRequest,
 } from "../types/voucher";
 
+interface PaginatedResponse<T> {
+  data: T[];
+  meta: { total: number; page: number; limit: number; totalPages: number };
+}
+
 class VoucherService {
   // Funcionario: Solicitar vale
   async requestVoucher(data: CreateVoucherRequest): Promise<GasVoucher> {
@@ -33,10 +38,12 @@ class VoucherService {
     return response.data;
   }
 
-  // Admin: Ver todos los vales
-  async getAllVouchers(): Promise<GasVoucher[]> {
-    const response = await api.get<GasVoucher[]>("/vouchers/all");
-    return response.data;
+  // Admin: Ver todos los vales (limit alto para vista completa / estadísticas)
+  async getAllVouchers(limit = 500): Promise<GasVoucher[]> {
+    const response = await api.get<PaginatedResponse<GasVoucher>>(
+      `/vouchers/all?page=1&limit=${limit}`,
+    );
+    return response.data.data;
   }
 
   // Admin: Ver vales de un usuario específico

@@ -11,6 +11,7 @@ import {
   UpdateUserByAdminInput,
   UsersByRoleItem,
 } from './admin.types';
+import type { PaginatedResult } from '../../common/interfaces/paginated-result.interface';
 
 export interface AdminRepositoryPort {
   findAdmins(): Promise<AdminPublic[]>;
@@ -30,7 +31,7 @@ export interface AdminRepositoryPort {
   findRecentLogins(limit: number): Promise<AdminUserLogin[]>;
   groupUsersByRole(): Promise<UsersByRoleItem[]>;
 
-  findAllUsers(): Promise<AdminUserList[]>;
+  findAllUsers(page: number, limit: number): Promise<PaginatedResult<AdminUserList>>;
   findUserById(id: string): Promise<AdminUserList | null>;
   findUserByEmail(email: string): Promise<AdminUserList | null>;
   createUserByAdmin(data: CreateUserByAdminInput): Promise<AdminUserCreated>;

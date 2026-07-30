@@ -34,8 +34,8 @@ export const adminService = {
 
   async getUsers() {
     try {
-      const response = await api.get("/admins/users");
-      return response.data;
+      const response = await api.get("/admins/users?page=1&limit=1000");
+      return response.data.data;
     } catch (error: any) {
       throw new Error(error.response?.data?.message || "Error fetching users");
     }

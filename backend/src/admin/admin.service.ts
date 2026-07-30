@@ -226,8 +226,8 @@ export class AdminService {
     return stats;
   }
 
-  async getAllUsers() {
-    return await this.adminRepository.findAllUsers();
+  async getAllUsers(page: number, limit: number) {
+    return await this.adminRepository.findAllUsers(page, limit);
   }
 
   async updateUser(

@@ -19,8 +19,8 @@ export class UsersService {
     @Inject(USER_REPOSITORY) private userRepository: UserRepositoryPort,
   ) {}
 
-  async getUsers() {
-    return this.userRepository.findAll();
+  async getUsers(page: number, limit: number) {
+    return this.userRepository.findAll(page, limit);
   }
 
   async getUserById(id: string) {
