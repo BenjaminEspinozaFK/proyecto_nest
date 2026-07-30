@@ -4,17 +4,23 @@ import { UpdateMonthlyPaymentDto } from './dto/update-monthly-payment.dto';
 import { MonthlyPaymentsRepositoryPort } from './domain/monthly-payment.repository';
 import { MONTHLY_PAYMENTS_REPOSITORY } from './monthly-payments.tokens';
 import { UpdateMonthlyPaymentInput } from './domain/monthly-payment.types';
+import { AuditLogService } from '../audit-log/audit-log.service';
 
 @Injectable()
 export class MonthlyPaymentsService {
   constructor(
     @Inject(MONTHLY_PAYMENTS_REPOSITORY)
     private monthlyPaymentsRepository: MonthlyPaymentsRepositoryPort,
+    private auditLogService: AuditLogService,
   ) {}
 
   // Crear un registro de pago mensual
-  async createPayment(createDto: CreateMonthlyPaymentDto, createdBy: string) {
-    return this.monthlyPaymentsRepository.createPayment({
+  async createPayment(
+    createDto: CreateMonthlyPaymentDto,
+    createdBy: string,
+    adminName?: string,
+  ) {
+    const payment = await this.monthlyPaymentsRepository.createPayment({
       userId: createDto.userId,
       year: createDto.year,
       month: createDto.month,
@@ -22,6 +28,17 @@ export class MonthlyPaymentsService {
       description: createDto.description,
       createdBy,
     });
+
+    await this.auditLogService.log(
+      createdBy,
+      adminName,
+      'payment.create',
+      'MonthlyPayment',
+      `Registró un pago de $${createDto.amount.toLocaleString()} (${createDto.month}/${createDto.year}) para ${payment.user?.name || 'un usuario'}`,
+      payment.id,
+    );
+
+    return payment;
   }
 
   // Admin: Obtener todos los pagos del sistema
@@ -62,18 +79,48 @@ export class MonthlyPaymentsService {
   }
 
   // Actualizar un pago
-  async updatePayment(id: string, updateDto: UpdateMonthlyPaymentDto) {
+  async updatePayment(
+    id: string,
+    updateDto: UpdateMonthlyPaymentDto,
+    adminId: string,
+    adminName?: string,
+  ) {
     const updateData: UpdateMonthlyPaymentInput = {
       amount: updateDto.amount,
       description: updateDto.description,
     };
 
-    return this.monthlyPaymentsRepository.updatePayment(id, updateData);
+    const payment = await this.monthlyPaymentsRepository.updatePayment(
+      id,
+      updateData,
+    );
+
+    await this.auditLogService.log(
+      adminId,
+      adminName,
+      'payment.update',
+      'MonthlyPayment',
+      `Actualizó el pago de ${payment.user?.name || 'un usuario'} (${payment.month}/${payment.year}) a $${payment.amount.toLocaleString()}`,
+      payment.id,
+    );
+
+    return payment;
   }
 
   // Eliminar un pago
-  async deletePayment(id: string) {
-    return this.monthlyPaymentsRepository.deletePayment(id);
+  async deletePayment(id: string, adminId: string, adminName?: string) {
+    const payment = await this.monthlyPaymentsRepository.deletePayment(id);
+
+    await this.auditLogService.log(
+      adminId,
+      adminName,
+      'payment.delete',
+      'MonthlyPayment',
+      `Eliminó el pago de ${payment.user?.name || 'un usuario'} (${payment.month}/${payment.year}) por $${payment.amount.toLocaleString()}`,
+      id,
+    );
+
+    return payment;
   }
 
   // Obtener resumen de pagos por año

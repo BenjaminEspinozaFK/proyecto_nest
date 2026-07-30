@@ -7,6 +7,7 @@ import { VouchersRepositoryPort } from './domain/voucher.repository';
 import { VOUCHERS_REPOSITORY } from './vouchers.tokens';
 import { NotificationsService } from '../notifications/notifications.service';
 import { PushService } from '../push/push.service';
+import { AuditLogService } from '../audit-log/audit-log.service';
 
 @Injectable()
 export class VouchersService {
@@ -16,6 +17,7 @@ export class VouchersService {
     private vouchersGateway: VouchersGateway,
     private notificationsService: NotificationsService,
     private pushService: PushService,
+    private auditLogService: AuditLogService,
   ) {}
 
   // Funcionario solicita un vale
@@ -72,6 +74,7 @@ export class VouchersService {
     voucherId: string,
     approveVoucherDto: ApproveVoucherDto,
     adminId: string,
+    adminName?: string,
   ) {
     const voucher = await this.vouchersRepository.approveVoucher(
       voucherId,
@@ -82,6 +85,15 @@ export class VouchersService {
 
     // Emitir evento de vale aprobado
     this.vouchersGateway.notifyVoucherApproved(voucher);
+
+    await this.auditLogService.log(
+      adminId,
+      adminName,
+      'voucher.approve',
+      'GasVoucher',
+      `Aprobó el vale de ${voucher.user?.name || 'un usuario'} por $${approveVoucherDto.amount.toLocaleString()}`,
+      voucher.id,
+    );
 
     // Notificar al usuario
     const approvedTitle = 'Vale aprobado';
@@ -112,6 +124,7 @@ export class VouchersService {
     voucherId: string,
     rejectVoucherDto: RejectVoucherDto,
     adminId: string,
+    adminName?: string,
   ) {
     const voucher = await this.vouchersRepository.rejectVoucher(
       voucherId,
@@ -121,6 +134,15 @@ export class VouchersService {
 
     // Emitir evento de vale rechazado
     this.vouchersGateway.notifyVoucherRejected(voucher);
+
+    await this.auditLogService.log(
+      adminId,
+      adminName,
+      'voucher.reject',
+      'GasVoucher',
+      `Rechazó el vale de ${voucher.user?.name || 'un usuario'}${rejectVoucherDto.notes ? `: ${rejectVoucherDto.notes}` : ''}`,
+      voucher.id,
+    );
 
     // Notificar al usuario
     const rejectedTitle = 'Vale rechazado';
@@ -149,11 +171,24 @@ export class VouchersService {
   }
 
   // Admin: Marcar como entregado
-  async markAsDelivered(voucherId: string) {
+  async markAsDelivered(
+    voucherId: string,
+    adminId: string,
+    adminName?: string,
+  ) {
     const voucher = await this.vouchersRepository.markAsDelivered(voucherId);
 
     // Emitir evento de vale entregado
     this.vouchersGateway.notifyVoucherDelivered(voucher);
+
+    await this.auditLogService.log(
+      adminId,
+      adminName,
+      'voucher.deliver',
+      'GasVoucher',
+      `Marcó como entregado el vale de ${voucher.user?.name || 'un usuario'}`,
+      voucher.id,
+    );
 
     // Notificar al usuario
     const deliveredTitle = 'Vale entregado';
@@ -186,14 +221,26 @@ export class VouchersService {
     amount: number,
     adminId: string,
     notes?: string,
+    adminName?: string,
   ) {
-    return this.vouchersRepository.createManualVoucher(
+    const voucher = await this.vouchersRepository.createManualVoucher(
       userId,
       kilos,
       amount,
       adminId,
       notes,
     );
+
+    await this.auditLogService.log(
+      adminId,
+      adminName,
+      'voucher.manual-create',
+      'GasVoucher',
+      `Creó un vale manual de ${kilos} kg por $${amount.toLocaleString()} para ${voucher.user?.name || 'un usuario'}`,
+      voucher.id,
+    );
+
+    return voucher;
   }
 
   // Estadísticas de un usuario

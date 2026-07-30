@@ -17,12 +17,19 @@ import * as bcrypt from 'bcryptjs';
 import * as XLSX from 'xlsx';
 import { EmailService } from '../email/email.service';
 import { AdminChangePasswordDto } from './dto/admin-change-password.dto';
+import { AuditLogService } from '../audit-log/audit-log.service';
+
+interface ActingAdmin {
+  id: string;
+  name?: string;
+}
 
 @Injectable()
 export class AdminService {
   constructor(
     @Inject(ADMIN_REPOSITORY) private adminRepository: AdminRepositoryPort,
     private emailService: EmailService,
+    private auditLogService: AuditLogService,
   ) {}
 
   /**
@@ -68,7 +75,7 @@ export class AdminService {
     return adminFound;
   }
 
-  async createAdmin(admin: CreateAdminDto) {
+  async createAdmin(admin: CreateAdminDto, actingAdmin: ActingAdmin) {
     // Busca si ya existe un administrador con el mismo email
     const adminExists = await this.adminRepository.findAdminByEmail(
       admin.email,
@@ -89,10 +96,23 @@ export class AdminService {
       password: hashedPassword,
     });
 
+    await this.auditLogService.log(
+      actingAdmin.id,
+      actingAdmin.name,
+      'admin.create',
+      'Admin',
+      `Creó al administrador ${newAdmin.email}`,
+      newAdmin.id,
+    );
+
     return newAdmin;
   }
 
-  async updateAdmin(id: string, adminData: UpdateAdminDto) {
+  async updateAdmin(
+    id: string,
+    adminData: UpdateAdminDto,
+    actingAdmin: ActingAdmin,
+  ) {
     const adminExists = await this.adminRepository.findAdminById(id);
     if (!adminExists) {
       throw new NotFoundException(`Administrador con ID ${id} no encontrado`);
@@ -105,10 +125,23 @@ export class AdminService {
     }
 
     const updatedAdmin = await this.adminRepository.updateAdmin(id, updateData);
+
+    await this.auditLogService.log(
+      actingAdmin.id,
+      actingAdmin.name,
+      'admin.update',
+      'Admin',
+      `Actualizó al administrador ${updatedAdmin.email}`,
+      id,
+    );
+
     return updatedAdmin;
   }
 
-  async deleteAdmin(id: string): Promise<{ message: string }> {
+  async deleteAdmin(
+    id: string,
+    actingAdmin: ActingAdmin,
+  ): Promise<{ message: string }> {
     const adminExists = await this.adminRepository.findAdminById(id);
 
     if (!adminExists) {
@@ -116,6 +149,15 @@ export class AdminService {
     }
 
     await this.adminRepository.deleteAdmin(id);
+
+    await this.auditLogService.log(
+      actingAdmin.id,
+      actingAdmin.name,
+      'admin.delete',
+      'Admin',
+      `Eliminó al administrador ${adminExists.email}`,
+      id,
+    );
 
     return { message: `Admin con ID ${id} eliminado` };
   }
@@ -166,7 +208,11 @@ export class AdminService {
     return await this.adminRepository.findAllUsers();
   }
 
-  async updateUser(id: string, userData: UpdateUserByAdminDto) {
+  async updateUser(
+    id: string,
+    userData: UpdateUserByAdminDto,
+    actingAdmin: ActingAdmin,
+  ) {
     const userFound = await this.adminRepository.findUserById(id);
 
     if (!userFound) {
@@ -194,10 +240,19 @@ export class AdminService {
       dataToUpdate,
     );
 
+    await this.auditLogService.log(
+      actingAdmin.id,
+      actingAdmin.name,
+      'user.update',
+      'User',
+      `Actualizó al usuario ${updatedUser.email}`,
+      id,
+    );
+
     return updatedUser;
   }
 
-  async deleteUser(id: string) {
+  async deleteUser(id: string, actingAdmin: ActingAdmin) {
     const userFound = await this.adminRepository.findUserById(id);
 
     if (!userFound) {
@@ -205,6 +260,16 @@ export class AdminService {
     }
 
     await this.adminRepository.deleteUser(id);
+
+    await this.auditLogService.log(
+      actingAdmin.id,
+      actingAdmin.name,
+      'user.delete',
+      'User',
+      `Eliminó al usuario ${userFound.email}`,
+      id,
+    );
+
     return { message: `Usuario con ID ${id} eliminado` };
   }
 
@@ -219,7 +284,7 @@ export class AdminService {
     return { admin: updatedAdmin, avatar: avatarUrl };
   }
 
-  async createUser(user: CreateUserDto) {
+  async createUser(user: CreateUserDto, actingAdmin: ActingAdmin) {
     // Busca si ya existe un usuario con el mismo email
     const userExists = await this.adminRepository.findUserByEmail(user.email);
 
@@ -260,6 +325,15 @@ export class AdminService {
       }
     }
 
+    await this.auditLogService.log(
+      actingAdmin.id,
+      actingAdmin.name,
+      'user.create',
+      'User',
+      `Creó al usuario ${newUser.email}`,
+      newUser.id,
+    );
+
     return newUser;
   }
 
@@ -296,7 +370,7 @@ export class AdminService {
     return { message: 'Contraseña actualizada exitosamente' };
   }
 
-  async bulkCreateUsersFromExcel(buffer: Buffer) {
+  async bulkCreateUsersFromExcel(buffer: Buffer, actingAdmin: ActingAdmin) {
     try {
       // Leer el archivo Excel desde el buffer
       const workbook = XLSX.read(buffer, { type: 'buffer' });
@@ -421,6 +495,14 @@ export class AdminService {
           });
         }
       }
+
+      await this.auditLogService.log(
+        actingAdmin.id,
+        actingAdmin.name,
+        'user.bulk-create',
+        'User',
+        `Importó ${results.success.length} usuarios desde Excel (${results.errors.length} errores de ${results.total} filas)`,
+      );
 
       return {
         message: `Procesados ${results.total} registros: ${results.success.length} exitosos, ${results.errors.length} con errores`,

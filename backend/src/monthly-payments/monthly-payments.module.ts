@@ -4,9 +4,10 @@ import { MonthlyPaymentsService } from './monthly-payments.service';
 import { AuthModule } from '../auth/auth.module';
 import { MONTHLY_PAYMENTS_REPOSITORY } from './monthly-payments.tokens';
 import { PrismaMonthlyPaymentsRepository } from './infrastructure/prisma-monthly-payments.repository';
+import { AuditLogModule } from '../audit-log/audit-log.module';
 
 @Module({
-  imports: [AuthModule],
+  imports: [AuthModule, AuditLogModule],
   controllers: [MonthlyPaymentsController],
   providers: [
     MonthlyPaymentsService,

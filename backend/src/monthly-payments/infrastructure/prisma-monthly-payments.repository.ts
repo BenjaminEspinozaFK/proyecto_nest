@@ -117,6 +117,9 @@ export class PrismaMonthlyPaymentsRepository
   async deletePayment(id: string): Promise<MonthlyPayment> {
     return this.prisma.monthlyPayment.delete({
       where: { id },
+      include: {
+        user: { select: this.userSelect },
+      },
     });
   }
 
