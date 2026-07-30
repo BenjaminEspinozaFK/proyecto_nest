@@ -8,6 +8,11 @@ import { VOUCHERS_REPOSITORY } from './vouchers.tokens';
 import { NotificationsService } from '../notifications/notifications.service';
 import { PushService } from '../push/push.service';
 import { AuditLogService } from '../audit-log/audit-log.service';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import type { Cache } from 'cache-manager';
+
+const VOUCHERS_STATS_CACHE_KEY = 'vouchers:stats:general';
+const VOUCHERS_STATS_TTL = 60_000; // 60 segundos
 
 @Injectable()
 export class VouchersService {
@@ -18,7 +23,12 @@ export class VouchersService {
     private notificationsService: NotificationsService,
     private pushService: PushService,
     private auditLogService: AuditLogService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
+
+  private async invalidateStatsCache(): Promise<void> {
+    await this.cacheManager.del(VOUCHERS_STATS_CACHE_KEY);
+  }
 
   // Funcionario solicita un vale
   async requestVoucher(userId: string, createVoucherDto: CreateVoucherDto) {
@@ -50,6 +60,8 @@ export class VouchersService {
     } catch (error) {
       console.error('Error enviando push a admins:', error);
     }
+
+    await this.invalidateStatsCache();
 
     return voucher;
   }
@@ -116,6 +128,8 @@ export class VouchersService {
       console.error('Error enviando push al usuario:', error);
     }
 
+    await this.invalidateStatsCache();
+
     return voucher;
   }
 
@@ -167,6 +181,8 @@ export class VouchersService {
       console.error('Error enviando push al usuario:', error);
     }
 
+    await this.invalidateStatsCache();
+
     return voucher;
   }
 
@@ -211,6 +227,8 @@ export class VouchersService {
       console.error('Error enviando push al usuario:', error);
     }
 
+    await this.invalidateStatsCache();
+
     return voucher;
   }
 
@@ -239,6 +257,7 @@ export class VouchersService {
       `Creó un vale manual de ${kilos} kg por $${amount.toLocaleString()} para ${voucher.user?.name || 'un usuario'}`,
       voucher.id,
     );
+    await this.invalidateStatsCache();
 
     return voucher;
   }
@@ -267,7 +286,21 @@ export class VouchersService {
   }
 
   // Estadísticas generales (para admin)
-  getGeneralStats() {
-    return this.vouchersRepository.getVoucherStats();
+  // Estadísticas generales (para admin)
+  async getGeneralStats() {
+    const cached = await this.cacheManager.get(VOUCHERS_STATS_CACHE_KEY);
+    if (cached) {
+      return cached;
+    }
+
+    const stats = await this.vouchersRepository.getVoucherStats();
+
+    await this.cacheManager.set(
+      VOUCHERS_STATS_CACHE_KEY,
+      stats,
+      VOUCHERS_STATS_TTL,
+    );
+
+    return stats;
   }
 }
