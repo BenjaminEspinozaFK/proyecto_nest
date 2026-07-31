@@ -22,8 +22,9 @@ import {
   Select,
   MenuItem,
   Skeleton,
+  Checkbox,
 } from "@mui/material";
-import { Search, FilterAltOff } from "@mui/icons-material";
+import { Search, FilterAltOff, CheckCircle, Cancel } from "@mui/icons-material";
 import { voucherService } from "../../services/voucherService";
 import { GasVoucher, VoucherStats } from "../../types/voucher";
 import { useSocket } from "../../hooks/useSocket";
@@ -66,6 +67,13 @@ const VoucherRequests: React.FC = () => {
   );
   const [amount, setAmount] = useState("");
   const [notes, setNotes] = useState("");
+
+  // Estados para selección y acciones en lote
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [bulkApproveDialog, setBulkApproveDialog] = useState(false);
+  const [bulkAmount, setBulkAmount] = useState("");
+  const [bulkNotes, setBulkNotes] = useState("");
+  const [bulkProcessing, setBulkProcessing] = useState(false);
 
   // Socket.IO para actualizaciones en tiempo real (admin)
   const socket = useSocket(undefined, true);
@@ -120,6 +128,7 @@ const VoucherRequests: React.FC = () => {
       ]);
       setAllVouchers(all);
       setStats(statsData);
+      setSelectedIds([]);
     } catch (error) {
       console.error("Error al cargar vales:", error);
       setError("Error al cargar las solicitudes");
@@ -184,6 +193,80 @@ const VoucherRequests: React.FC = () => {
     setApproveDialog(true);
   };
 
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
+  };
+
+  const toggleSelectAllPending = (pendingIds: string[]) => {
+    const allSelected = pendingIds.every((id) => selectedIds.includes(id));
+    setSelectedIds(allSelected ? [] : pendingIds);
+  };
+
+  const clearSelection = () => setSelectedIds([]);
+
+  const handleBulkApprove = async () => {
+    if (selectedIds.length === 0 || !bulkAmount) return;
+
+    setBulkProcessing(true);
+    try {
+      const result = await voucherService.bulkApproveVouchers({
+        voucherIds: selectedIds,
+        amount: parseFloat(bulkAmount),
+        notes: bulkNotes || undefined,
+      });
+      setSuccess(
+        `${result.succeeded.length} vale(s) aprobado(s)` +
+          (result.failed.length > 0
+            ? `, ${result.failed.length} con error`
+            : ""),
+      );
+      setBulkApproveDialog(false);
+      setBulkAmount("");
+      setBulkNotes("");
+      clearSelection();
+      fetchData();
+      setTimeout(() => setSuccess(null), 4000);
+    } catch (error) {
+      setError("Error al aprobar los vales seleccionados");
+      console.error(error);
+    } finally {
+      setBulkProcessing(false);
+    }
+  };
+
+  const handleBulkReject = async () => {
+    if (selectedIds.length === 0) return;
+
+    const reason = window.prompt(
+      `Razón del rechazo para ${selectedIds.length} vale(s) (opcional):`,
+    );
+    if (reason === null) return; // Canceló el prompt
+
+    setBulkProcessing(true);
+    try {
+      const result = await voucherService.bulkRejectVouchers({
+        voucherIds: selectedIds,
+        notes: reason || undefined,
+      });
+      setSuccess(
+        `${result.succeeded.length} vale(s) rechazado(s)` +
+          (result.failed.length > 0
+            ? `, ${result.failed.length} con error`
+            : ""),
+      );
+      clearSelection();
+      fetchData();
+      setTimeout(() => setSuccess(null), 4000);
+    } catch (error) {
+      setError("Error al rechazar los vales seleccionados");
+      console.error(error);
+    } finally {
+      setBulkProcessing(false);
+    }
+  };
+
   if (loading) {
     return (
       <Box>
@@ -243,6 +326,10 @@ const VoucherRequests: React.FC = () => {
 
   const hasActiveFilters =
     statusFilter !== "pending" || searchTerm !== "" || dateFrom !== "" || dateTo !== "";
+
+  const pendingIdsInView = vouchersToShow
+    .filter((voucher) => voucher.status === "pending")
+    .map((voucher) => voucher.id);
 
   const clearFilters = () => {
     setStatusFilter("pending");
@@ -427,6 +514,47 @@ const VoucherRequests: React.FC = () => {
           </Typography>
         </Box>
 
+        {selectedIds.length > 0 && (
+          <Box
+            sx={{
+              p: 2,
+              display: "flex",
+              alignItems: "center",
+              gap: 2,
+              bgcolor: "action.selected",
+              borderBottom: 1,
+              borderColor: "divider",
+            }}
+          >
+            <Typography variant="body2" fontWeight="bold">
+              {selectedIds.length} vale(s) seleccionado(s)
+            </Typography>
+            <Button
+              size="small"
+              variant="contained"
+              color="success"
+              startIcon={<CheckCircle />}
+              onClick={() => setBulkApproveDialog(true)}
+              disabled={bulkProcessing}
+            >
+              Aprobar seleccionados
+            </Button>
+            <Button
+              size="small"
+              variant="outlined"
+              color="error"
+              startIcon={<Cancel />}
+              onClick={handleBulkReject}
+              disabled={bulkProcessing}
+            >
+              Rechazar seleccionados
+            </Button>
+            <Button size="small" onClick={clearSelection} disabled={bulkProcessing}>
+              Limpiar selección
+            </Button>
+          </Box>
+        )}
+
         {vouchersToShow.length === 0 ? (
           <Box sx={{ p: 4, textAlign: "center" }}>
             <Typography color="text.secondary">
@@ -440,6 +568,25 @@ const VoucherRequests: React.FC = () => {
             <Table>
               <TableHead>
                 <TableRow>
+                  <TableCell padding="checkbox">
+                    <Checkbox
+                      indeterminate={
+                        pendingIdsInView.length > 0 &&
+                        selectedIds.length > 0 &&
+                        !pendingIdsInView.every((id) =>
+                          selectedIds.includes(id)
+                        )
+                      }
+                      checked={
+                        pendingIdsInView.length > 0 &&
+                        pendingIdsInView.every((id) =>
+                          selectedIds.includes(id)
+                        )
+                      }
+                      disabled={pendingIdsInView.length === 0}
+                      onChange={() => toggleSelectAllPending(pendingIdsInView)}
+                    />
+                  </TableCell>
                   <TableCell>Funcionario</TableCell>
                   <TableCell>Email</TableCell>
                   <TableCell align="center">Fecha Solicitud</TableCell>
@@ -460,6 +607,13 @@ const VoucherRequests: React.FC = () => {
                           : "transparent",
                     }}
                   >
+                    <TableCell padding="checkbox">
+                      <Checkbox
+                        checked={selectedIds.includes(voucher.id)}
+                        disabled={voucher.status !== "pending"}
+                        onChange={() => toggleSelect(voucher.id)}
+                      />
+                    </TableCell>
                     <TableCell>
                       <Typography fontWeight="500">
                         {voucher.user?.name || "Usuario"}
@@ -597,6 +751,57 @@ const VoucherRequests: React.FC = () => {
             disabled={!amount}
           >
             Aprobar Vale
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Dialog para aprobar en lote */}
+      <Dialog
+        open={bulkApproveDialog}
+        onClose={() => setBulkApproveDialog(false)}
+      >
+        <DialogTitle>Aprobar Vales en Lote</DialogTitle>
+        <DialogContent>
+          <Box sx={{ pt: 2, minWidth: 400 }}>
+            <Typography variant="body2" color="text.secondary" gutterBottom>
+              Se aprobarán{" "}
+              <strong>{selectedIds.length} vale(s)</strong> con el mismo
+              monto.
+            </Typography>
+            <TextField
+              fullWidth
+              label="Monto (en pesos)"
+              type="number"
+              value={bulkAmount}
+              onChange={(e) => setBulkAmount(e.target.value)}
+              sx={{ mt: 2 }}
+              required
+            />
+            <TextField
+              fullWidth
+              label="Notas (opcional)"
+              multiline
+              rows={3}
+              value={bulkNotes}
+              onChange={(e) => setBulkNotes(e.target.value)}
+              sx={{ mt: 2 }}
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => setBulkApproveDialog(false)}
+            disabled={bulkProcessing}
+          >
+            Cancelar
+          </Button>
+          <Button
+            onClick={handleBulkApprove}
+            variant="contained"
+            color="success"
+            disabled={!bulkAmount || bulkProcessing}
+          >
+            Aprobar {selectedIds.length} Vale(s)
           </Button>
         </DialogActions>
       </Dialog>
