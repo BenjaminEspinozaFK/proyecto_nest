@@ -186,6 +186,62 @@ export class VouchersService {
     return voucher;
   }
 
+  // Admin: Aprobar vales en lote
+  async bulkApproveVouchers(
+    voucherIds: string[],
+    amount: number,
+    adminId: string,
+    notes?: string,
+    adminName?: string,
+  ) {
+    const succeeded: string[] = [];
+    const failed: { id: string; error: string }[] = [];
+
+    for (const voucherId of voucherIds) {
+      try {
+        await this.approveVoucher(
+          voucherId,
+          { amount, notes },
+          adminId,
+          adminName,
+        );
+        succeeded.push(voucherId);
+      } catch (error: any) {
+        failed.push({
+          id: voucherId,
+          error: error.message || 'Error desconocido',
+        });
+      }
+    }
+
+    return { succeeded, failed };
+  }
+
+  // Admin: Rechazar vales en lote
+  async bulkRejectVouchers(
+    voucherIds: string[],
+    adminId: string,
+    notes?: string,
+    adminName?: string,
+  ) {
+    const succeeded: string[] = [];
+    const failed: { id: string; error: string }[] = [];
+
+    for (const voucherId of voucherIds) {
+      try {
+        await this.rejectVoucher(voucherId, { notes }, adminId, adminName);
+        succeeded.push(voucherId);
+      } catch (error: any) {
+        failed.push({
+          id: voucherId,
+          error: error.message || 'Error desconocido',
+        });
+      }
+    }
+
+    return { succeeded, failed };
+  }
+
   // Admin: Marcar como entregado
   async markAsDelivered(
     voucherId: string,
@@ -285,7 +341,6 @@ export class VouchersService {
     };
   }
 
-  // Estadísticas generales (para admin)
   // Estadísticas generales (para admin)
   async getGeneralStats() {
     const cached = await this.cacheManager.get(VOUCHERS_STATS_CACHE_KEY);

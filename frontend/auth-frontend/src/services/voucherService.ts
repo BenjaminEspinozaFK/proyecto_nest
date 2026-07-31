@@ -6,6 +6,9 @@ import {
   ApproveVoucherRequest,
   RejectVoucherRequest,
   CreateManualVoucherRequest,
+  BulkApproveVoucherRequest,
+  BulkRejectVoucherRequest,
+  BulkVoucherResult,
 } from "../types/voucher";
 
 interface PaginatedResponse<T> {
@@ -79,6 +82,28 @@ class VoucherService {
   ): Promise<GasVoucher> {
     const response = await api.patch<GasVoucher>(
       `/vouchers/${voucherId}/reject`,
+      data,
+    );
+    return response.data;
+  }
+
+  // Admin: Aprobar vales en lote
+  async bulkApproveVouchers(
+    data: BulkApproveVoucherRequest,
+  ): Promise<BulkVoucherResult> {
+    const response = await api.patch<BulkVoucherResult>(
+      "/vouchers/bulk/approve",
+      data,
+    );
+    return response.data;
+  }
+
+  // Admin: Rechazar vales en lote
+  async bulkRejectVouchers(
+    data: BulkRejectVoucherRequest,
+  ): Promise<BulkVoucherResult> {
+    const response = await api.patch<BulkVoucherResult>(
+      "/vouchers/bulk/reject",
       data,
     );
     return response.data;

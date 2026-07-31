@@ -16,6 +16,8 @@ import { CreateVoucherDto } from './dto/create-voucher.dto';
 import { ApproveVoucherDto } from './dto/approve-voucher.dto';
 import { RejectVoucherDto } from './dto/reject-voucher.dto';
 import { CreateManualVoucherDto } from './dto/create-manual-voucher.dto';
+import { BulkApproveVoucherDto } from './dto/bulk-approve-voucher.dto';
+import { BulkRejectVoucherDto } from './dto/bulk-reject-voucher.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
@@ -82,6 +84,41 @@ export class VouchersController {
   @Roles('admin')
   async getUserStats(@Param('userId') userId: string) {
     return this.vouchersService.getUserVoucherStats(userId);
+  }
+
+  // Admin: Aprobar vales en lote
+  // IMPORTANTE: debe declararse antes de ':id/approve' para que la ruta
+  // no sea interceptada tratando "bulk" como el parámetro :id
+  @Patch('bulk/approve')
+  @UseGuards(RolesGuard)
+  @Roles('admin')
+  async bulkApproveVouchers(
+    @Body() dto: BulkApproveVoucherDto,
+    @Req() req: RequestWithUser,
+  ) {
+    return this.vouchersService.bulkApproveVouchers(
+      dto.voucherIds,
+      dto.amount,
+      req.user.userId,
+      dto.notes,
+      req.user.name,
+    );
+  }
+
+  // Admin: Rechazar vales en lote
+  @Patch('bulk/reject')
+  @UseGuards(RolesGuard)
+  @Roles('admin')
+  async bulkRejectVouchers(
+    @Body() dto: BulkRejectVoucherDto,
+    @Req() req: RequestWithUser,
+  ) {
+    return this.vouchersService.bulkRejectVouchers(
+      dto.voucherIds,
+      req.user.userId,
+      dto.notes,
+      req.user.name,
+    );
   }
 
   // Admin: Aprobar vale

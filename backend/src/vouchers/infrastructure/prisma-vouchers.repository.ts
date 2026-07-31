@@ -50,7 +50,10 @@ export class PrismaVouchersRepository implements VouchersRepositoryPort {
     });
   }
 
-  async findAllVouchers(page: number, limit: number): Promise<PaginatedResult<Voucher>> {
+  async findAllVouchers(
+    page: number,
+    limit: number,
+  ): Promise<PaginatedResult<Voucher>> {
     const skip = (page - 1) * limit;
     const [data, total] = await Promise.all([
       this.prisma.gasVoucher.findMany({
@@ -61,7 +64,10 @@ export class PrismaVouchersRepository implements VouchersRepositoryPort {
       }),
       this.prisma.gasVoucher.count(),
     ]);
-    return { data, meta: { total, page, limit, totalPages: Math.ceil(total / limit) } };
+    return {
+      data,
+      meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
+    };
   }
 
   async approveVoucher(
@@ -111,17 +117,30 @@ export class PrismaVouchersRepository implements VouchersRepositoryPort {
   }
 
   async getVoucherStats() {
-    const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
-    const [total, pending, approved, delivered, rejected, amountResult, thisMonth] =
-      await Promise.all([
-        this.prisma.gasVoucher.count(),
-        this.prisma.gasVoucher.count({ where: { status: 'pending' } }),
-        this.prisma.gasVoucher.count({ where: { status: 'approved' } }),
-        this.prisma.gasVoucher.count({ where: { status: 'delivered' } }),
-        this.prisma.gasVoucher.count({ where: { status: 'rejected' } }),
-        this.prisma.gasVoucher.aggregate({ _sum: { amount: true } }),
-        this.prisma.gasVoucher.count({ where: { requestDate: { gte: startOfMonth } } }),
-      ]);
+    const startOfMonth = new Date(
+      new Date().getFullYear(),
+      new Date().getMonth(),
+      1,
+    );
+    const [
+      total,
+      pending,
+      approved,
+      delivered,
+      rejected,
+      amountResult,
+      thisMonth,
+    ] = await Promise.all([
+      this.prisma.gasVoucher.count(),
+      this.prisma.gasVoucher.count({ where: { status: 'pending' } }),
+      this.prisma.gasVoucher.count({ where: { status: 'approved' } }),
+      this.prisma.gasVoucher.count({ where: { status: 'delivered' } }),
+      this.prisma.gasVoucher.count({ where: { status: 'rejected' } }),
+      this.prisma.gasVoucher.aggregate({ _sum: { amount: true } }),
+      this.prisma.gasVoucher.count({
+        where: { requestDate: { gte: startOfMonth } },
+      }),
+    ]);
     return {
       total,
       pending,

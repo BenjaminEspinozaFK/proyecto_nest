@@ -175,13 +175,23 @@ export class PrismaAdminRepository implements AdminRepositoryPort {
     }));
   }
 
-  async findAllUsers(page: number, limit: number): Promise<PaginatedResult<AdminUserList>> {
+  async findAllUsers(
+    page: number,
+    limit: number,
+  ): Promise<PaginatedResult<AdminUserList>> {
     const skip = (page - 1) * limit;
     const [data, total] = await Promise.all([
-      this.prisma.user.findMany({ skip, take: limit, select: this.userListSelect }),
+      this.prisma.user.findMany({
+        skip,
+        take: limit,
+        select: this.userListSelect,
+      }),
       this.prisma.user.count(),
     ]);
-    return { data, meta: { total, page, limit, totalPages: Math.ceil(total / limit) } };
+    return {
+      data,
+      meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
+    };
   }
 
   async findUserById(id: string): Promise<AdminUserList | null> {
