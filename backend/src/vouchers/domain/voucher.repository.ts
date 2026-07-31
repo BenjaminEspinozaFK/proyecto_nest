@@ -5,7 +5,10 @@ export interface VouchersRepositoryPort {
   createVoucher(userId: string, kilos: number, bank?: string): Promise<Voucher>;
   findUserVouchers(userId: string): Promise<Voucher[]>;
   findPendingVouchers(): Promise<Voucher[]>;
-  findAllVouchers(page: number, limit: number): Promise<PaginatedResult<Voucher>>;
+  findAllVouchers(
+    page: number,
+    limit: number,
+  ): Promise<PaginatedResult<Voucher>>;
   getVoucherStats(): Promise<{
     total: number;
     pending: number;

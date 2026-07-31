@@ -49,3 +49,19 @@ export interface CreateManualVoucherRequest {
   amount: number;
   notes?: string;
 }
+
+export interface BulkApproveVoucherRequest {
+  voucherIds: string[];
+  amount: number;
+  notes?: string;
+}
+
+export interface BulkRejectVoucherRequest {
+  voucherIds: string[];
+  notes?: string;
+}
+
+export interface BulkVoucherResult {
+  succeeded: string[];
+  failed: { id: string; error: string }[];
+}
