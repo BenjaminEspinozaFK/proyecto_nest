@@ -21,6 +21,5 @@
     "**/Thumbs.db": true,
     "**/node_modules": true
   },
-  "prisma.pinToPrisma6": true,
-  "typescript.tsdk": "frontend/auth-frontend/node_modules/typescript/lib"
+  "prisma.pinToPrisma6": true
 }
