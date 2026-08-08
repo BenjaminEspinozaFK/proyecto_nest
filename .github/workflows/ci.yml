@@ -84,20 +84,26 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL_TEST }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
 
-      - name: 🧪 Run Prisma migrations
+      - name: 🧪 Sync test database schema
         working-directory: ./backend
-        run: pnpm prisma migrate deploy || echo "Migrations skipped"
+        run: pnpm prisma db push
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL_TEST }}
-        continue-on-error: true
 
-      - name: ✅ Run tests
+      - name: ✅ Run unit tests
         working-directory: ./backend
-        run: pnpm run test || echo "No tests configured yet"
+        run: pnpm run test
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL_TEST }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
-        continue-on-error: true
+
+      - name: 🧪 Run e2e tests
+        working-directory: ./backend
+        run: pnpm run test:e2e
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL_TEST }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          TEST_DATABASE_NAME: test_db
 
   # Job 2: Frontend
   frontend:
