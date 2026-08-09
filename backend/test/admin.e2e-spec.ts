@@ -97,27 +97,29 @@ describe('Admin (e2e) - CRUD de usuarios y permisos por rol', () => {
   });
 
   afterAll(async () => {
-    const admins = await prisma.admin.findMany({
-      where: { email: { startsWith: 'admin-e2e-' } },
-    });
-    await prisma.auditLog.deleteMany({
-      where: { adminId: { in: admins.map((a) => a.id) } },
-    });
-    await prisma.session.deleteMany({
-      where: {
-        OR: [
-          { user: { email: { startsWith: 'admin-e2e-' } } },
-          { admin: { email: { startsWith: 'admin-e2e-' } } },
-        ],
-      },
-    });
-    await prisma.user.deleteMany({
-      where: { email: { startsWith: 'admin-e2e-' } },
-    });
-    await prisma.admin.deleteMany({
-      where: { email: { startsWith: 'admin-e2e-' } },
-    });
-    await app.close();
+    if (prisma) {
+      const admins = await prisma.admin.findMany({
+        where: { email: { startsWith: 'admin-e2e-' } },
+      });
+      await prisma.auditLog.deleteMany({
+        where: { adminId: { in: admins.map((a) => a.id) } },
+      });
+      await prisma.session.deleteMany({
+        where: {
+          OR: [
+            { user: { email: { startsWith: 'admin-e2e-' } } },
+            { admin: { email: { startsWith: 'admin-e2e-' } } },
+          ],
+        },
+      });
+      await prisma.user.deleteMany({
+        where: { email: { startsWith: 'admin-e2e-' } },
+      });
+      await prisma.admin.deleteMany({
+        where: { email: { startsWith: 'admin-e2e-' } },
+      });
+    }
+    await app?.close();
   });
 
   it('permite al admin listar todos los usuarios', async () => {
