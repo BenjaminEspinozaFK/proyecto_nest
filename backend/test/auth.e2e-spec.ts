@@ -57,13 +57,15 @@ describe('Auth (e2e) - flujos críticos', () => {
   });
 
   afterAll(async () => {
-    await prisma.session.deleteMany({
-      where: { user: { email: { startsWith: 'auth-e2e-' } } },
-    });
-    await prisma.user.deleteMany({
-      where: { email: { startsWith: 'auth-e2e-' } },
-    });
-    await app.close();
+    if (prisma) {
+      await prisma.session.deleteMany({
+        where: { user: { email: { startsWith: 'auth-e2e-' } } },
+      });
+      await prisma.user.deleteMany({
+        where: { email: { startsWith: 'auth-e2e-' } },
+      });
+    }
+    await app?.close();
   });
 
   it('registra un usuario nuevo', async () => {
