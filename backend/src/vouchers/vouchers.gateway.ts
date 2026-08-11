@@ -7,6 +7,21 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+
+interface JwtPayload {
+  sub: string;
+  email: string;
+  name?: string;
+  role: string;
+}
+
+interface SocketUser {
+  userId: string;
+  email: string;
+  name?: string;
+  role: string;
+}
 
 @WebSocketGateway({
   cors: {
@@ -22,19 +37,78 @@ export class VouchersGateway
 
   private logger = new Logger('VouchersGateway');
 
-  handleConnection(client: Socket) {
-    this.logger.log(`Cliente conectado: ${client.id}`);
+  constructor(private readonly jwtService: JwtService) {}
+
+  async handleConnection(client: Socket) {
+    try {
+      const token = this.extractToken(client);
+      const payload = await this.jwtService.verifyAsync<JwtPayload>(token);
+
+      client.data.user = {
+        userId: payload.sub,
+        email: payload.email,
+        name: payload.name,
+        role: payload.role,
+      } satisfies SocketUser;
+
+      this.logger.log(
+        `Cliente autenticado conectado: ${client.id} (${payload.role})`,
+      );
+    } catch {
+      this.logger.warn(
+        `Conexión rechazada (token inválido o expirado): ${client.id}`,
+      );
+      client.disconnect(true);
+    }
   }
 
   handleDisconnect(client: Socket) {
     this.logger.log(`Cliente desconectado: ${client.id}`);
   }
 
+  private extractToken(client: Socket): string {
+    const token = client.handshake.auth?.token;
+    if (typeof token === 'string' && token.length > 0) {
+      return token;
+    }
+
+    const queryToken = client.handshake.query?.token;
+    if (typeof queryToken === 'string' && queryToken.length > 0) {
+      return queryToken;
+    }
+
+    throw new Error('Token no proporcionado');
+  }
+
   // Método para unir un cliente a una sala específica (admin o user)
   @SubscribeMessage('join-room')
   async handleJoinRoom(client: Socket, room: string) {
+    const user = client.data.user as SocketUser | undefined;
+
+    if (!user) {
+      this.logger.warn(
+        `Cliente no autenticado intentó unirse a la sala: ${room}`,
+      );
+      return { event: 'join-error', data: 'No autenticado' };
+    }
+
+    const isAuthorized =
+      (room === 'admin' && user.role === 'admin') ||
+      room === `user:${user.userId}`;
+
+    if (!isAuthorized) {
+      this.logger.warn(
+        `Cliente ${client.id} (${user.role}) intentó unirse a la sala no permitida: ${room}`,
+      );
+      return {
+        event: 'join-error',
+        data: 'No tienes permiso para unirte a esta sala',
+      };
+    }
+
     await client.join(room);
     this.logger.log(`Cliente ${client.id} se unió a la sala: ${room}`);
+    return { event: 'joined', data: room };
   }
 
   // Método para notificar nuevo vale creado (solo a admins)

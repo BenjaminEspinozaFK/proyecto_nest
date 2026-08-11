@@ -7,9 +7,10 @@ import { PrismaVouchersRepository } from './infrastructure/prisma-vouchers.repos
 import { NotificationsModule } from '../notifications/notifications.module';
 import { PushModule } from '../push/push.module';
 import { AuditLogModule } from '../audit-log/audit-log.module';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
-  imports: [NotificationsModule, PushModule, AuditLogModule],
+  imports: [NotificationsModule, PushModule, AuditLogModule, AuthModule],
   controllers: [VouchersController],
   providers: [
     VouchersService,

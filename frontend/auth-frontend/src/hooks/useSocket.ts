@@ -8,12 +8,15 @@ export const useSocket = (userId?: string, isAdmin: boolean = false) => {
   const socketRef = useRef<Socket | null>(null);
 
   useEffect(() => {
+    const token = localStorage.getItem("authToken");
+
     // Conectar al servidor Socket.IO
     socketRef.current = io(SOCKET_URL, {
       transports: ["websocket"],
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
+      auth: { token },
     });
 
     const socket = socketRef.current;
