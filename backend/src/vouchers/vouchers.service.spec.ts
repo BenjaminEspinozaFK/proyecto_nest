@@ -112,12 +112,16 @@ describe('VouchersService', () => {
     });
 
     it('no falla si el envío de push falla', async () => {
+      const errorSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
       vouchersRepository.createVoucher.mockResolvedValue(mockVoucher);
       pushService.sendToAdmins.mockRejectedValue(new Error('push error'));
 
       const result = await service.requestVoucher('user-1', { kilos: 15 });
 
       expect(result).toEqual(mockVoucher);
+      errorSpy.mockRestore();
     });
   });
 
@@ -186,7 +190,7 @@ describe('VouchersService', () => {
         'Admin Uno',
         'voucher.approve',
         'GasVoucher',
-        expect.stringContaining('25.000'),
+        expect.stringContaining(`$${(25000).toLocaleString()}`),
         'voucher-1',
       );
       expect(notificationsService.notifyUser).toHaveBeenCalledWith(
@@ -347,7 +351,7 @@ describe('VouchersService', () => {
         'Admin Uno',
         'voucher.manual-create',
         'GasVoucher',
-        expect.stringContaining('25.000'),
+        expect.stringContaining(`$${(25000).toLocaleString()}`),
         'voucher-1',
       );
       expect(cacheManager.del).toHaveBeenCalled();

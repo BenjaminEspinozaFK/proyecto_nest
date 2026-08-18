@@ -72,7 +72,7 @@ describe('MonthlyPaymentsService', () => {
         'Admin Uno',
         'payment.create',
         'MonthlyPayment',
-        expect.stringContaining('25.000'),
+        expect.stringContaining(`$${(25000).toLocaleString()}`),
         'pay-1',
       );
       expect(result).toEqual(mockPayment);
@@ -187,7 +187,7 @@ describe('MonthlyPaymentsService', () => {
         'Admin Uno',
         'payment.update',
         'MonthlyPayment',
-        expect.stringContaining('30.000'),
+        expect.stringContaining(`$${(30000).toLocaleString()}`),
         'pay-1',
       );
       expect(result).toEqual(updated);
@@ -212,7 +212,7 @@ describe('MonthlyPaymentsService', () => {
         'Admin Uno',
         'payment.delete',
         'MonthlyPayment',
-        expect.stringContaining('25.000'),
+        expect.stringContaining(`$${(25000).toLocaleString()}`),
         'pay-1',
       );
       expect(result).toEqual(mockPayment);
