@@ -5,6 +5,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
 import helmet from 'helmet';
+import cookieParser from 'cookie-parser';
 import * as dotenv from 'dotenv';
 import { GlobalExceptionFilter } from './common/filters/http-exception.filter';
 
@@ -15,6 +16,7 @@ async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   app.use(helmet());
+  app.use(cookieParser());
 
   // Configurar ValidationPipe globalmente
   app.useGlobalPipes(
@@ -41,6 +43,7 @@ async function bootstrap() {
   SwaggerModule.setup('api', app, document);
   app.enableCors({
     origin: process.env.FRONTEND_URL,
+    credentials: true,
   });
 
   await app.listen(3001);

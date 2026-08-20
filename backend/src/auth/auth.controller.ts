@@ -9,8 +9,10 @@ import {
   Query,
   UseGuards,
   Req,
+  Res,
+  UnauthorizedException,
 } from '@nestjs/common';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import { Throttle } from '@nestjs/throttler';
 import { RequestWithUser } from './interfaces/request-with-user.interface';
 import { AuthService } from './auth.service';
@@ -26,6 +28,24 @@ import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { Verify2faDto, Login2faDto } from './dto/verify-2fa.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
+import {
+  REFRESH_TOKEN_COOKIE,
+  setRefreshTokenCookie,
+  clearRefreshTokenCookie,
+} from '../common/refresh-token-cookie';
+
+interface TokenResult {
+  refresh_token?: string;
+  [key: string]: unknown;
+}
+
+function sendWithRefreshCookie(res: Response, result: TokenResult) {
+  const { refresh_token, ...body } = result;
+  if (refresh_token) {
+    setRefreshTokenCookie(res, refresh_token);
+  }
+  return body;
+}
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -50,11 +70,16 @@ export class AuthController {
       },
     },
   })
-  async login(@Body(ValidationPipe) loginDto: LoginDto, @Req() req: Request) {
-    return this.authService.login(loginDto, {
+  async login(
+    @Body(ValidationPipe) loginDto: LoginDto,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const result = await this.authService.login(loginDto, {
       userAgent: req.headers['user-agent'],
       ipAddress: req.ip,
     });
+    return sendWithRefreshCookie(res, result);
   }
 
   @Post('register')
@@ -152,8 +177,9 @@ export class AuthController {
   async loginWith2FA(
     @Body(ValidationPipe) login2faDto: Login2faDto,
     @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
   ) {
-    return this.authService.loginWith2FA(
+    const result = await this.authService.loginWith2FA(
       login2faDto.email,
       login2faDto.password,
       login2faDto.role,
@@ -163,6 +189,7 @@ export class AuthController {
         ipAddress: req.ip,
       },
     );
+    return sendWithRefreshCookie(res, result);
   }
 
   @Post('2fa/generate')
@@ -202,16 +229,32 @@ export class AuthController {
     status: 401,
     description: 'Refresh token inválido o expirado',
   })
-  async refreshTokens(@Body('refresh_token') refreshToken: string) {
-    return this.authService.refreshTokens(refreshToken);
+  async refreshTokens(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const refreshToken = (req.cookies as Record<string, string> | undefined)?.[
+      REFRESH_TOKEN_COOKIE
+    ];
+    if (!refreshToken) {
+      clearRefreshTokenCookie(res);
+      throw new UnauthorizedException('Refresh token inválido o expirado');
+    }
+    const result = await this.authService.refreshTokens(refreshToken);
+    return sendWithRefreshCookie(res, result);
   }
 
   @Post('logout')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Cerrar sesión e invalidar refresh token' })
-  async logout(@Body('refresh_token') refreshToken: string) {
-    return this.authService.logout(refreshToken);
+  async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    const refreshToken = (req.cookies as Record<string, string> | undefined)?.[
+      REFRESH_TOKEN_COOKIE
+    ];
+    const result = await this.authService.logout(refreshToken);
+    clearRefreshTokenCookie(res);
+    return result;
   }
 
   @Get('sessions')

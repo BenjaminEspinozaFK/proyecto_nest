@@ -14,6 +14,7 @@ export const API_BASE_URL =
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: { "Content-Type": "application/json" },
+  withCredentials: true,
 });
 
 api.interceptors.request.use((config) => {
@@ -69,25 +70,19 @@ api.interceptors.response.use(
       originalRequest._retry = true;
       isRefreshing = true;
 
-      const refreshToken = localStorage.getItem("refreshToken");
-      if (!refreshToken) {
-        isRefreshing = false;
-        localStorage.removeItem("authToken");
-        localStorage.removeItem("authUser");
-        localStorage.removeItem("refreshToken");
-        window.location.href = "/";
-        return Promise.reject(error);
-      }
-
       try {
-        const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
-          refresh_token: refreshToken,
-        });
+        // El refresh token viaja en una cookie httpOnly, el navegador la
+        // envía automáticamente gracias a withCredentials — no se lee ni
+        // se guarda en localStorage.
+        const response = await axios.post(
+          `${API_BASE_URL}/auth/refresh`,
+          {},
+          { withCredentials: true },
+        );
 
-        const { access_token, refresh_token: newRefreshToken } = response.data;
+        const { access_token } = response.data;
 
         localStorage.setItem("authToken", access_token);
-        localStorage.setItem("refreshToken", newRefreshToken);
         api.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
 
         processQueue(null, access_token);
@@ -98,7 +93,6 @@ api.interceptors.response.use(
         processQueue(refreshError, null);
         localStorage.removeItem("authToken");
         localStorage.removeItem("authUser");
-        localStorage.removeItem("refreshToken");
         window.location.href = "/";
         return Promise.reject(refreshError);
       } finally {
@@ -231,8 +225,9 @@ export const authService = {
 
   async serverLogout(): Promise<void> {
     try {
-      const refreshToken = localStorage.getItem("refreshToken");
-      await api.post("/auth/logout", { refresh_token: refreshToken });
+      // La cookie httpOnly con el refresh token se envía automáticamente
+      // (withCredentials) y el backend la invalida y la limpia.
+      await api.post("/auth/logout");
     } catch {
       // Ignorar errores — el token puede estar expirado
     }
