@@ -2,6 +2,7 @@ import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import type { App } from 'supertest/types';
+import cookieParser from 'cookie-parser';
 import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/prisma.service';
 import { EmailService } from '../src/email/email.service';
@@ -32,9 +33,20 @@ describe('Auth (e2e) - flujos críticos', () => {
     verifyConnection: jest.fn().mockResolvedValue(true),
   };
 
+  const extractRefreshCookie = (res: request.Response): string => {
+    const rawCookies = res.headers['set-cookie'] as unknown as
+      | string[]
+      | undefined;
+    const cookie = rawCookies?.find((c) => c.startsWith('refresh_token='));
+    if (!cookie) {
+      throw new Error('No se recibió la cookie refresh_token');
+    }
+    return cookie.split(';')[0];
+  };
+
   let accessToken: string;
-  let refreshToken: string;
-  let rotatedToken: string;
+  let refreshCookie: string;
+  let rotatedCookie: string;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -45,6 +57,7 @@ describe('Auth (e2e) - flujos críticos', () => {
       .compile();
 
     app = moduleFixture.createNestApplication();
+    app.use(cookieParser());
     app.useGlobalPipes(
       new ValidationPipe({
         whitelist: true,
@@ -107,19 +120,24 @@ describe('Auth (e2e) - flujos críticos', () => {
     expect(res.body.message).toContain('verificado');
   });
 
-  it('inicia sesión y devuelve access_token y refresh_token', async () => {
+  it('inicia sesión y devuelve access_token y una cookie httpOnly con el refresh token', async () => {
     const res = await request(getHttpServer())
       .post('/auth/login')
       .send({ email, password, role: 'user' })
       .expect(201);
 
     expect(res.body.access_token).toBeDefined();
-    expect(res.body.refresh_token).toBeDefined();
+    expect(res.body.refresh_token).toBeUndefined();
     expect(res.body.user.email).toBe(email);
     expect(res.body.user.role).toBe('user');
 
+    const rawCookies = res.headers['set-cookie'] as unknown as string[];
+    const cookie = rawCookies.find((c) => c.startsWith('refresh_token='));
+    expect(cookie).toBeDefined();
+    expect(cookie).toContain('HttpOnly');
+
     accessToken = res.body.access_token;
-    refreshToken = res.body.refresh_token;
+    refreshCookie = extractRefreshCookie(res);
   });
 
   it('rechaza el login con contraseña incorrecta', async () => {
@@ -142,46 +160,52 @@ describe('Auth (e2e) - flujos críticos', () => {
     await request(getHttpServer()).get('/auth/me').expect(401);
   });
 
-  it('renueva el access token usando el refresh token', async () => {
+  it('renueva el access token usando la cookie de refresh token', async () => {
     const res = await request(getHttpServer())
       .post('/auth/refresh')
-      .send({ refresh_token: refreshToken })
+      .set('Cookie', refreshCookie)
       .expect(201);
 
     expect(res.body.access_token).toBeDefined();
-    expect(res.body.refresh_token).toBeDefined();
-    expect(res.body.refresh_token).not.toBe(refreshToken);
+    expect(res.body.refresh_token).toBeUndefined();
 
-    rotatedToken = res.body.refresh_token;
+    rotatedCookie = extractRefreshCookie(res);
+    expect(rotatedCookie).not.toBe(refreshCookie);
   });
 
-  it('rechaza el refresh token antiguo después de la rotación', async () => {
+  it('rechaza la cookie de refresh token antigua después de la rotación', async () => {
     await request(getHttpServer())
       .post('/auth/refresh')
-      .send({ refresh_token: refreshToken })
+      .set('Cookie', refreshCookie)
       .expect(401);
   });
 
-  it('permite el refresh con el token rotado', async () => {
+  it('permite el refresh con la cookie rotada', async () => {
     const res = await request(getHttpServer())
       .post('/auth/refresh')
-      .send({ refresh_token: rotatedToken })
+      .set('Cookie', rotatedCookie)
       .expect(201);
 
     expect(res.body.access_token).toBeDefined();
-    rotatedToken = res.body.refresh_token;
+    rotatedCookie = extractRefreshCookie(res);
   });
 
-  it('cierra sesión e invalida el refresh token', async () => {
-    await request(getHttpServer())
+  it('cierra sesión, invalida el refresh token y limpia la cookie', async () => {
+    const res = await request(getHttpServer())
       .post('/auth/logout')
       .set('Authorization', `Bearer ${accessToken}`)
-      .send({ refresh_token: rotatedToken })
+      .set('Cookie', rotatedCookie)
       .expect(201);
+
+    const rawCookies = res.headers['set-cookie'] as unknown as string[];
+    const clearedCookie = rawCookies?.find((c) =>
+      c.startsWith('refresh_token='),
+    );
+    expect(clearedCookie).toContain('refresh_token=;');
 
     await request(getHttpServer())
       .post('/auth/refresh')
-      .send({ refresh_token: rotatedToken })
+      .set('Cookie', rotatedCookie)
       .expect(401);
   });
 
