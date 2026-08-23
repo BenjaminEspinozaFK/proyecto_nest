@@ -68,6 +68,14 @@ jobs:
           echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
           echo "PORT=3001" >> .env
           echo "NODE_ENV=test" >> .env
+          echo "FRONTEND_URL=http://localhost:3000" >> .env
+          echo "EMAIL_USER=ci@example.com" >> .env
+          echo "EMAIL_PASS=ci-placeholder" >> .env
+          node -e "
+            const { publicKey, privateKey } = require('web-push').generateVAPIDKeys();
+            console.log('VAPID_PUBLIC_KEY=' + publicKey);
+            console.log('VAPID_PRIVATE_KEY=' + privateKey);
+          " >> .env
           echo ".env file created"
 
       - name: Generate Prisma Client
