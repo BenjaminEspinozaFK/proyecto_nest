@@ -17,7 +17,7 @@ describe('MonthlyPayments (e2e) - flujo de negocio de pagos mensuales', () => {
   let app: INestApplication;
   let prisma: PrismaService;
 
-  const getHttpServer = (): App => app.getHttpServer() as unknown as App;
+  const getHttpServer = (): App => app.getHttpServer();
 
   const unique = `pay-e2e-${Date.now()}`;
   const adminEmail = `${unique}-admin@test.com`;

@@ -7,9 +7,7 @@ import {
 } from '../domain/notification.types';
 
 @Injectable()
-export class PrismaNotificationsRepository
-  implements NotificationsRepositoryPort
-{
+export class PrismaNotificationsRepository implements NotificationsRepositoryPort {
   constructor(private prisma: PrismaService) {}
 
   create(data: CreateNotificationInput): Promise<Notification> {

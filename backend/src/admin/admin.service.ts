@@ -14,7 +14,7 @@ import { AdminRepositoryPort } from './domain/admin.repository';
 import { UpdateUserByAdminInput } from './domain/admin.types';
 import { ADMIN_REPOSITORY } from './admin.tokens';
 import * as bcrypt from 'bcryptjs';
-import * as XLSX from 'xlsx';
+import { Workbook, Worksheet } from 'exceljs';
 import { EmailService } from '../email/email.service';
 import { AdminChangePasswordDto } from './dto/admin-change-password.dto';
 import { AuditLogService } from '../audit-log/audit-log.service';
@@ -398,12 +398,14 @@ export class AdminService {
   async bulkCreateUsersFromExcel(buffer: Buffer, actingAdmin: ActingAdmin) {
     try {
       // Leer el archivo Excel desde el buffer
-      const workbook = XLSX.read(buffer, { type: 'buffer' });
-      const sheetName = workbook.SheetNames[0];
-      const worksheet = workbook.Sheets[sheetName];
+      const workbook = new Workbook();
+      // exceljs trae sus propios tipos contra una versión vieja de
+      // @types/node; el Buffer real es compatible en runtime.
+      await workbook.xlsx.load(buffer as any);
+      const worksheet = workbook.worksheets[0];
 
-      // Convertir a JSON
-      const rows: any[] = XLSX.utils.sheet_to_json(worksheet);
+      // Convertir a JSON usando la primera fila como encabezados
+      const rows: any[] = this.worksheetToJson(worksheet);
 
       if (!rows || rows.length === 0) {
         throw new BadRequestException('El archivo Excel está vacío');
@@ -544,5 +546,39 @@ export class AdminService {
         `Error procesando archivo Excel: ${errorMessage}`,
       );
     }
+  }
+
+  // Convierte una hoja a filas de objetos usando la primera fila como encabezados,
+  // igual que hacía XLSX.utils.sheet_to_json.
+  private worksheetToJson(worksheet: Worksheet | undefined): any[] {
+    if (!worksheet) {
+      return [];
+    }
+
+    const headers: string[] = [];
+    worksheet.getRow(1).eachCell({ includeEmpty: false }, (cell, colNumber) => {
+      headers[colNumber] = cell.text.trim();
+    });
+
+    const rows: any[] = [];
+    worksheet.eachRow((row, rowNumber) => {
+      if (rowNumber === 1) return;
+
+      const rowObj: Record<string, unknown> = {};
+      let hasValue = false;
+      row.eachCell({ includeEmpty: false }, (cell, colNumber) => {
+        const key = headers[colNumber];
+        if (key) {
+          rowObj[key] = cell.value;
+          hasValue = true;
+        }
+      });
+
+      if (hasValue) {
+        rows.push(rowObj);
+      }
+    });
+
+    return rows;
   }
 }

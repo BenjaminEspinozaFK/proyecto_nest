@@ -17,7 +17,7 @@ describe('Auth (e2e) - flujos críticos', () => {
   let app: INestApplication;
   let prisma: PrismaService;
 
-  const getHttpServer = (): App => app.getHttpServer() as unknown as App;
+  const getHttpServer = (): App => app.getHttpServer();
 
   const unique = `auth-e2e-${Date.now()}`;
   const email = `${unique}@test.com`;
@@ -35,8 +35,7 @@ describe('Auth (e2e) - flujos críticos', () => {
 
   const extractRefreshCookie = (res: request.Response): string => {
     const rawCookies = res.headers['set-cookie'] as unknown as
-      | string[]
-      | undefined;
+      string[] | undefined;
     const cookie = rawCookies?.find((c) => c.startsWith('refresh_token='));
     if (!cookie) {
       throw new Error('No se recibió la cookie refresh_token');
