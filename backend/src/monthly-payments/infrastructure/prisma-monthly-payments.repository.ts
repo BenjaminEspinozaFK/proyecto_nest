@@ -8,9 +8,7 @@ import {
 } from '../domain/monthly-payment.types';
 
 @Injectable()
-export class PrismaMonthlyPaymentsRepository
-  implements MonthlyPaymentsRepositoryPort
-{
+export class PrismaMonthlyPaymentsRepository implements MonthlyPaymentsRepositoryPort {
   private userSelect = {
     id: true,
     name: true,

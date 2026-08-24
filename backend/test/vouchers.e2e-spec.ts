@@ -18,7 +18,7 @@ describe('Vouchers (e2e) - flujo de negocio de vales', () => {
   let app: INestApplication;
   let prisma: PrismaService;
 
-  const getHttpServer = (): App => app.getHttpServer() as unknown as App;
+  const getHttpServer = (): App => app.getHttpServer();
 
   const unique = `voucher-e2e-${Date.now()}`;
   const adminEmail = `${unique}-admin@test.com`;
