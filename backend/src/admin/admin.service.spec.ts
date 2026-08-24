@@ -17,13 +17,12 @@ jest.mock('bcryptjs', () => ({
   compare: jest.fn(),
 }));
 
-jest.mock('xlsx', () => ({
-  read: jest.fn(),
-  utils: { sheet_to_json: jest.fn() },
+jest.mock('exceljs', () => ({
+  Workbook: jest.fn(),
 }));
 
 import * as bcrypt from 'bcryptjs';
-import * as XLSX from 'xlsx';
+import { Workbook } from 'exceljs';
 
 describe('AdminService', () => {
   let service: AdminService;
@@ -492,12 +491,18 @@ describe('AdminService', () => {
   });
 
   describe('bulkCreateUsersFromExcel', () => {
-    const worksheet = { A1: { v: 'email' } };
-    const workbook = { SheetNames: ['Sheet1'], Sheets: { Sheet1: worksheet } };
-    (XLSX.read as jest.Mock).mockReturnValue(workbook);
+    const mockLoad = jest.fn().mockResolvedValue(undefined);
+
+    beforeEach(() => {
+      mockLoad.mockClear().mockResolvedValue(undefined);
+      (Workbook as unknown as jest.Mock).mockImplementation(() => ({
+        xlsx: { load: mockLoad },
+        worksheets: [{}],
+      }));
+    });
 
     it('lanza BadRequestException si el Excel está vacío', async () => {
-      (XLSX.utils.sheet_to_json as jest.Mock).mockReturnValue([]);
+      jest.spyOn(service as any, 'worksheetToJson').mockReturnValue([]);
 
       await expect(
         service.bulkCreateUsersFromExcel(Buffer.from('x'), actingAdmin),
@@ -505,7 +510,7 @@ describe('AdminService', () => {
     });
 
     it('procesa filas válidas e inválidas sin fallar', async () => {
-      (XLSX.utils.sheet_to_json as jest.Mock).mockReturnValue([
+      jest.spyOn(service as any, 'worksheetToJson').mockReturnValue([
         { email: 'a@test.com', rut: '11111111-1', name: 'A' },
         { email: 'b@test.com', rut: '22222222-2', phone: '12345' },
         { email: '', rut: '33333333-3' },
@@ -532,9 +537,9 @@ describe('AdminService', () => {
     });
 
     it('registra errores de filas con email duplicado', async () => {
-      (XLSX.utils.sheet_to_json as jest.Mock).mockReturnValue([
-        { email: 'a@test.com', rut: '11111111-1' },
-      ]);
+      jest
+        .spyOn(service as any, 'worksheetToJson')
+        .mockReturnValue([{ email: 'a@test.com', rut: '11111111-1' }]);
       adminRepository.findUserByEmail.mockResolvedValue(userExists);
 
       const result = await service.bulkCreateUsersFromExcel(
@@ -547,10 +552,8 @@ describe('AdminService', () => {
       expect(result.errors[0].error).toContain('ya existe');
     });
 
-    it('lanza BadRequestException si XLSX.read falla', async () => {
-      (XLSX.read as jest.Mock).mockImplementation(() => {
-        throw new Error('archivo corrupto');
-      });
+    it('lanza BadRequestException si falla la carga del archivo Excel', async () => {
+      mockLoad.mockRejectedValueOnce(new Error('archivo corrupto'));
 
       await expect(
         service.bulkCreateUsersFromExcel(Buffer.from('x'), actingAdmin),

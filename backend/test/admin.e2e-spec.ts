@@ -17,7 +17,7 @@ describe('Admin (e2e) - CRUD de usuarios y permisos por rol', () => {
   let app: INestApplication;
   let prisma: PrismaService;
 
-  const getHttpServer = (): App => app.getHttpServer() as unknown as App;
+  const getHttpServer = (): App => app.getHttpServer();
 
   const unique = `admin-e2e-${Date.now()}`;
   const adminEmail = `${unique}-admin@test.com`;
