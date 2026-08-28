@@ -1,17 +1,19 @@
-import React from "react";
+import React, { Suspense, lazy } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider as MuiThemeProvider } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 import { AuthProvider, useAuth } from "./components/AuthContext";
 import { ThemeProvider, useTheme } from "./context/ThemeContext";
-import Login from "./components/Login";
-import Register from "./components/Register";
-import Dashboard from "./components/Dashboard";
-import ForgotPassword from "./components/ForgotPassword";
-import ResetPassword from "./components/ResetPassword";
-import VerifyEmail from "./components/VerifyEmail";
+import PageLoader from "./components/PageLoader";
 import { darkTheme, lightTheme } from "./theme";
 import "./App.css";
+
+const Login = lazy(() => import("./components/Login"));
+const Register = lazy(() => import("./components/Register"));
+const Dashboard = lazy(() => import("./components/Dashboard"));
+const ForgotPassword = lazy(() => import("./components/ForgotPassword"));
+const ResetPassword = lazy(() => import("./components/ResetPassword"));
+const VerifyEmail = lazy(() => import("./components/VerifyEmail"));
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
   children,
@@ -31,8 +33,9 @@ const PublicRoute: React.FC<{ children: React.ReactNode }> = ({
 
 const AppRoutes: React.FC = () => {
   return (
-    <Routes>
-      <Route
+    <Suspense fallback={<PageLoader />}>
+      <Routes>
+        <Route
         path="/login"
         element={
           <PublicRoute>
@@ -81,7 +84,8 @@ const AppRoutes: React.FC = () => {
         }
       />
       <Route path="*" element={<Navigate to="/login" replace />} />
-    </Routes>
+      </Routes>
+    </Suspense>
   );
 };
 
