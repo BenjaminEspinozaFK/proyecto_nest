@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, Suspense, lazy } from "react";
 import { User } from "../types/auth"; // Ajusta la ruta si es necesario
 import { useTheme } from "../context/ThemeContext";
 import { adminService } from "../services/adminService";
@@ -48,15 +48,20 @@ import {
   FilterAltOff,
   History,
 } from "@mui/icons-material";
-import UserDetailModal from "./admin/UserDetailModal";
-import AdminStats from "./admin/Stats";
-import AdminProfile from "./admin/Profile";
-import CreateUserModal from "./admin/CreateUserModal";
-import VoucherRequests from "./admin/VoucherRequests";
-import AdminAuditLog from "./admin/AuditLog";
 import NotificationBell from "./NotificationBell";
 import { usePushNotifications } from "../hooks/usePushNotifications";
 import TableRowsSkeleton from "./skeletons/TableRowsSkeleton";
+import PageLoader from "./PageLoader";
+
+// Se cargan bajo demanda: cada una solo se monta cuando su tab/modal se
+// abre, así recharts (Stats) y jsPDF (UserDetailModal) no van en el bundle
+// inicial del dashboard.
+const UserDetailModal = lazy(() => import("./admin/UserDetailModal"));
+const AdminStats = lazy(() => import("./admin/Stats"));
+const AdminProfile = lazy(() => import("./admin/Profile"));
+const CreateUserModal = lazy(() => import("./admin/CreateUserModal"));
+const VoucherRequests = lazy(() => import("./admin/VoucherRequests"));
+const AdminAuditLog = lazy(() => import("./admin/AuditLog"));
 
 const AdminDashboard: React.FC = () => {
   const { isDark, toggleTheme } = useTheme();
@@ -595,29 +600,43 @@ const AdminDashboard: React.FC = () => {
 
             {/* Botón movido al header */}
 
-            <CreateUserModal
-              open={createOpen}
-              onClose={() => setCreateOpen(false)}
-              onCreated={handleCreated}
-            />
+            <Suspense fallback={null}>
+              <CreateUserModal
+                open={createOpen}
+                onClose={() => setCreateOpen(false)}
+                onCreated={handleCreated}
+              />
 
-            <UserDetailModal
-              open={openDetailModal}
-              onClose={() => {
-                setOpenDetailModal(false);
-                setSelectedUser(null);
-              }}
-              user={selectedUser}
-              onUpdate={fetchUsers}
-            />
+              <UserDetailModal
+                open={openDetailModal}
+                onClose={() => {
+                  setOpenDetailModal(false);
+                  setSelectedUser(null);
+                }}
+                user={selectedUser}
+                onUpdate={fetchUsers}
+              />
+            </Suspense>
           </>
         )}
 
-        {tabValue === 1 && <VoucherRequests />}
+        {tabValue === 1 && (
+          <Suspense fallback={<PageLoader />}>
+            <VoucherRequests />
+          </Suspense>
+        )}
 
-        {tabValue === 2 && <AdminStats />}
+        {tabValue === 2 && (
+          <Suspense fallback={<PageLoader />}>
+            <AdminStats />
+          </Suspense>
+        )}
 
-        {tabValue === 3 && <AdminAuditLog />}
+        {tabValue === 3 && (
+          <Suspense fallback={<PageLoader />}>
+            <AdminAuditLog />
+          </Suspense>
+        )}
 
         {/* Modal de perfil */}
         {showProfile && (
@@ -655,7 +674,9 @@ const AdminDashboard: React.FC = () => {
               }}
               onClick={(e) => e.stopPropagation()}
             >
-              <AdminProfile />
+              <Suspense fallback={<PageLoader />}>
+                <AdminProfile />
+              </Suspense>
             </Box>
           </Box>
         )}
