@@ -1,4 +1,4 @@
-import * as XLSX from "xlsx";
+import { Workbook, Worksheet } from "exceljs";
 import { MonthlyPayment } from "../types/payment";
 
 const MONTH_NAMES = [
@@ -16,87 +16,95 @@ const MONTH_NAMES = [
   "Diciembre",
 ];
 
+// Dispara la descarga de un workbook en el navegador
+async function downloadWorkbook(workbook: Workbook, fileName: string) {
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = fileName;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+function addTotalRow(worksheet: Worksheet, totalAmount: number) {
+  const row = worksheet.addRow({});
+  row.getCell("monto").value = totalAmount;
+  row.getCell("descripcion").value = "TOTAL";
+  row.font = { bold: true };
+}
+
 // Exporta el historial de pagos de un solo usuario a Excel
-export function exportPaymentsToExcel(
+export async function exportPaymentsToExcel(
   payments: MonthlyPayment[],
   fileName: string,
 ) {
-  const rows = payments.map((payment) => ({
-    "Fecha de Pago": new Date(payment.paymentDate).toLocaleDateString(
-      "es-CL",
-    ),
-    Año: payment.year,
-    Mes: MONTH_NAMES[payment.month - 1],
-    Monto: payment.amount,
-    Descripción: payment.description || "",
-  }));
+  const workbook = new Workbook();
+  const worksheet = workbook.addWorksheet("Pagos");
 
-  const totalAmount = payments.reduce((sum, p) => sum + p.amount, 0);
-  rows.push({
-    "Fecha de Pago": "",
-    Año: "" as unknown as number,
-    Mes: "",
-    Monto: totalAmount,
-    Descripción: "TOTAL",
-  });
-
-  const worksheet = XLSX.utils.json_to_sheet(rows);
-  worksheet["!cols"] = [
-    { wch: 14 },
-    { wch: 8 },
-    { wch: 12 },
-    { wch: 14 },
-    { wch: 30 },
+  worksheet.columns = [
+    { header: "Fecha de Pago", key: "fecha", width: 14 },
+    { header: "Año", key: "anio", width: 8 },
+    { header: "Mes", key: "mes", width: 12 },
+    { header: "Monto", key: "monto", width: 14 },
+    { header: "Descripción", key: "descripcion", width: 30 },
   ];
 
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, "Pagos");
-  XLSX.writeFile(workbook, fileName);
+  payments.forEach((payment) => {
+    worksheet.addRow({
+      fecha: new Date(payment.paymentDate).toLocaleDateString("es-CL"),
+      anio: payment.year,
+      mes: MONTH_NAMES[payment.month - 1],
+      monto: payment.amount,
+      descripcion: payment.description || "",
+    });
+  });
+
+  const totalAmount = payments.reduce((sum, p) => sum + p.amount, 0);
+  addTotalRow(worksheet, totalAmount);
+
+  await downloadWorkbook(workbook, fileName);
 }
 
 // Exporta el historial de pagos de TODOS los usuarios a Excel (vista admin)
-export function exportAllPaymentsToExcel(
+export async function exportAllPaymentsToExcel(
   payments: MonthlyPayment[],
   fileName: string,
 ) {
-  const rows = payments.map((payment) => ({
-    Usuario: payment.user?.name || "",
-    Email: payment.user?.email || "",
-    RUT: payment.user?.rut || "",
-    "Fecha de Pago": new Date(payment.paymentDate).toLocaleDateString(
-      "es-CL",
-    ),
-    Año: payment.year,
-    Mes: MONTH_NAMES[payment.month - 1],
-    Monto: payment.amount,
-    Descripción: payment.description || "",
-  }));
+  const workbook = new Workbook();
+  const worksheet = workbook.addWorksheet("Pagos");
 
-  const totalAmount = payments.reduce((sum, p) => sum + p.amount, 0);
-  rows.push({
-    Usuario: "",
-    Email: "",
-    RUT: "",
-    "Fecha de Pago": "",
-    Año: "" as unknown as number,
-    Mes: "",
-    Monto: totalAmount,
-    Descripción: "TOTAL GENERAL",
-  });
-
-  const worksheet = XLSX.utils.json_to_sheet(rows);
-  worksheet["!cols"] = [
-    { wch: 24 },
-    { wch: 28 },
-    { wch: 14 },
-    { wch: 14 },
-    { wch: 8 },
-    { wch: 12 },
-    { wch: 14 },
-    { wch: 30 },
+  worksheet.columns = [
+    { header: "Usuario", key: "usuario", width: 24 },
+    { header: "Email", key: "email", width: 28 },
+    { header: "RUT", key: "rut", width: 14 },
+    { header: "Fecha de Pago", key: "fecha", width: 14 },
+    { header: "Año", key: "anio", width: 8 },
+    { header: "Mes", key: "mes", width: 12 },
+    { header: "Monto", key: "monto", width: 14 },
+    { header: "Descripción", key: "descripcion", width: 30 },
   ];
 
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, "Pagos");
-  XLSX.writeFile(workbook, fileName);
+  payments.forEach((payment) => {
+    worksheet.addRow({
+      usuario: payment.user?.name || "",
+      email: payment.user?.email || "",
+      rut: payment.user?.rut || "",
+      fecha: new Date(payment.paymentDate).toLocaleDateString("es-CL"),
+      anio: payment.year,
+      mes: MONTH_NAMES[payment.month - 1],
+      monto: payment.amount,
+      descripcion: payment.description || "",
+    });
+  });
+
+  const totalAmount = payments.reduce((sum, p) => sum + p.amount, 0);
+  addTotalRow(worksheet, totalAmount);
+
+  await downloadWorkbook(workbook, fileName);
 }
