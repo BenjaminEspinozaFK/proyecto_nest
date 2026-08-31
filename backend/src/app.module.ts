@@ -13,6 +13,7 @@ import { PushModule } from './push/push.module';
 import { AuditLogModule } from './audit-log/audit-log.module';
 import { PrismaModule } from './prisma.module';
 import { RedisCacheModule } from './cache/redis-cache.module';
+import { HealthModule } from './health/health.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { RedisCacheModule } from './cache/redis-cache.module';
     ]),
     RedisCacheModule,
     PrismaModule,
+    HealthModule,
     AdminModule,
     UsersModule,
     AuthModule,
