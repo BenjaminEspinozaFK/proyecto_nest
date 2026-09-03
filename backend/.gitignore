@@ -42,10 +42,15 @@ lerna-debug.log*
 .env.production.local
 
 # Uploads - archivos subidos por usuarios
-/uploads
-uploads/
-# Pero mantener la estructura de carpetas
+# (un patrón de directorio como "uploads/" impide que git mire adentro,
+# así que las excepciones de abajo no alcanzaban ni para los .gitkeep)
+uploads/*
+!uploads/avatars
+!uploads/vouchers
+uploads/avatars/*
 !uploads/avatars/.gitkeep
+uploads/vouchers/*
+!uploads/vouchers/.gitkeep
 
 # Prisma
 prisma/migrations/**/migration.sql.backup

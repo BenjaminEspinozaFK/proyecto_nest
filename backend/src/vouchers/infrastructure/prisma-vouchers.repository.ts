@@ -22,12 +22,14 @@ export class PrismaVouchersRepository implements VouchersRepositoryPort {
     userId: string,
     kilos: number,
     bank?: string,
+    receiptUrl?: string,
   ): Promise<Voucher> {
     return this.prisma.gasVoucher.create({
       data: {
         userId,
         kilos,
         bank,
+        receiptUrl,
         status: 'pending',
       },
       include: this.voucherInclude,

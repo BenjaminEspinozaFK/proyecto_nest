@@ -2,7 +2,12 @@ import { Voucher } from './voucher.types';
 import type { PaginatedResult } from '../../common/interfaces/paginated-result.interface';
 
 export interface VouchersRepositoryPort {
-  createVoucher(userId: string, kilos: number, bank?: string): Promise<Voucher>;
+  createVoucher(
+    userId: string,
+    kilos: number,
+    bank?: string,
+    receiptUrl?: string,
+  ): Promise<Voucher>;
   findUserVouchers(userId: string): Promise<Voucher[]>;
   findPendingVouchers(): Promise<Voucher[]>;
   findAllVouchers(

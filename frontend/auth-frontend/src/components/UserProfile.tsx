@@ -51,6 +51,7 @@ import {
   Cancel,
   GridOn,
   Receipt,
+  AttachFile,
 } from "@mui/icons-material";
 import { useAuth } from "./AuthContext";
 import { voucherService } from "../services/voucherService";
@@ -100,6 +101,7 @@ const UserProfile: React.FC = () => {
   const [openRequestDialog, setOpenRequestDialog] = useState(false);
   const [requestKilos, setRequestKilos] = useState(15);
   const [requestBank, setRequestBank] = useState("");
+  const [requestReceipt, setRequestReceipt] = useState<File | null>(null);
 
   // Estados para pagos mensuales
   const [payments, setPayments] = useState<MonthlyPayment[]>([]);
@@ -481,16 +483,20 @@ const UserProfile: React.FC = () => {
       await voucherService.requestVoucher({
         kilos: requestKilos,
         bank: requestBank || undefined,
+        receipt: requestReceipt || undefined,
       });
       setSuccess(
         "Vale solicitado correctamente. Espera la aprobación del administrador.",
       );
       setOpenRequestDialog(false);
       setRequestBank(""); // Limpiar el banco seleccionado
+      setRequestReceipt(null); // Limpiar el comprobante adjunto
       fetchMyVouchers();
       setTimeout(() => setSuccess(null), 3000);
-    } catch (error) {
-      setError("Error al solicitar el vale");
+    } catch (error: any) {
+      setError(
+        error.response?.data?.message || "Error al solicitar el vale",
+      );
       console.error(error);
     }
   };
@@ -1348,6 +1354,9 @@ const UserProfile: React.FC = () => {
                           Estado
                         </TableCell>
                         <TableCell sx={{ fontWeight: 600 }}>Notas</TableCell>
+                        <TableCell align="center" sx={{ fontWeight: 600 }}>
+                          Comprobante
+                        </TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
@@ -1426,6 +1435,22 @@ const UserProfile: React.FC = () => {
                             >
                               {voucher.notes || "-"}
                             </Typography>
+                          </TableCell>
+                          <TableCell align="center">
+                            {voucher.receiptUrl ? (
+                              <IconButton
+                                size="small"
+                                component="a"
+                                href={`${API_BASE_URL}${voucher.receiptUrl}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                title="Ver comprobante"
+                              >
+                                <AttachFile fontSize="small" />
+                              </IconButton>
+                            ) : (
+                              "-"
+                            )}
                           </TableCell>
                         </TableRow>
                       ))}
@@ -2903,7 +2928,10 @@ const UserProfile: React.FC = () => {
         {/* Dialog para solicitar vale */}
         <Dialog
           open={openRequestDialog}
-          onClose={() => setOpenRequestDialog(false)}
+          onClose={() => {
+            setOpenRequestDialog(false);
+            setRequestReceipt(null);
+          }}
           PaperProps={{
             sx: {
               borderRadius: "20px",
@@ -2955,6 +2983,35 @@ const UserProfile: React.FC = () => {
                 </Select>
               </FormControl>
 
+              <Button
+                component="label"
+                variant="outlined"
+                fullWidth
+                startIcon={<AttachFile />}
+                sx={{ mt: 2, borderRadius: "12px", textTransform: "none" }}
+              >
+                {requestReceipt
+                  ? requestReceipt.name
+                  : "Adjuntar comprobante o foto (opcional)"}
+                <input
+                  type="file"
+                  hidden
+                  accept="image/jpeg,image/png,image/webp,application/pdf"
+                  onChange={(e) =>
+                    setRequestReceipt(e.target.files?.[0] || null)
+                  }
+                />
+              </Button>
+              {requestReceipt && (
+                <Button
+                  size="small"
+                  onClick={() => setRequestReceipt(null)}
+                  sx={{ mt: 0.5, textTransform: "none" }}
+                >
+                  Quitar archivo
+                </Button>
+              )}
+
               <Alert severity="info" sx={{ mt: 2, borderRadius: "12px" }}>
                 Tu solicitud será revisada por un administrador. Te
                 notificaremos cuando sea aprobada.
@@ -2963,7 +3020,10 @@ const UserProfile: React.FC = () => {
           </DialogContent>
           <DialogActions sx={{ p: 3 }}>
             <Button
-              onClick={() => setOpenRequestDialog(false)}
+              onClick={() => {
+                setOpenRequestDialog(false);
+                setRequestReceipt(null);
+              }}
               sx={{ borderRadius: "12px", textTransform: "none" }}
             >
               Cancelar

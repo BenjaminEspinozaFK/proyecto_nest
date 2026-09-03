@@ -22,6 +22,7 @@ describe('VouchersService', () => {
     userId: 'user-1',
     kilos: 15,
     bank: 'Banco',
+    receiptUrl: null,
     status: 'pending',
     amount: null,
     notes: null,
@@ -90,6 +91,7 @@ describe('VouchersService', () => {
         'user-1',
         15,
         'Banco',
+        undefined,
       );
       expect(vouchersGateway.notifyVoucherCreated).toHaveBeenCalledWith(
         mockVoucher,
@@ -109,6 +111,23 @@ describe('VouchersService', () => {
       });
       expect(cacheManager.del).toHaveBeenCalled();
       expect(result).toEqual(mockVoucher);
+    });
+
+    it('reenvía la url del comprobante al repositorio cuando se adjunta', async () => {
+      vouchersRepository.createVoucher.mockResolvedValue(mockVoucher);
+
+      await service.requestVoucher(
+        'user-1',
+        { kilos: 15, bank: 'Banco' },
+        '/uploads/vouchers/123-receipt.png',
+      );
+
+      expect(vouchersRepository.createVoucher).toHaveBeenCalledWith(
+        'user-1',
+        15,
+        'Banco',
+        '/uploads/vouchers/123-receipt.png',
+      );
     });
 
     it('no falla si el envío de push falla', async () => {
