@@ -11,6 +11,7 @@ export interface Voucher {
   userId: string;
   kilos: number;
   bank: string | null;
+  receiptUrl: string | null;
   status: VoucherStatus;
   amount: number | null;
   notes: string | null;

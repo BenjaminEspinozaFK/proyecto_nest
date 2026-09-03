@@ -17,9 +17,22 @@ interface PaginatedResponse<T> {
 }
 
 class VoucherService {
-  // Funcionario: Solicitar vale
+  // Funcionario: Solicitar vale (con comprobante/foto opcional)
   async requestVoucher(data: CreateVoucherRequest): Promise<GasVoucher> {
-    const response = await api.post<GasVoucher>("/vouchers/request", data);
+    const formData = new FormData();
+    formData.append("kilos", String(data.kilos));
+    if (data.bank) {
+      formData.append("bank", data.bank);
+    }
+    if (data.receipt) {
+      formData.append("receipt", data.receipt);
+    }
+
+    const response = await api.post<GasVoucher>(
+      "/vouchers/request",
+      formData,
+      { headers: { "Content-Type": "multipart/form-data" } },
+    );
     return response.data;
   }
 

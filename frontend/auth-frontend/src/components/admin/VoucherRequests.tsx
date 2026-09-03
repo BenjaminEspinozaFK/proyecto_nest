@@ -23,9 +23,17 @@ import {
   MenuItem,
   Skeleton,
   Checkbox,
+  IconButton,
 } from "@mui/material";
-import { Search, FilterAltOff, CheckCircle, Cancel } from "@mui/icons-material";
+import {
+  Search,
+  FilterAltOff,
+  CheckCircle,
+  Cancel,
+  AttachFile,
+} from "@mui/icons-material";
 import { voucherService } from "../../services/voucherService";
+import { API_BASE_URL } from "../../services/authService";
 import { GasVoucher, VoucherStats } from "../../types/voucher";
 import { useSocket } from "../../hooks/useSocket";
 import CardsSkeleton from "../skeletons/CardsSkeleton";
@@ -593,6 +601,7 @@ const VoucherRequests: React.FC = () => {
                   <TableCell align="center">Kilos</TableCell>
                   <TableCell align="center">Monto</TableCell>
                   <TableCell align="center">Estado</TableCell>
+                  <TableCell align="center">Comprobante</TableCell>
                   <TableCell>Acciones</TableCell>
                 </TableRow>
               </TableHead>
@@ -657,6 +666,22 @@ const VoucherRequests: React.FC = () => {
                             : "success"
                         }
                       />
+                    </TableCell>
+                    <TableCell align="center">
+                      {voucher.receiptUrl ? (
+                        <IconButton
+                          size="small"
+                          component="a"
+                          href={`${API_BASE_URL}${voucher.receiptUrl}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title="Ver comprobante"
+                        >
+                          <AttachFile fontSize="small" />
+                        </IconButton>
+                      ) : (
+                        "-"
+                      )}
                     </TableCell>
                     <TableCell>
                       <Box display="flex" gap={1} flexWrap="wrap">
