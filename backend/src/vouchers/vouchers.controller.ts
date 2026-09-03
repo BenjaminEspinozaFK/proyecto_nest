@@ -5,10 +5,14 @@ import {
   Body,
   Param,
   UseGuards,
+  UseInterceptors,
+  UploadedFile,
   Req,
   Patch,
   Query,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { voucherReceiptMulterConfig } from '../common/multer-voucher-receipt.config';
 import { PaginationDto } from '../common/dto/pagination.dto';
 import { VouchersService } from './vouchers.service';
 import { RequestWithUser } from '../auth/interfaces/request-with-user.interface';
@@ -27,14 +31,23 @@ import { Roles } from '../auth/roles.decorator';
 export class VouchersController {
   constructor(private readonly vouchersService: VouchersService) {}
 
-  // Funcionario: Solicitar vale
+  // Funcionario: Solicitar vale (con comprobante/foto opcional)
   @Post('request')
+  @UseInterceptors(FileInterceptor('receipt', voucherReceiptMulterConfig))
   async requestVoucher(
     @Req() req: RequestWithUser,
     @Body() createVoucherDto: CreateVoucherDto,
+    @UploadedFile() receipt?: Express.Multer.File,
   ) {
     const userId = req.user.userId;
-    return this.vouchersService.requestVoucher(userId, createVoucherDto);
+    const receiptUrl = receipt
+      ? `/uploads/vouchers/${receipt.filename}`
+      : undefined;
+    return this.vouchersService.requestVoucher(
+      userId,
+      createVoucherDto,
+      receiptUrl,
+    );
   }
 
   // Funcionario: Ver mis vales

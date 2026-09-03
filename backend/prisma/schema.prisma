@@ -68,6 +68,7 @@ model GasVoucher {
   kilos         Int
   amount        Float?
   bank          String?   // Banco con el que pagará
+  receiptUrl    String?   // Comprobante o foto adjunta a la solicitud
   status        String    @default("pending")
   requestDate   DateTime  @default(now())
   approvalDate  DateTime?

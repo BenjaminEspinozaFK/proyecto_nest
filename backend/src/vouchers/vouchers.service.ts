@@ -31,11 +31,16 @@ export class VouchersService {
   }
 
   // Funcionario solicita un vale
-  async requestVoucher(userId: string, createVoucherDto: CreateVoucherDto) {
+  async requestVoucher(
+    userId: string,
+    createVoucherDto: CreateVoucherDto,
+    receiptUrl?: string,
+  ) {
     const voucher = await this.vouchersRepository.createVoucher(
       userId,
       createVoucherDto.kilos,
       createVoucherDto.bank,
+      receiptUrl,
     );
 
     // Emitir evento de nuevo vale creado a los admins
