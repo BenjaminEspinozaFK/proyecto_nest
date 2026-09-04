@@ -130,6 +130,7 @@ export class PrismaVouchersRepository implements VouchersRepositoryPort {
       approved,
       delivered,
       rejected,
+      expired,
       amountResult,
       thisMonth,
     ] = await Promise.all([
@@ -138,6 +139,7 @@ export class PrismaVouchersRepository implements VouchersRepositoryPort {
       this.prisma.gasVoucher.count({ where: { status: 'approved' } }),
       this.prisma.gasVoucher.count({ where: { status: 'delivered' } }),
       this.prisma.gasVoucher.count({ where: { status: 'rejected' } }),
+      this.prisma.gasVoucher.count({ where: { status: 'expired' } }),
       this.prisma.gasVoucher.aggregate({ _sum: { amount: true } }),
       this.prisma.gasVoucher.count({
         where: { requestDate: { gte: startOfMonth } },
@@ -149,9 +151,28 @@ export class PrismaVouchersRepository implements VouchersRepositoryPort {
       approved,
       delivered,
       rejected,
+      expired,
       totalAmount: amountResult._sum.amount ?? 0,
       thisMonth,
     };
+  }
+
+  async findApprovedVouchersOlderThan(cutoffDate: Date): Promise<Voucher[]> {
+    return this.prisma.gasVoucher.findMany({
+      where: {
+        status: 'approved',
+        approvalDate: { lt: cutoffDate },
+      },
+      include: this.voucherInclude,
+    });
+  }
+
+  async expireVouchers(voucherIds: string[]): Promise<number> {
+    const result = await this.prisma.gasVoucher.updateMany({
+      where: { id: { in: voucherIds }, status: 'approved' },
+      data: { status: 'expired' },
+    });
+    return result.count;
   }
 
   async createManualVoucher(

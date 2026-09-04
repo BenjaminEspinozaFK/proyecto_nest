@@ -333,4 +333,71 @@ describe('Vouchers (e2e) - flujo de negocio de vales', () => {
       .send({ amount: 10000 })
       .expect(403);
   });
+
+  describe('expiración automática de vales aprobados no retirados', () => {
+    let oldVoucherId: string;
+    let recentVoucherId: string;
+
+    beforeAll(async () => {
+      // Se insertan directo por Prisma (no vía POST /vouchers/request) para
+      // no disparar notifyAllAdmins de nuevo — con varios e2e corriendo en
+      // paralelo sobre la misma BD, eso puede chocar con el afterAll de
+      // otra suite que borra sus propios admins de prueba.
+      const fortyDaysAgo = new Date();
+      fortyDaysAgo.setDate(fortyDaysAgo.getDate() - 40);
+
+      const oldVoucher = await prisma.gasVoucher.create({
+        data: {
+          userId,
+          kilos: 5,
+          amount: 5000,
+          status: 'approved',
+          approvalDate: fortyDaysAgo,
+          approvedBy: adminId,
+        },
+      });
+      oldVoucherId = oldVoucher.id;
+
+      const recentVoucher = await prisma.gasVoucher.create({
+        data: {
+          userId,
+          kilos: 5,
+          amount: 5000,
+          status: 'approved',
+          approvalDate: new Date(),
+          approvedBy: adminId,
+        },
+      });
+      recentVoucherId = recentVoucher.id;
+    });
+
+    it('niega el chequeo manual de expiración a un usuario', async () => {
+      await request(getHttpServer())
+        .post('/vouchers/expire-check')
+        .set('Authorization', `Bearer ${userToken}`)
+        .expect(403);
+    });
+
+    it('expira solo el vale aprobado hace más de 30 días', async () => {
+      const res = await request(getHttpServer())
+        .post('/vouchers/expire-check')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .expect(201);
+
+      expect(res.body.expired).toBeGreaterThanOrEqual(1);
+
+      const vouchers = await request(getHttpServer())
+        .get('/vouchers/my-vouchers')
+        .set('Authorization', `Bearer ${userToken}`)
+        .expect(200);
+
+      const oldVoucher = vouchers.body.find((v: any) => v.id === oldVoucherId);
+      const recentVoucher = vouchers.body.find(
+        (v: any) => v.id === recentVoucherId,
+      );
+
+      expect(oldVoucher.status).toBe('expired');
+      expect(recentVoucher.status).toBe('approved');
+    });
+  });
 });

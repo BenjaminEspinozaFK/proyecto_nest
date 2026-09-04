@@ -39,7 +39,13 @@ import { useSocket } from "../../hooks/useSocket";
 import CardsSkeleton from "../skeletons/CardsSkeleton";
 import TableRowsSkeleton from "../skeletons/TableRowsSkeleton";
 
-type StatusFilter = "all" | "pending" | "approved" | "rejected" | "delivered";
+type StatusFilter =
+  | "all"
+  | "pending"
+  | "approved"
+  | "rejected"
+  | "delivered"
+  | "expired";
 
 const STATUS_LABELS: Record<StatusFilter, string> = {
   all: "Todos los Vales",
@@ -47,6 +53,7 @@ const STATUS_LABELS: Record<StatusFilter, string> = {
   approved: "Vales Aprobados",
   rejected: "Vales Rechazados",
   delivered: "Vales Entregados",
+  expired: "Vales Expirados",
 };
 
 const normalizeText = (text: string) =>
@@ -396,6 +403,7 @@ const VoucherRequests: React.FC = () => {
               <MenuItem value="approved">Aprobado</MenuItem>
               <MenuItem value="rejected">Rechazado</MenuItem>
               <MenuItem value="delivered">Entregado</MenuItem>
+              <MenuItem value="expired">Expirado</MenuItem>
             </Select>
           </FormControl>
 
@@ -653,6 +661,8 @@ const VoucherRequests: React.FC = () => {
                             ? "Aprobado"
                             : voucher.status === "rejected"
                             ? "Rechazado"
+                            : voucher.status === "expired"
+                            ? "Expirado"
                             : "Entregado"
                         }
                         size="small"
@@ -663,6 +673,8 @@ const VoucherRequests: React.FC = () => {
                             ? "info"
                             : voucher.status === "rejected"
                             ? "error"
+                            : voucher.status === "expired"
+                            ? "default"
                             : "success"
                         }
                       />
@@ -722,6 +734,11 @@ const VoucherRequests: React.FC = () => {
                         {voucher.status === "rejected" && (
                           <Typography variant="body2" color="error.main">
                             ✗ Rechazado
+                          </Typography>
+                        )}
+                        {voucher.status === "expired" && (
+                          <Typography variant="body2" color="text.secondary">
+                            ⏱ Expirado
                           </Typography>
                         )}
                       </Box>
