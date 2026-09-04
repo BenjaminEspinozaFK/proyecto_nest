@@ -209,4 +209,13 @@ export class VouchersController {
   getGeneralStats() {
     return this.vouchersService.getGeneralStats();
   }
+
+  // Admin: Disparar manualmente la expiración de vales aprobados no
+  // retirados (normalmente corre solo, una vez al día)
+  @Post('expire-check')
+  @UseGuards(RolesGuard)
+  @Roles('admin')
+  runExpirationCheck() {
+    return this.vouchersService.expireOldApprovedVouchers();
+  }
 }

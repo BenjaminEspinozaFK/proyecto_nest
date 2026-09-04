@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { ScheduleModule } from '@nestjs/schedule';
 import { envValidationSchema } from './config/env.validation';
 import { AdminModule } from './admin/admin.module';
 import { UsersModule } from './user/user.module';
@@ -31,6 +32,7 @@ import { HealthModule } from './health/health.module';
         limit: 100,
       },
     ]),
+    ScheduleModule.forRoot(),
     RedisCacheModule,
     PrismaModule,
     HealthModule,

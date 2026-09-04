@@ -138,6 +138,13 @@ export class VouchersGateway
     this.logger.log(`Evento voucher:delivered emitido para vale ${voucher.id}`);
   }
 
+  // Método para notificar vale expirado por no haber sido retirado a tiempo
+  notifyVoucherExpired(voucher: any) {
+    this.server.to('admin').emit('voucher:expired', voucher);
+    this.server.to(`user:${voucher.userId}`).emit('voucher:expired', voucher);
+    this.logger.log(`Evento voucher:expired emitido para vale ${voucher.id}`);
+  }
+
   // Método para notificar actualización general de vales
   notifyVoucherUpdated(voucher: any) {
     this.server.emit('voucher:updated', voucher);

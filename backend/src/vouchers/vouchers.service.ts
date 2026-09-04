@@ -1,4 +1,5 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { CreateVoucherDto } from './dto/create-voucher.dto';
 import { ApproveVoucherDto } from './dto/approve-voucher.dto';
 import { RejectVoucherDto } from './dto/reject-voucher.dto';
@@ -14,8 +15,13 @@ import type { Cache } from 'cache-manager';
 const VOUCHERS_STATS_CACHE_KEY = 'vouchers:stats:general';
 const VOUCHERS_STATS_TTL = 60_000; // 60 segundos
 
+// Días desde la aprobación tras los cuales un vale no retirado expira
+export const VOUCHER_EXPIRATION_DAYS = 30;
+
 @Injectable()
 export class VouchersService {
+  private readonly logger = new Logger(VouchersService.name);
+
   constructor(
     @Inject(VOUCHERS_REPOSITORY)
     private vouchersRepository: VouchersRepositoryPort,
@@ -291,6 +297,69 @@ export class VouchersService {
     await this.invalidateStatsCache();
 
     return voucher;
+  }
+
+  // Expira automáticamente los vales aprobados que nadie retiró a tiempo
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT, { unrefTimeout: true })
+  async expireOldApprovedVouchers(): Promise<{ expired: number }> {
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - VOUCHER_EXPIRATION_DAYS);
+
+    const expirable =
+      await this.vouchersRepository.findApprovedVouchersOlderThan(cutoffDate);
+
+    if (expirable.length === 0) {
+      return { expired: 0 };
+    }
+
+    await this.vouchersRepository.expireVouchers(
+      expirable.map((voucher) => voucher.id),
+    );
+
+    for (const voucher of expirable) {
+      this.vouchersGateway.notifyVoucherExpired(voucher);
+
+      const title = 'Vale expirado';
+      const message = `Tu vale de ${voucher.kilos} kg aprobado el ${
+        voucher.approvalDate
+          ? new Date(voucher.approvalDate).toLocaleDateString('es-CL')
+          : ''
+      } expiró por no haber sido retirado dentro de ${VOUCHER_EXPIRATION_DAYS} días`;
+
+      try {
+        await this.notificationsService.notifyUser(
+          voucher.userId,
+          title,
+          message,
+          '/dashboard',
+        );
+        this.vouchersGateway.notifyNewNotification(`user:${voucher.userId}`);
+      } catch (error) {
+        this.logger.error(
+          `Error notificando expiración del vale ${voucher.id}:`,
+          error,
+        );
+      }
+
+      try {
+        await this.pushService.sendToUser(voucher.userId, {
+          title,
+          message,
+          link: '/dashboard',
+        });
+      } catch (error) {
+        this.logger.error(
+          `Error enviando push de expiración del vale ${voucher.id}:`,
+          error,
+        );
+      }
+    }
+
+    await this.invalidateStatsCache();
+
+    this.logger.log(`${expirable.length} vale(s) expirado(s) automáticamente`);
+
+    return { expired: expirable.length };
   }
 
   // Admin: Crear vale manual (asignar directamente)

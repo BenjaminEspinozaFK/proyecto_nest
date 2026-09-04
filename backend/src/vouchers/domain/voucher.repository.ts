@@ -20,6 +20,7 @@ export interface VouchersRepositoryPort {
     approved: number;
     delivered: number;
     rejected: number;
+    expired: number;
     totalAmount: number;
     thisMonth: number;
   }>;
@@ -35,6 +36,8 @@ export interface VouchersRepositoryPort {
     notes?: string,
   ): Promise<Voucher>;
   markAsDelivered(voucherId: string): Promise<Voucher>;
+  findApprovedVouchersOlderThan(cutoffDate: Date): Promise<Voucher[]>;
+  expireVouchers(voucherIds: string[]): Promise<number>;
   createManualVoucher(
     userId: string,
     kilos: number,
