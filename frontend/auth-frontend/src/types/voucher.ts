@@ -10,7 +10,7 @@ export interface GasVoucher {
   amount?: number;
   bank?: string;
   receiptUrl?: string | null;
-  status: "pending" | "approved" | "rejected" | "delivered";
+  status: "pending" | "approved" | "rejected" | "delivered" | "expired";
   requestDate: string;
   approvalDate?: string;
   deliveredDate?: string;
@@ -26,6 +26,7 @@ export interface VoucherStats {
   approved: number;
   delivered: number;
   rejected: number;
+  expired?: number;
   totalAmount: number;
   thisMonth?: number;
 }

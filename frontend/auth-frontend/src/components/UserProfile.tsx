@@ -1397,7 +1397,9 @@ const UserProfile: React.FC = () => {
                                     ? "APROBADO"
                                     : voucher.status === "rejected"
                                       ? "RECHAZADO"
-                                      : "ENTREGADO"
+                                      : voucher.status === "expired"
+                                        ? "EXPIRADO"
+                                        : "ENTREGADO"
                               }
                               size="small"
                               sx={{
@@ -1408,7 +1410,9 @@ const UserProfile: React.FC = () => {
                                       ? "#3b82f6"
                                       : voucher.status === "rejected"
                                         ? "#ef4444"
-                                        : "#22c55e",
+                                        : voucher.status === "expired"
+                                          ? "#9ca3af"
+                                          : "#22c55e",
                                 color: "#fff",
                                 fontWeight: 600,
                                 animation:

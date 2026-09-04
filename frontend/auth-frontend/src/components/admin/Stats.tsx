@@ -285,6 +285,11 @@ const AdminStats: React.FC = () => {
       value: allVouchers.filter((v) => v.status === "delivered").length,
       color: "#22c55e",
     },
+    {
+      name: "Expirados",
+      value: allVouchers.filter((v) => v.status === "expired").length,
+      color: "#9ca3af",
+    },
   ];
 
   const voucherKilosData = [

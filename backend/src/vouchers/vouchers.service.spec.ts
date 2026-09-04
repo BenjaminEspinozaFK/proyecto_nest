@@ -45,12 +45,15 @@ describe('VouchersService', () => {
       rejectVoucher: jest.fn(),
       markAsDelivered: jest.fn(),
       createManualVoucher: jest.fn(),
+      findApprovedVouchersOlderThan: jest.fn(),
+      expireVouchers: jest.fn(),
     };
     vouchersGateway = {
       notifyVoucherCreated: jest.fn(),
       notifyVoucherApproved: jest.fn(),
       notifyVoucherRejected: jest.fn(),
       notifyVoucherDelivered: jest.fn(),
+      notifyVoucherExpired: jest.fn(),
       notifyNewNotification: jest.fn(),
       notifyVoucherUpdated: jest.fn(),
     } as any;
@@ -345,6 +348,96 @@ describe('VouchersService', () => {
     });
   });
 
+  describe('expireOldApprovedVouchers', () => {
+    const approvedVoucher1 = {
+      ...mockVoucher,
+      id: 'voucher-1',
+      status: 'approved',
+      approvalDate: new Date('2026-01-01'),
+    };
+    const approvedVoucher2 = {
+      ...mockVoucher,
+      id: 'voucher-2',
+      userId: 'user-2',
+      status: 'approved',
+      approvalDate: new Date('2026-01-05'),
+    };
+
+    it('no hace nada si no hay vales aprobados vencidos', async () => {
+      vouchersRepository.findApprovedVouchersOlderThan.mockResolvedValue([]);
+
+      const result = await service.expireOldApprovedVouchers();
+
+      expect(vouchersRepository.expireVouchers).not.toHaveBeenCalled();
+      expect(notificationsService.notifyUser).not.toHaveBeenCalled();
+      expect(result).toEqual({ expired: 0 });
+    });
+
+    it('expira los vales vencidos, notifica a cada usuario y limpia el caché', async () => {
+      vouchersRepository.findApprovedVouchersOlderThan.mockResolvedValue([
+        approvedVoucher1,
+        approvedVoucher2,
+      ]);
+
+      const result = await service.expireOldApprovedVouchers();
+
+      expect(
+        vouchersRepository.findApprovedVouchersOlderThan,
+      ).toHaveBeenCalledWith(expect.any(Date));
+      expect(vouchersRepository.expireVouchers).toHaveBeenCalledWith([
+        'voucher-1',
+        'voucher-2',
+      ]);
+      expect(vouchersGateway.notifyVoucherExpired).toHaveBeenCalledWith(
+        approvedVoucher1,
+      );
+      expect(vouchersGateway.notifyVoucherExpired).toHaveBeenCalledWith(
+        approvedVoucher2,
+      );
+      expect(notificationsService.notifyUser).toHaveBeenCalledWith(
+        'user-1',
+        'Vale expirado',
+        expect.stringContaining('30 días'),
+        '/dashboard',
+      );
+      expect(notificationsService.notifyUser).toHaveBeenCalledWith(
+        'user-2',
+        'Vale expirado',
+        expect.any(String),
+        '/dashboard',
+      );
+      expect(pushService.sendToUser).toHaveBeenCalledTimes(2);
+      expect(cacheManager.del).toHaveBeenCalled();
+      expect(result).toEqual({ expired: 2 });
+    });
+
+    it('sigue procesando el resto si notificar a un usuario falla', async () => {
+      vouchersRepository.findApprovedVouchersOlderThan.mockResolvedValue([
+        approvedVoucher1,
+        approvedVoucher2,
+      ]);
+      notificationsService.notifyUser.mockRejectedValueOnce(
+        new Error('fallo de notificación'),
+      );
+
+      const result = await service.expireOldApprovedVouchers();
+
+      expect(notificationsService.notifyUser).toHaveBeenCalledTimes(2);
+      expect(result).toEqual({ expired: 2 });
+    });
+
+    it('no falla si el envío de push falla', async () => {
+      vouchersRepository.findApprovedVouchersOlderThan.mockResolvedValue([
+        approvedVoucher1,
+      ]);
+      pushService.sendToUser.mockRejectedValueOnce(new Error('push error'));
+
+      const result = await service.expireOldApprovedVouchers();
+
+      expect(result).toEqual({ expired: 1 });
+    });
+  });
+
   describe('createManualVoucher', () => {
     it('crea un vale manual y registra auditoría', async () => {
       vouchersRepository.createManualVoucher.mockResolvedValue(mockVoucher);
@@ -420,6 +513,7 @@ describe('VouchersService', () => {
         approved: 2,
         delivered: 1,
         rejected: 1,
+        expired: 0,
         totalAmount: 100,
         thisMonth: 2,
       };
