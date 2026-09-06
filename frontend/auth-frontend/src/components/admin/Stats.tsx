@@ -408,6 +408,7 @@ const AdminStats: React.FC = () => {
         <Box>
           <Typography
             variant="h4"
+            component="h2"
             fontWeight="bold"
             gutterBottom
             sx={{
@@ -747,6 +748,7 @@ const AdminStats: React.FC = () => {
       {/* KPIs de Usuarios */}
       <Typography
         variant="h6"
+        component="h3"
         fontWeight="bold"
         sx={{ mb: 2, color: isDark ? "#e0e0e0" : "#1a1a1a" }}
       >
@@ -805,6 +807,7 @@ const AdminStats: React.FC = () => {
       {/* KPIs de Pagos */}
       <Typography
         variant="h6"
+        component="h3"
         fontWeight="bold"
         sx={{ mb: 2, color: isDark ? "#e0e0e0" : "#1a1a1a" }}
       >
@@ -853,6 +856,7 @@ const AdminStats: React.FC = () => {
       {/* KPIs de Eficiencia */}
       <Typography
         variant="h6"
+        component="h3"
         fontWeight="bold"
         sx={{ mb: 2, color: isDark ? "#e0e0e0" : "#1a1a1a" }}
       >
@@ -922,6 +926,7 @@ const AdminStats: React.FC = () => {
         >
           <Typography
             variant="h6"
+            component="h3"
             gutterBottom
             fontWeight="bold"
             mb={2}
@@ -1040,6 +1045,7 @@ const AdminStats: React.FC = () => {
         >
           <Typography
             variant="h6"
+            component="h3"
             gutterBottom
             fontWeight="bold"
             mb={2}
@@ -1179,6 +1185,7 @@ const AdminStats: React.FC = () => {
       >
         <Typography
           variant="h6"
+          component="h3"
           gutterBottom
           fontWeight="bold"
           mb={2}
@@ -1358,6 +1365,7 @@ const AdminStats: React.FC = () => {
         >
           <Typography
             variant="h6"
+            component="h3"
             gutterBottom
             fontWeight="bold"
             mb={2}
@@ -1409,6 +1417,7 @@ const AdminStats: React.FC = () => {
         >
           <Typography
             variant="h6"
+            component="h3"
             gutterBottom
             fontWeight="bold"
             mb={2}

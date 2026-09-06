@@ -109,7 +109,15 @@ const NotificationBell: React.FC<NotificationBellProps> = ({
 
   return (
     <>
-      <IconButton onClick={handleOpen} sx={{ color: "text.secondary" }}>
+      <IconButton
+        onClick={handleOpen}
+        sx={{ color: "text.secondary" }}
+        aria-label={
+          unreadCount > 0
+            ? `Notificaciones, ${unreadCount} sin leer`
+            : "Notificaciones"
+        }
+      >
         <Badge badgeContent={unreadCount} color="error">
           <NotificationsIcon />
         </Badge>

@@ -49,6 +49,7 @@ const PaymentTrendChart: React.FC<PaymentTrendChartProps> = ({
     >
       <Typography
         variant="h6"
+        component="h3"
         gutterBottom
         fontWeight="bold"
         mb={2}

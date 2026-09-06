@@ -239,6 +239,7 @@ const AdminDashboard: React.FC = () => {
           <Box>
             <Typography
               variant="h4"
+              component="h1"
               sx={{
                 fontWeight: "bold",
                 background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
@@ -284,6 +285,7 @@ const AdminDashboard: React.FC = () => {
             {/* Avatar con menú desplegable */}
             <IconButton
               onClick={handleMenuOpen}
+              aria-label="Menú de cuenta"
               sx={{
                 p: 0,
                 border: "3px solid transparent",
@@ -447,7 +449,9 @@ const AdminDashboard: React.FC = () => {
                 },
               },
               "& .Mui-selected": {
-                color: "#667eea !important",
+                // Tonos ajustados para cumplir contraste AA (4.5:1) contra
+                // el fondo de cada tema, en vez del #667eea original
+                color: `${isDark ? "#7688ec" : "#4a5fd1"} !important`,
               },
               "& .MuiTabs-indicator": {
                 height: 3,
@@ -511,8 +515,9 @@ const AdminDashboard: React.FC = () => {
               />
 
               <FormControl sx={{ minWidth: 180 }}>
-                <InputLabel>Rol</InputLabel>
+                <InputLabel id="filter-rol-label">Rol</InputLabel>
                 <Select
+                  labelId="filter-rol-label"
                   value={roleFilter}
                   label="Rol"
                   onChange={(e) =>
@@ -760,6 +765,7 @@ const AdminDashboard: React.FC = () => {
                   </Box>
                   <IconButton
                     onClick={() => setShowSettingsModal(false)}
+                    aria-label="Cerrar configuración"
                     sx={{
                       "&:hover": { bgcolor: "action.hover" },
                     }}
