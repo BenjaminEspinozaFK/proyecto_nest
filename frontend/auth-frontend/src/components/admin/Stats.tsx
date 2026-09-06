@@ -128,14 +128,27 @@ const KpiCard: React.FC<KpiCardProps> = ({
           >
             {label}
           </Typography>
-          <Typography variant="h4" fontWeight="bold" sx={{ color }}>
+          <Typography
+            variant="h4"
+            component="p"
+            fontWeight="bold"
+            color="text.primary"
+          >
             {value}
           </Typography>
           {subtitle && (
             <Chip
               label={subtitle}
               size="small"
-              sx={{ mt: 1, bgcolor: `${color}22`, color, fontWeight: 600 }}
+              sx={{
+                mt: 1,
+                bgcolor: `${color}22`,
+                // El color de marca directo sobre su propio fondo claro
+                // ("color" acá) no llega a 4.5:1 — se usa text.primary,
+                // que sí es legible en ambos temas
+                color: "text.primary",
+                fontWeight: 600,
+              }}
             />
           )}
         </Box>
@@ -518,8 +531,9 @@ const AdminStats: React.FC = () => {
                 </Typography>
                 <Typography
                   variant="h3"
+                  component="p"
                   fontWeight="bold"
-                  sx={{ color: "#667eea" }}
+                  color="text.primary"
                 >
                   {voucherStats?.total || allVouchers.length}
                 </Typography>
@@ -529,7 +543,7 @@ const AdminStats: React.FC = () => {
                   sx={{
                     mt: 1,
                     bgcolor: "#667eea22",
-                    color: "#667eea",
+                    color: "text.primary",
                     fontWeight: 600,
                   }}
                 />
@@ -581,8 +595,9 @@ const AdminStats: React.FC = () => {
                 </Typography>
                 <Typography
                   variant="h3"
+                  component="p"
                   fontWeight="bold"
-                  sx={{ color: "#764ba2" }}
+                  color="text.primary"
                 >
                   {voucherStats?.pending ||
                     allVouchers.filter((v) => v.status === "pending").length}
@@ -593,7 +608,7 @@ const AdminStats: React.FC = () => {
                   sx={{
                     mt: 1,
                     bgcolor: "#764ba222",
-                    color: "#764ba2",
+                    color: "text.primary",
                     fontWeight: 600,
                   }}
                 />
@@ -645,8 +660,9 @@ const AdminStats: React.FC = () => {
                 </Typography>
                 <Typography
                   variant="h3"
+                  component="p"
                   fontWeight="bold"
-                  sx={{ color: "#22c55e" }}
+                  color="text.primary"
                 >
                   {voucherStats?.delivered ||
                     allVouchers.filter((v) => v.status === "delivered").length}
@@ -657,7 +673,7 @@ const AdminStats: React.FC = () => {
                   sx={{
                     mt: 1,
                     bgcolor: "#22c55e22",
-                    color: "#22c55e",
+                    color: "text.primary",
                     fontWeight: 600,
                   }}
                 />
@@ -710,8 +726,9 @@ const AdminStats: React.FC = () => {
                 </Typography>
                 <Typography
                   variant="h3"
+                  component="p"
                   fontWeight="bold"
-                  sx={{ color: "#f59e0b" }}
+                  color="text.primary"
                 >
                   ${(voucherStats?.totalAmount || totalAmount).toLocaleString()}
                 </Typography>
@@ -721,7 +738,7 @@ const AdminStats: React.FC = () => {
                   sx={{
                     mt: 1,
                     bgcolor: "#f59e0b22",
-                    color: "#f59e0b",
+                    color: "text.primary",
                     fontWeight: 600,
                   }}
                 />
