@@ -565,6 +565,9 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
       }}
     >
       <Box
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="user-detail-modal-title"
         sx={{
           position: "absolute",
           top: "50%",
@@ -592,6 +595,7 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
         >
           <IconButton
             onClick={onClose}
+            aria-label="Cerrar"
             sx={{
               position: "absolute",
               right: 8,
@@ -625,7 +629,11 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
                 : "U"}
             </Avatar>
             <Box>
-              <Typography variant="h5" fontWeight="bold">
+              <Typography
+                id="user-detail-modal-title"
+                variant="h5"
+                fontWeight="bold"
+              >
                 {editedUser.name || "Usuario"}
               </Typography>
               <Typography variant="body2" sx={{ opacity: 0.9, mt: 0.5 }}>
@@ -773,8 +781,9 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
                     sx={{ flex: 1, minWidth: "200px" }}
                     disabled={!isEditing}
                   >
-                    <InputLabel>Rol</InputLabel>
+                    <InputLabel id="edit-user-rol-label">Rol</InputLabel>
                     <Select
+                      labelId="edit-user-rol-label"
                       value={editedUser.role || "user"}
                       onChange={(e) =>
                         setEditedUser({ ...editedUser, role: e.target.value })
@@ -1159,8 +1168,11 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
                   <Box display="flex" flexDirection="column" gap={2}>
                     <Box display="flex" gap={2}>
                       <FormControl fullWidth>
-                        <InputLabel>Año</InputLabel>
+                        <InputLabel id="new-payment-year-label">
+                          Año
+                        </InputLabel>
                         <Select
+                          labelId="new-payment-year-label"
                           value={newPayment.year}
                           label="Año"
                           onChange={(e) =>
@@ -1181,8 +1193,11 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
                         </Select>
                       </FormControl>
                       <FormControl fullWidth>
-                        <InputLabel>Mes</InputLabel>
+                        <InputLabel id="new-payment-month-label">
+                          Mes
+                        </InputLabel>
                         <Select
+                          labelId="new-payment-month-label"
                           value={newPayment.month}
                           label="Mes"
                           onChange={(e) =>
@@ -1357,6 +1372,7 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
                                     <IconButton
                                       size="small"
                                       color="error"
+                                      title="Eliminar pago"
                                       onClick={() =>
                                         payment &&
                                         handleDeletePayment(payment.id)

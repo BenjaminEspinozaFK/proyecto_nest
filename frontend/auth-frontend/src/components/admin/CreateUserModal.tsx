@@ -150,6 +150,9 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({
       }}
     >
       <Box
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="create-user-modal-title"
         sx={{
           position: "absolute",
           top: "50%",
@@ -170,7 +173,7 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({
             }`,
         }}
       >
-        <Typography variant="h6" gutterBottom>
+        <Typography id="create-user-modal-title" variant="h6" gutterBottom>
           Crear usuarios
         </Typography>
 

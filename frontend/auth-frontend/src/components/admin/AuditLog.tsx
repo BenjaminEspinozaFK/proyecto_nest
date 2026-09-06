@@ -119,6 +119,7 @@ const AdminAuditLog: React.FC = () => {
       >
         <Typography
           variant="h5"
+          component="h2"
           fontWeight="bold"
           sx={{ display: "flex", alignItems: "center", gap: 1 }}
         >
@@ -137,8 +138,9 @@ const AdminAuditLog: React.FC = () => {
           }}
         >
           <FormControl size="small" sx={{ minWidth: 200 }}>
-            <InputLabel>Administrador</InputLabel>
+            <InputLabel id="filter-admin-label">Administrador</InputLabel>
             <Select
+              labelId="filter-admin-label"
               value={adminId}
               label="Administrador"
               onChange={(e) => {
@@ -156,8 +158,9 @@ const AdminAuditLog: React.FC = () => {
           </FormControl>
 
           <FormControl size="small" sx={{ minWidth: 180 }}>
-            <InputLabel>Entidad</InputLabel>
+            <InputLabel id="filter-entidad-label">Entidad</InputLabel>
             <Select
+              labelId="filter-entidad-label"
               value={entityType}
               label="Entidad"
               onChange={(e) => {
@@ -214,7 +217,7 @@ const AdminAuditLog: React.FC = () => {
 
       <Paper>
         <Box sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
-          <Typography variant="h6" fontWeight="bold">
+          <Typography variant="h6" component="h3" fontWeight="bold">
             Acciones registradas ({total})
           </Typography>
         </Box>
@@ -254,6 +257,13 @@ const AdminAuditLog: React.FC = () => {
                         label={log.action}
                         size="small"
                         color={actionColor(log.action)}
+                        sx={
+                          // El rojo "error" por defecto de MUI no cumple
+                          // contraste AA con texto blanco en modo oscuro
+                          actionColor(log.action) === "error"
+                            ? { bgcolor: "#c62828", color: "#fff" }
+                            : undefined
+                        }
                       />
                     </TableCell>
                     <TableCell>
