@@ -79,6 +79,9 @@ const Login: React.FC = () => {
           <Box sx={{ position: "relative", textAlign: "center", mb: 3 }}>
             <IconButton
               onClick={toggleTheme}
+              aria-label={
+                isDark ? "Cambiar a modo claro" : "Cambiar a modo oscuro"
+              }
               sx={{
                 position: "absolute",
                 top: 0,
@@ -133,6 +136,11 @@ const Login: React.FC = () => {
                       onClick={() => setShowPassword(!showPassword)}
                       edge="end"
                       disabled={isLoading}
+                      aria-label={
+                        showPassword
+                          ? "Ocultar contraseña"
+                          : "Mostrar contraseña"
+                      }
                     >
                       {showPassword ? <VisibilityOff /> : <Visibility />}
                     </IconButton>

@@ -98,9 +98,9 @@ const ThemedApp: React.FC = () => {
       <CssBaseline />
       <BrowserRouter>
         <AuthProvider>
-          <div className="App">
+          <main className="App">
             <AppRoutes />
-          </div>
+          </main>
         </AuthProvider>
       </BrowserRouter>
     </MuiThemeProvider>

@@ -235,6 +235,11 @@ const Register: React.FC = () => {
                       onClick={() => setShowPassword(!showPassword)}
                       edge="end"
                       disabled={isLoading}
+                      aria-label={
+                        showPassword
+                          ? "Ocultar contraseña"
+                          : "Mostrar contraseña"
+                      }
                     >
                       {showPassword ? <VisibilityOff /> : <Visibility />}
                     </IconButton>

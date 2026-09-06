@@ -814,6 +814,7 @@ const UserProfile: React.FC = () => {
           <Box>
             <Typography
               variant="h4"
+              component="h1"
               sx={{
                 fontWeight: "bold",
                 background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
@@ -837,6 +838,7 @@ const UserProfile: React.FC = () => {
             {/* Avatar con menú desplegable */}
             <IconButton
               onClick={handleMenuOpen}
+              aria-label="Menú de cuenta"
               sx={{
                 p: 0,
                 border: "3px solid transparent",
@@ -999,7 +1001,7 @@ const UserProfile: React.FC = () => {
             <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
               <LocalGasStation sx={{ fontSize: 32, color: "#667eea" }} />
               <Box>
-                <Typography variant="h5" fontWeight="bold">
+                <Typography variant="h5" component="h2" fontWeight="bold">
                   Mis Vales de Gas
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
@@ -1092,6 +1094,7 @@ const UserProfile: React.FC = () => {
                     </Box>
                     <Typography
                       variant="h4"
+                      component="p"
                       fontWeight="bold"
                       sx={{
                         background:
@@ -1147,6 +1150,7 @@ const UserProfile: React.FC = () => {
                     </Box>
                     <Typography
                       variant="h4"
+                      component="p"
                       fontWeight="bold"
                       sx={{
                         background:
@@ -1202,6 +1206,7 @@ const UserProfile: React.FC = () => {
                     </Box>
                     <Typography
                       variant="h4"
+                      component="p"
                       fontWeight="bold"
                       sx={{
                         background:
@@ -1257,6 +1262,7 @@ const UserProfile: React.FC = () => {
                     </Box>
                     <Typography
                       variant="h4"
+                      component="p"
                       fontWeight="bold"
                       sx={{
                         background:
@@ -1300,7 +1306,12 @@ const UserProfile: React.FC = () => {
                   >
                     <LocalGasStation sx={{ fontSize: 64, color: "#667eea" }} />
                   </Box>
-                  <Typography variant="h6" fontWeight="bold" gutterBottom>
+                  <Typography
+                    variant="h6"
+                    component="h3"
+                    fontWeight="bold"
+                    gutterBottom
+                  >
                     No tienes vales solicitados
                   </Typography>
                   <Typography
@@ -1486,7 +1497,7 @@ const UserProfile: React.FC = () => {
             <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
               <AttachMoney sx={{ fontSize: 32, color: "#10b981" }} />
               <Box>
-                <Typography variant="h5" fontWeight="bold">
+                <Typography variant="h5" component="h2" fontWeight="bold">
                   Mis Pagos Mensuales
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
@@ -1607,6 +1618,7 @@ const UserProfile: React.FC = () => {
                         </Box>
                         <Typography
                           variant="h4"
+                          component="p"
                           fontWeight="bold"
                           sx={{
                             background:
@@ -1671,7 +1683,12 @@ const UserProfile: React.FC = () => {
                   >
                     <AttachMoney sx={{ fontSize: 64, color: "#10b981" }} />
                   </Box>
-                  <Typography variant="h6" fontWeight="bold" gutterBottom>
+                  <Typography
+                    variant="h6"
+                    component="h3"
+                    fontWeight="bold"
+                    gutterBottom
+                  >
                     No hay pagos registrados
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
@@ -1855,6 +1872,7 @@ const UserProfile: React.FC = () => {
 
                     <IconButton
                       onClick={() => fileInputRef.current?.click()}
+                      aria-label="Cambiar foto de perfil"
                       sx={{
                         position: "absolute",
                         bottom: 8,
@@ -2319,6 +2337,7 @@ const UserProfile: React.FC = () => {
                   </Box>
                   <IconButton
                     onClick={() => setShowSettingsModal(false)}
+                    aria-label="Cerrar configuración"
                     sx={{
                       "&:hover": { bgcolor: "action.hover" },
                     }}
@@ -2949,8 +2968,11 @@ const UserProfile: React.FC = () => {
           <DialogContent>
             <Box sx={{ pt: 2 }}>
               <FormControl fullWidth>
-                <InputLabel>Cantidad de Kilos</InputLabel>
+                <InputLabel id="request-kilos-label">
+                  Cantidad de Kilos
+                </InputLabel>
                 <Select
+                  labelId="request-kilos-label"
                   value={requestKilos}
                   label="Cantidad de Kilos"
                   onChange={(e) => setRequestKilos(Number(e.target.value))}
@@ -2964,8 +2986,9 @@ const UserProfile: React.FC = () => {
               </FormControl>
 
               <FormControl fullWidth sx={{ mt: 2 }}>
-                <InputLabel>Banco de Pago</InputLabel>
+                <InputLabel id="request-bank-label">Banco de Pago</InputLabel>
                 <Select
+                  labelId="request-bank-label"
                   value={requestBank}
                   label="Banco de Pago"
                   onChange={(e) => setRequestBank(e.target.value)}
@@ -2989,6 +3012,7 @@ const UserProfile: React.FC = () => {
 
               <Button
                 component="label"
+                role={undefined}
                 variant="outlined"
                 fullWidth
                 startIcon={<AttachFile />}

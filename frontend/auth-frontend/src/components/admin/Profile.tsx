@@ -241,6 +241,7 @@ const AdminProfile: React.FC = () => {
             <IconButton
               onClick={() => fileInputRef.current?.click()}
               disabled={uploading}
+              aria-label="Cambiar foto de perfil"
               sx={{
                 position: "absolute",
                 bottom: 16,

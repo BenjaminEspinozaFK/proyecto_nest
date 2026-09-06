@@ -361,7 +361,7 @@ const VoucherRequests: React.FC = () => {
         alignItems="center"
         mb={3}
       >
-        <Typography variant="h5" fontWeight="bold">
+        <Typography variant="h5" component="h2" fontWeight="bold">
           Gestión de Vales de Gas
         </Typography>
       </Box>
@@ -390,8 +390,9 @@ const VoucherRequests: React.FC = () => {
           />
 
           <FormControl size="small" sx={{ minWidth: 160 }}>
-            <InputLabel>Estado</InputLabel>
+            <InputLabel id="filter-estado-label">Estado</InputLabel>
             <Select
+              labelId="filter-estado-label"
               value={statusFilter}
               label="Estado"
               onChange={(e) =>
@@ -465,7 +466,12 @@ const VoucherRequests: React.FC = () => {
           }}
         >
           <Paper sx={{ p: 2, textAlign: "center" }}>
-            <Typography variant="h4" color="primary" fontWeight="bold">
+            <Typography
+              variant="h4"
+              component="p"
+              color="primary"
+              fontWeight="bold"
+            >
               {stats.total}
             </Typography>
             <Typography variant="body2" color="text.secondary">
@@ -477,10 +483,12 @@ const VoucherRequests: React.FC = () => {
               p: 2,
               textAlign: "center",
               bgcolor: "warning.main",
-              color: "white",
+              // texto oscuro fijo: el contrastText de MUI elige blanco con
+              // 3:1 (su umbral por defecto), pero no llega al 4.5:1 de AA
+              color: "rgba(0, 0, 0, 0.87)",
             }}
           >
-            <Typography variant="h4" fontWeight="bold">
+            <Typography variant="h4" component="p" fontWeight="bold">
               {stats.pending}
             </Typography>
             <Typography variant="body2">Pendientes</Typography>
@@ -490,10 +498,10 @@ const VoucherRequests: React.FC = () => {
               p: 2,
               textAlign: "center",
               bgcolor: "info.main",
-              color: "white",
+              color: "rgba(0, 0, 0, 0.87)",
             }}
           >
-            <Typography variant="h4" fontWeight="bold">
+            <Typography variant="h4" component="p" fontWeight="bold">
               {stats.approved}
             </Typography>
             <Typography variant="body2">Aprobados</Typography>
@@ -503,16 +511,21 @@ const VoucherRequests: React.FC = () => {
               p: 2,
               textAlign: "center",
               bgcolor: "success.main",
-              color: "white",
+              color: "rgba(0, 0, 0, 0.87)",
             }}
           >
-            <Typography variant="h4" fontWeight="bold">
+            <Typography variant="h4" component="p" fontWeight="bold">
               {stats.delivered}
             </Typography>
             <Typography variant="body2">Entregados</Typography>
           </Paper>
           <Paper sx={{ p: 2, textAlign: "center" }}>
-            <Typography variant="h4" color="primary" fontWeight="bold">
+            <Typography
+              variant="h4"
+              component="p"
+              color="primary"
+              fontWeight="bold"
+            >
               ${stats.totalAmount.toLocaleString()}
             </Typography>
             <Typography variant="body2" color="text.secondary">
@@ -525,7 +538,7 @@ const VoucherRequests: React.FC = () => {
       {/* Tabla de vales */}
       <Paper>
         <Box sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
-          <Typography variant="h6" fontWeight="bold">
+          <Typography variant="h6" component="h3" fontWeight="bold">
             {STATUS_LABELS[statusFilter]} ({vouchersToShow.length})
           </Typography>
         </Box>
