@@ -618,6 +618,10 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
                 height: 80,
                 border: "3px solid white",
                 fontSize: "2rem",
+                // El fallback de iniciales de MUI (sin src) no cumple
+                // contraste por defecto — se fija un par seguro
+                bgcolor: "background.paper",
+                color: "text.primary",
               }}
             >
               {editedUser.name

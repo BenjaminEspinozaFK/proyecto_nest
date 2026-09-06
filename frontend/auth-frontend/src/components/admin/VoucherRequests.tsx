@@ -482,10 +482,11 @@ const VoucherRequests: React.FC = () => {
             sx={{
               p: 2,
               textAlign: "center",
-              bgcolor: "warning.main",
-              // texto oscuro fijo: el contrastText de MUI elige blanco con
-              // 3:1 (su umbral por defecto), pero no llega al 4.5:1 de AA
-              color: "rgba(0, 0, 0, 0.87)",
+              // Colores fijos (no warning.main/info.main/success.main): esos
+              // tokens cambian demasiado entre temas y con texto blanco no
+              // llegaban a 4.5:1 en alguno de los dos (verificado con axe)
+              bgcolor: "#b45309",
+              color: "#ffffff",
             }}
           >
             <Typography variant="h4" component="p" fontWeight="bold">
@@ -497,8 +498,8 @@ const VoucherRequests: React.FC = () => {
             sx={{
               p: 2,
               textAlign: "center",
-              bgcolor: "info.main",
-              color: "rgba(0, 0, 0, 0.87)",
+              bgcolor: "#1d4ed8",
+              color: "#ffffff",
             }}
           >
             <Typography variant="h4" component="p" fontWeight="bold">
@@ -510,8 +511,8 @@ const VoucherRequests: React.FC = () => {
             sx={{
               p: 2,
               textAlign: "center",
-              bgcolor: "success.main",
-              color: "rgba(0, 0, 0, 0.87)",
+              bgcolor: "#15803d",
+              color: "#ffffff",
             }}
           >
             <Typography variant="h4" component="p" fontWeight="bold">

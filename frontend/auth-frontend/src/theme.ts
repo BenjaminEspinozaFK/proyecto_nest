@@ -109,7 +109,9 @@ export const lightTheme = createTheme({
     },
     text: {
       primary: "#212529", // Texto negro más suave
-      secondary: "rgba(33, 37, 41, 0.6)",
+      // 0.6 daba ~4.1:1 sobre fondos claros (#f8f9fa/#ffffff), por debajo
+      // del 4.5:1 que exige AA para texto normal — subido a 0.68
+      secondary: "rgba(33, 37, 41, 0.68)",
     },
   },
   components: {
