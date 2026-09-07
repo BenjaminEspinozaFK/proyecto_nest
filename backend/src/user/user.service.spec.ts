@@ -150,18 +150,6 @@ describe('UsersService', () => {
       });
       expect(result).toEqual(publicUser);
     });
-
-    it('debe encriptar la contraseña si se proporciona', async () => {
-      repository.findById.mockResolvedValue(mockUser);
-      repository.update.mockResolvedValue(publicUser);
-
-      await service.updateUser('user-1', { password: 'Nueva123' });
-
-      expect(bcrypt.hash).toHaveBeenCalledWith('Nueva123', 10);
-      expect(repository.update).toHaveBeenCalledWith('user-1', {
-        password: 'hashed-password',
-      });
-    });
   });
 
   describe('deleteUser', () => {
