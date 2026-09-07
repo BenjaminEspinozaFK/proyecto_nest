@@ -21,11 +21,13 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { RolesGuard } from 'src/auth/roles.guard';
+import { Roles } from 'src/auth/roles.decorator';
 import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('users')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class UsersController {
   constructor(private usersService: UsersService) {}
 
@@ -60,27 +62,35 @@ export class UsersController {
     return this.usersService.updateAvatar(userId, file.filename);
   }
 
+  // Las rutas de abajo operan sobre cualquier usuario por id — solo un
+  // admin puede usarlas (antes eran accesibles por cualquier usuario
+  // autenticado, permitiendo tomar el control de cuentas ajenas)
   @Get()
+  @Roles('admin')
   async getUsers(@Query() query: PaginationDto) {
     return this.usersService.getUsers(query.page ?? 1, query.limit ?? 20);
   }
 
   @Get(':id')
+  @Roles('admin')
   async getUserById(@Param('id') id: string) {
     return this.usersService.getUserById(id);
   }
 
   @Post()
+  @Roles('admin')
   async createUser(@Body() user: CreateUserDto) {
     return this.usersService.createUser(user);
   }
 
   @Put(':id')
+  @Roles('admin')
   async updateUser(@Param('id') id: string, @Body() user: UpdateUserDto) {
     return this.usersService.updateUser(id, user);
   }
 
   @Delete(':id')
+  @Roles('admin')
   async deleteUser(@Param('id') id: string): Promise<{ message: string }> {
     return this.usersService.deleteUser(id);
   }

@@ -55,12 +55,7 @@ export class UsersService {
       throw new NotFoundException(`Usuario con ID ${id} no encontrado`);
     }
 
-    const updateData = { ...userData };
-    if (userData.password) {
-      updateData.password = await bcrypt.hash(userData.password, 10);
-    }
-
-    return this.userRepository.update(id, updateData);
+    return this.userRepository.update(id, userData);
   }
 
   async deleteUser(id: string): Promise<{ message: string }> {
