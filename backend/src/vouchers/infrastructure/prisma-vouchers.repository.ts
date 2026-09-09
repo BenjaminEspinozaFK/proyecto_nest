@@ -18,6 +18,13 @@ export class PrismaVouchersRepository implements VouchersRepositoryPort {
 
   constructor(private prisma: PrismaService) {}
 
+  async findVoucherById(voucherId: string): Promise<Voucher | null> {
+    return this.prisma.gasVoucher.findUnique({
+      where: { id: voucherId },
+      include: this.voucherInclude,
+    });
+  }
+
   async createVoucher(
     userId: string,
     kilos: number,

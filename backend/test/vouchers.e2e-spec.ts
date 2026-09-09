@@ -306,6 +306,52 @@ describe('Vouchers (e2e) - flujo de negocio de vales', () => {
     expect(res.body.notes).toBe('Sin documentación');
   });
 
+  it('impide reaprobar un vale que ya fue rechazado', async () => {
+    const requested = await request(getHttpServer())
+      .post('/vouchers/request')
+      .set('Authorization', `Bearer ${userToken}`)
+      .send({ kilos: 15 })
+      .expect(201);
+
+    await request(getHttpServer())
+      .patch(`/vouchers/${requested.body.id}/reject`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ notes: 'Rechazado' })
+      .expect(200);
+
+    const res = await request(getHttpServer())
+      .patch(`/vouchers/${requested.body.id}/approve`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ amount: 10000 })
+      .expect(409);
+
+    expect(res.body.message).toContain('rejected');
+
+    // El vale sigue rechazado, no quedó en un estado inconsistente
+    const stillRejected = await request(getHttpServer())
+      .get('/vouchers/my-vouchers')
+      .set('Authorization', `Bearer ${userToken}`)
+      .expect(200);
+    const voucher = stillRejected.body.find(
+      (v: any) => v.id === requested.body.id,
+    );
+    expect(voucher.status).toBe('rejected');
+    expect(voucher.amount).toBeNull();
+  });
+
+  it('impide marcar como entregado un vale que sigue pendiente', async () => {
+    const requested = await request(getHttpServer())
+      .post('/vouchers/request')
+      .set('Authorization', `Bearer ${userToken}`)
+      .send({ kilos: 5 })
+      .expect(201);
+
+    await request(getHttpServer())
+      .patch(`/vouchers/${requested.body.id}/deliver`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .expect(409);
+  });
+
   it('permite al admin listar todos los vales paginados', async () => {
     const res = await request(getHttpServer())
       .get('/vouchers/all')
