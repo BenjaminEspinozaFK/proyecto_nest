@@ -1,4 +1,10 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import {
+  ConflictException,
+  Inject,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { CreateVoucherDto } from './dto/create-voucher.dto';
 import { ApproveVoucherDto } from './dto/approve-voucher.dto';
@@ -34,6 +40,29 @@ export class VouchersService {
 
   private async invalidateStatsCache(): Promise<void> {
     await this.cacheManager.del(VOUCHERS_STATS_CACHE_KEY);
+  }
+
+  // Trae el vale y valida que esté en el estado esperado antes de una
+  // transición (aprobar/rechazar/entregar), evitando ej. reaprobar un vale
+  // ya rechazado o marcar como entregado uno que sigue pendiente.
+  private async getVoucherForTransition(
+    voucherId: string,
+    expectedStatus: string,
+    actionLabel: string,
+  ) {
+    const voucher = await this.vouchersRepository.findVoucherById(voucherId);
+
+    if (!voucher) {
+      throw new NotFoundException(`Vale con ID ${voucherId} no encontrado`);
+    }
+
+    if (voucher.status !== expectedStatus) {
+      throw new ConflictException(
+        `No se puede ${actionLabel} un vale en estado "${voucher.status}" (se esperaba "${expectedStatus}")`,
+      );
+    }
+
+    return voucher;
   }
 
   // Funcionario solicita un vale
@@ -99,6 +128,8 @@ export class VouchersService {
     adminId: string,
     adminName?: string,
   ) {
+    await this.getVoucherForTransition(voucherId, 'pending', 'aprobar');
+
     const voucher = await this.vouchersRepository.approveVoucher(
       voucherId,
       approveVoucherDto.amount,
@@ -151,6 +182,8 @@ export class VouchersService {
     adminId: string,
     adminName?: string,
   ) {
+    await this.getVoucherForTransition(voucherId, 'pending', 'rechazar');
+
     const voucher = await this.vouchersRepository.rejectVoucher(
       voucherId,
       adminId,
@@ -259,6 +292,8 @@ export class VouchersService {
     adminId: string,
     adminName?: string,
   ) {
+    await this.getVoucherForTransition(voucherId, 'approved', 'entregar');
+
     const voucher = await this.vouchersRepository.markAsDelivered(voucherId);
 
     // Emitir evento de vale entregado

@@ -2,6 +2,7 @@ import { Voucher } from './voucher.types';
 import type { PaginatedResult } from '../../common/interfaces/paginated-result.interface';
 
 export interface VouchersRepositoryPort {
+  findVoucherById(voucherId: string): Promise<Voucher | null>;
   createVoucher(
     userId: string,
     kilos: number,
