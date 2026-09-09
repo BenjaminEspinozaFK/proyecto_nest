@@ -1,3 +1,4 @@
+import { ConflictException, NotFoundException } from '@nestjs/common';
 import { VouchersService } from './vouchers.service';
 import { VouchersRepositoryPort } from './domain/voucher.repository';
 import { VouchersGateway } from './vouchers.gateway';
@@ -36,6 +37,7 @@ describe('VouchersService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     vouchersRepository = {
+      findVoucherById: jest.fn().mockResolvedValue(mockVoucher),
       createVoucher: jest.fn(),
       findUserVouchers: jest.fn(),
       findPendingVouchers: jest.fn(),
@@ -229,6 +231,37 @@ describe('VouchersService', () => {
       expect(cacheManager.del).toHaveBeenCalled();
       expect(result).toEqual(approvedVoucher);
     });
+
+    it('rechaza aprobar un vale que no está pendiente', async () => {
+      vouchersRepository.findVoucherById.mockResolvedValue({
+        ...mockVoucher,
+        status: 'rejected',
+      });
+
+      await expect(
+        service.approveVoucher(
+          'voucher-1',
+          { amount: 25000 },
+          'admin-1',
+          'Admin Uno',
+        ),
+      ).rejects.toThrow(ConflictException);
+
+      expect(vouchersRepository.approveVoucher).not.toHaveBeenCalled();
+    });
+
+    it('rechaza aprobar un vale inexistente', async () => {
+      vouchersRepository.findVoucherById.mockResolvedValue(null);
+
+      await expect(
+        service.approveVoucher(
+          'voucher-inexistente',
+          { amount: 25000 },
+          'admin-1',
+          'Admin Uno',
+        ),
+      ).rejects.toThrow(NotFoundException);
+    });
   });
 
   describe('rejectVoucher', () => {
@@ -268,6 +301,24 @@ describe('VouchersService', () => {
       );
       expect(result).toEqual(rejectedVoucher);
     });
+
+    it('rechaza rechazar un vale que ya fue entregado', async () => {
+      vouchersRepository.findVoucherById.mockResolvedValue({
+        ...mockVoucher,
+        status: 'delivered',
+      });
+
+      await expect(
+        service.rejectVoucher(
+          'voucher-1',
+          { notes: 'tarde' },
+          'admin-1',
+          'Admin Uno',
+        ),
+      ).rejects.toThrow(ConflictException);
+
+      expect(vouchersRepository.rejectVoucher).not.toHaveBeenCalled();
+    });
   });
 
   describe('bulkApproveVouchers', () => {
@@ -289,6 +340,34 @@ describe('VouchersService', () => {
       expect(result.failed).toEqual([
         { id: 'voucher-2', error: 'no encontrado' },
       ]);
+    });
+
+    it('reporta como fallido un vale del lote que ya no está pendiente', async () => {
+      vouchersRepository.findVoucherById.mockImplementation((id) =>
+        Promise.resolve(
+          id === 'voucher-2'
+            ? { ...mockVoucher, id, status: 'approved' }
+            : { ...mockVoucher, id, status: 'pending' },
+        ),
+      );
+      vouchersRepository.approveVoucher.mockResolvedValue({
+        ...mockVoucher,
+        status: 'approved',
+      });
+
+      const result = await service.bulkApproveVouchers(
+        ['voucher-1', 'voucher-2'],
+        25000,
+        'admin-1',
+        'ok',
+        'Admin Uno',
+      );
+
+      expect(result.succeeded).toEqual(['voucher-1']);
+      expect(result.failed).toHaveLength(1);
+      expect(result.failed[0].id).toBe('voucher-2');
+      expect(result.failed[0].error).toContain('aprobar');
+      expect(vouchersRepository.approveVoucher).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -315,6 +394,10 @@ describe('VouchersService', () => {
     const deliveredVoucher = { ...mockVoucher, status: 'delivered' };
 
     it('marca como entregado y notifica al usuario', async () => {
+      vouchersRepository.findVoucherById.mockResolvedValue({
+        ...mockVoucher,
+        status: 'approved',
+      });
       vouchersRepository.markAsDelivered.mockResolvedValue(deliveredVoucher);
 
       const result = await service.markAsDelivered(
@@ -345,6 +428,19 @@ describe('VouchersService', () => {
       );
       expect(cacheManager.del).toHaveBeenCalled();
       expect(result).toEqual(deliveredVoucher);
+    });
+
+    it('rechaza marcar como entregado un vale que sigue pendiente', async () => {
+      vouchersRepository.findVoucherById.mockResolvedValue({
+        ...mockVoucher,
+        status: 'pending',
+      });
+
+      await expect(
+        service.markAsDelivered('voucher-1', 'admin-1', 'Admin Uno'),
+      ).rejects.toThrow(ConflictException);
+
+      expect(vouchersRepository.markAsDelivered).not.toHaveBeenCalled();
     });
   });
 
